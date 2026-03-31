@@ -19,18 +19,29 @@ struct GreetArgs<'a> {
 pub fn App() -> View {
     let name = create_signal(String::new());
     let greet_msg = create_signal(String::new());
+    let request_msg = create_signal(String::new());
 
     let greet = move |e: SubmitEvent| {
         e.prevent_default();
         spawn_local_scoped(async move {
             // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
             let args = serde_wasm_bindgen::to_value(&GreetArgs {
-				name: &name.get_clone()
-			})
-			.unwrap();
+                name: &name.get_clone(),
+            })
+            .unwrap();
             let new_msg = invoke("greet", args).await;
             greet_msg.set(new_msg.as_string().unwrap());
         })
+    };
+
+    let request = move |e: SubmitEvent| {
+        e.prevent_default();
+        spawn_local_scoped(async move {
+            let msg = invoke("request", JsValue::NULL).await;
+            request_msg.set(msg.as_string().unwrap());
+            let args = serde_wasm_bindgen::to_value("ws://26.186.139.15:3000/ws").unwrap();
+            invoke("start_websocket_listener", args).await;
+        });
     };
 
     view! {
@@ -59,6 +70,16 @@ pub fn App() -> View {
             }
             p {
                 (greet_msg)
+            }
+
+            form(class="row", on:submit=request) {
+                input(id="request-input", bind:value=name, placeholder="Enter a name...")
+                button(r#type="submit") {
+                    "Request"
+                }
+            }
+            p {
+                (request_msg)
             }
         }
     }
