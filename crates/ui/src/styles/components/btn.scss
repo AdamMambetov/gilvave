@@ -1,0 +1,14 @@
+.btn {
+    padding: 1em 3em;
+    background-color: orange;
+    color: #222;
+    border: 2px solid currentColor;
+    cursor: pointer;
+    transition: 0.2s;
+
+
+    &:active {
+        scale: 0.9;
+        background: rgb(182, 121, 9);
+    }
+}

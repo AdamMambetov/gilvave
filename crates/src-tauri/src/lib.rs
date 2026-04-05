@@ -1,10 +1,11 @@
-use std::sync::Arc;
 
+use std::sync::Arc;
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use tauri::{Manager, State};
 use tokio::{net::TcpStream, sync::Mutex};
 use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
+use gilvave_http::user_api;
 
 #[derive(Clone)]
 struct AppState {
@@ -14,12 +15,6 @@ struct AppState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct A1 {
     op: String,
-}
-
-#[tauri::command]
-fn greet(name: &str) -> String {
-    println!("greet debug print");
-    format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
 #[tauri::command]
@@ -87,7 +82,7 @@ pub fn run() {
         .plugin(tauri_plugin_websocket::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, request])
+        .invoke_handler(tauri::generate_handler![request, user_api::register])
         .setup(|app| {
             let app_handle = app.handle().clone();
 

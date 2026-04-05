@@ -1,0 +1,45 @@
+{
+    "folders": [
+        {
+            "name": "CRATES",
+            "path": "crates",
+        },
+        {
+            "name": "🎨 PUBLIC-ASSETS",
+            "path": "crates/ui/public",
+        },
+        {
+            "name": "🧱 COMPONENTS",
+            "path": "crates/ui/src/components",
+        },
+        {
+            "name": "⚙️ CONFIG-FILES",
+            "path": ".",
+        },
+    ],
+    "settings": {
+        // Терминал всегда в корне
+        "terminal.integrated.cwd": "${workspaceFolder}",
+        // Не восстанавливать старые терминалы
+        "terminal.integrated.enablePersistentSessions": false,
+        // Исключаем только служебные папки и файлы
+        "files.exclude": {
+            ".vscode": true,
+            "target": true,
+            "*/**/dist": true,
+            "*/**/public": true,
+            "*/**/gen": true,
+            "crates": true,
+            "*.lock": true
+            // "/components": true,
+            // "/public": true,
+            // "/src": true,
+            // "/.git": true, // Скрыть git (обычно и так скрыт)
+        },
+        // Настройки поиска
+        "search.exclude": {
+            "/node_modules": true,
+            "**/.next": true
+        }
+    }
+}

@@ -1,0 +1,9 @@
+[package]
+name = "gilvave-core"
+version = "0.1.0"
+edition = "2021"
+description = "A Tauri App"
+authors = ["you"]
+
+[dependencies]
+serde.workspace = true
