@@ -41,5 +41,16 @@
             "/node_modules": true,
             "**/.next": true
         }
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "My Task",
+                "command": "trunk serve --config ui/Trunk.toml",
+                "type": "shell",
+                "group": "build"
+            }
+        ]
     }
 }

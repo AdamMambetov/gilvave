@@ -14,3 +14,4 @@ console_error_panic_hook = "0.1.7"
 serde.workspace = true
 
 gilvave-core = { path = "../core" }
+regex = "1.12.3"
