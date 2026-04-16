@@ -1,0 +1,46 @@
+@use '../common/variables' as *;
+
+.submit-btn {
+    width: 100%;
+    padding: $padding-btn;
+    background: linear-gradient(135deg, $color-primary 0%, $color-primary-end 100%);
+    color: $color-text-white;
+    border: none;
+    border-radius: $radius-btn;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-submit-hover;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.social-btn {
+    flex: 1;
+    padding: $padding-social-btn;
+    border: 2px solid $color-border;
+    border-radius: $radius-btn;
+    background: $color-bg-social;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    transition: $transition-base;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: $color-text-social;
+
+    &:hover {
+        background: $color-border;
+        border-color: $color-primary;
+        color: $color-text-white;
+    }
+}

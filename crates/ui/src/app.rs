@@ -1,10 +1,8 @@
-use crate::components::features::login_form::LoginForm;
-use crate::components::features::register_form::RegisterForm;
-use crate::components::ui::tab_button::TabButton;
-
-use gilvave_core::dto::user::{RegisterRequest, RegisterResponse};
 use sycamore::prelude::*;
 use wasm_bindgen::prelude::*;
+
+use crate::components::templates::auth_form::AuthForm;
+// use gilvave_core::dto::user::{RegisterRequest, RegisterResponse};
 
 #[wasm_bindgen]
 extern "C" {
@@ -12,31 +10,12 @@ extern "C" {
     async fn invoke(cmd: &str, args: JsValue) -> JsValue;
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct LoginMode(Signal<bool>);
-
-impl LoginMode {
-    pub fn is_login(self) -> bool {
-        self.0.get()
-    }
-
-    pub fn toggle(self) {
-        self.0.set(!self.0.get());
-    }
-}
-
 #[component]
 pub fn App() -> View {
     // let name = create_signal(String::new());
     // let password = create_signal(String::new());
     // let request_msg = create_signal(String::new());
-    let login_mode = LoginMode(create_signal(true));
-    provide_context(login_mode);
-
-    let switch_form = move || {
-        use_context::<LoginMode>().toggle();
-    };
-
+    //
     // let request = move |e: SubmitEvent| {
     //     // не сбрасываем перезагрузку страницы
     //     e.prevent_default();
@@ -46,7 +25,7 @@ pub fn App() -> View {
     //             password: password.get_clone(),
     //         })
     //         .unwrap();
-
+    //
     //         let msg = invoke("register", args).await;
     //         console_log!("{:?}", msg);
     //         let res = serde_wasm_bindgen::from_value::<RegisterResponse>(msg).unwrap();
@@ -61,21 +40,7 @@ pub fn App() -> View {
 
     view! {
         main(class="container") {
-            div(class="container") {
-                div(class="form-header") {
-                    TabButton(
-                        label="Вход".to_string(),
-                        on_click=Box::new(move || if !login_mode.is_login() { switch_form() } ),
-                        is_active=Box::new(move || login_mode.is_login()))
-                    TabButton(
-                        label="Регистрация".to_string(),
-                        on_click=Box::new(move || if login_mode.is_login() { switch_form() } ),
-                        is_active=Box::new(move || !login_mode.is_login()))
-                }
-
-                LoginForm()
-                RegisterForm()
-            }
+            AuthForm()
         }
     }
 }

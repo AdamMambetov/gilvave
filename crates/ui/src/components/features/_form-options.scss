@@ -1,0 +1,20 @@
+@use '../common/variables' as *;
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: $font-size-sm;
+}
+
+.forgot-link {
+    color: $color-primary;
+    text-decoration: none;
+    transition: color 0.3s;
+
+    &:hover {
+        color: $color-primary-end;
+        text-decoration: underline;
+    }
+}

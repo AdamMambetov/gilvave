@@ -1,0 +1,38 @@
+@use '../common/variables' as *;
+
+.form-header {
+    display: flex;
+    border-bottom: 2px solid $color-border-header;
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: $padding-tab;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: $transition-base;
+    color: $color-text-tab;
+    position: relative;
+
+    &.active {
+        color: $color-primary;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, $color-primary, $color-primary-end);
+        }
+    }
+
+    &:hover:not(.active) {
+        background: $color-border-header;
+        color: #ccc;
+    }
+}

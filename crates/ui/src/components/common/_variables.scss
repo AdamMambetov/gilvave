@@ -1,0 +1,63 @@
+// Colors
+$color-bg-page:         #0f0c29;
+$color-bg-page-mid:     #302b63;
+$color-bg-page-end:     #24243e;
+
+$color-bg-container:    #1e1e2e;
+$color-bg-input:        #2a2a3e;
+$color-bg-input-focus:  #2f2f44;
+$color-bg-social:       #2a2a3e;
+
+$color-border:          #3a3a4e;
+$color-border-header:   #2a2a3e;
+$color-border-subtle:   rgba(255, 255, 255, 0.1);
+
+$color-primary:         #a78bfa;
+$color-primary-end:     #c084fc;
+
+$color-text-heading:    #eee;
+$color-text-label:      #aaa;
+$color-text-muted:      #888;
+$color-text-dim:        #666;
+$color-text-social:     #ccc;
+$color-text-white:      #fff;
+$color-text-tab:        #888;
+
+$color-error:           #f87171;
+
+// Typography
+$font-family:           'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+$font-size-base:        16px;
+$font-size-sm:          14px;
+$font-size-xs:          12px;
+$font-size-lg:          18px;
+$font-size-xl:          28px;
+
+$font-weight-medium:    500;
+$font-weight-semibold:  600;
+
+// Border radius
+$radius-container:      20px;
+$radius-input:          12px;
+$radius-btn:            12px;
+
+// Spacing
+$padding-panel:         40px;
+$padding-panel-sm:      30px 20px;
+$padding-tab:           18px;
+$padding-input:         14px 16px;
+$padding-btn:           14px;
+$padding-social-btn:    12px;
+
+// Shadows
+$shadow-container:      0 20px 60px rgba(0, 0, 0, 0.5);
+$shadow-input-focus:    0 0 0 3px rgba(167, 139, 250, 0.2);
+$shadow-submit-hover:   0 5px 20px rgba(167, 139, 250, 0.4);
+
+// Transitions
+$transition-base:       all 0.3s ease;
+$transition-fast:       all 0.2s;
+
+// Breakpoints
+$breakpoint-sm:         480px;

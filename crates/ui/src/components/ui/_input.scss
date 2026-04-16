@@ -1,0 +1,52 @@
+@use '../common/variables' as *;
+
+.input-group {
+    margin-bottom: 20px;
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: $color-text-label;
+        font-weight: $font-weight-medium;
+        font-size: $font-size-sm;
+    }
+
+    input {
+        width: 100%;
+        padding: $padding-input;
+        background: $color-bg-input;
+        border: 2px solid $color-border;
+        border-radius: $radius-input;
+        font-size: $font-size-base;
+        color: $color-text-heading;
+        transition: $transition-base;
+        outline: none;
+
+        &:focus {
+            border-color: $color-primary;
+            box-shadow: $shadow-input-focus;
+            background: $color-bg-input-focus;
+        }
+
+        &::placeholder {
+            color: $color-text-dim;
+        }
+    }
+
+    &.error {
+        input {
+            border-color: $color-error;
+        }
+
+        .error-message {
+            display: block;
+        }
+    }
+}
+
+.error-message {
+    color: $color-error;
+    font-size: $font-size-xs;
+    margin-top: 5px;
+    display: none;
+}

@@ -1,0 +1,26 @@
+@use '../common/variables' as *;
+
+.form-panel {
+    padding: $padding-panel;
+    display: none;
+    animation: fadeIn 0.4s ease;
+
+    &.active {
+        display: block;
+    }
+
+    @media (max-width: $breakpoint-sm) {
+        padding: $padding-panel-sm;
+    }
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: $color-text-heading;
+    font-size: $font-size-xl;
+
+    @media (max-width: $breakpoint-sm) {
+        font-size: 24px;
+    }
+}

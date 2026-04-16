@@ -1,0 +1,11 @@
+@use '../common/variables' as *;
+
+body {
+    font-family: $font-family;
+    background: linear-gradient(135deg, $color-bg-page 0%, $color-bg-page-mid 50%, $color-bg-page-end 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}

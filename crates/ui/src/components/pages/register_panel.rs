@@ -1,16 +1,18 @@
-use std::rc::Rc;
 use sycamore::{prelude::*, web::events::SubmitEvent};
 
-use crate::app::LoginMode;
+use crate::components::{
+    common::class_name,
+    features::social_buttons::SocialButtons,
+    ui::{divider::Divider, input_group::InputGroup, submit_button::SubmitButton},
+};
 
 #[derive(Props)]
 pub struct RegisterFormProps {
-    is_inactive: Rc<Signal<bool>>,
+    is_active: Box<dyn Fn() -> bool>,
 }
 
 #[component]
-pub fn RegisterForm() -> View {
-    let login_mode = use_context::<LoginMode>();
+pub fn RegisterPanel(props: RegisterFormProps) -> View {
     let name = create_signal(String::new());
     let email = create_signal(String::new());
     let password = create_signal(String::new());
@@ -110,52 +112,44 @@ pub fn RegisterForm() -> View {
     // };
 
     view! {
-        div(class=if !login_mode.is_login() { "form-panel active" } else { "form-panel" }) {
+        div(class=class_name("form-panel", &props.is_active, "active", "")) {
             h2 { "Создать аккаунт" }
             form(on:submit=on_submit) {
-                div(class=if name_error.get() { "input-group error" } else { "input-group" }) {
-                    label { "Имя пользователя" }
-                    input(
-                        r#type="text",
-                        placeholder="Иван Иванов",
-                        bind:value=name,
-                        // on:input=update_name,
-                    )
-                    div(class="error-message") { "Введите имя (минимум 2 символа)" }
-                }
+                InputGroup(
+                    label="Имя пользователя".to_string(),
+                    r#type="text".to_string(),
+                    placeholder="Ислам Кертов".to_string(),
+                    bind_value=name,
+                    error_condition=Box::new(move || name_error.get()),
+                    error_message="Введите имя (минимум 2 символа)".to_string(),
+                )
 
-                div(class=if email_error.get() { "input-group error" } else { "input-group" }) {
-                    label { "Email" }
-                    input(
-                        r#type="email",
-                        placeholder="example@mail.com",
-                        bind:value=email,
-                        // on:input=update_email,
-                    )
-                    div(class="error-message") { "Введите корректный email" }
-                }
+                InputGroup(
+                    label="Email".to_string(),
+                    r#type="email".to_string(),
+                    placeholder="example@mail.com".to_string(),
+                    bind_value=email,
+                    error_condition=Box::new(move || email_error.get()),
+                    error_message="Введите корректный email".to_string(),
+                )
 
-                div(class=if password_error.get() { "input-group error" } else { "input-group" }) {
-                    label { "Пароль" }
-                    input(
-                        r#type="password",
-                        placeholder="••••••••",
-                        bind:value=password,
-                        // on:input=update_password,
-                    )
-                    div(class="error-message") { "Пароль должен быть не менее 6 символов" }
-                }
+                InputGroup(
+                    label="Пароль".to_string(),
+                    r#type="password".to_string(),
+                    placeholder="••••••••".to_string(),
+                    bind_value=password,
+                    error_condition=Box::new(move || password_error.get()),
+                    error_message="Пароль должен быть не менее 6 символов".to_string(),
+                )
 
-                div(class=if confirm_error.get() { "input-group error" } else { "input-group" }) {
-                    label { "Подтверждение пароля" }
-                    input(
-                        r#type="password",
-                        placeholder="••••••••",
-                        bind:value=confirm_password,
-                        // on:input=update_confirm,
-                    )
-                    div(class="error-message") { "Пароли не совпадают" }
-                }
+                InputGroup(
+                    label="Подтверждение пароля".to_string(),
+                    r#type="password".to_string(),
+                    placeholder="••••••••".to_string(),
+                    bind_value=confirm_password,
+                    error_condition=Box::new(move || confirm_error.get()),
+                    error_message="Пароли не совпадают".to_string(),
+                )
 
                 div(class="form-options") {
                     label(class="checkbox") {
@@ -169,32 +163,11 @@ pub fn RegisterForm() -> View {
                     }
                 }
 
-                button(r#type="submit", class="submit-btn") { "Зарегистрироваться" }
+                SubmitButton(label="Зарегистрироваться".to_string())
 
-                div(class="divider") {
-                    span { "или зарегистрируйтесь через" }
-                }
+                Divider(text="или зарегистрируйтесь через".to_string())
 
-                div(class="social-buttons") {
-                    button(
-                        r#type="button",
-                        class="social-btn",
-                        on:click=|_| {
-                            window()
-                                .alert_with_message("🔐 Регистрация через Google (демо-режим)")
-                                .unwrap();
-                        },
-                    ) { "Google" }
-                    button(
-                        r#type="button",
-                        class="social-btn",
-                        on:click=|_| {
-                            window()
-                                .alert_with_message("🔐 Регистрация через GitHub (демо-режим)")
-                                .unwrap();
-                        },
-                    ) { "GitHub" }
-                }
+                SocialButtons()
             }
         }
     }

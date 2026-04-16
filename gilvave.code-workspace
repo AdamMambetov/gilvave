@@ -30,8 +30,8 @@
             "*/**/public": true,
             "*/**/gen": true,
             "crates": true,
-            "*.lock": true
-            // "/components": true,
+            "*.lock": true,
+            "*/**/components": true,
             // "/public": true,
             // "/src": true,
             // "/.git": true, // Скрыть git (обычно и так скрыт)

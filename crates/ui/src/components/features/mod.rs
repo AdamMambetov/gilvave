@@ -1,2 +1,3 @@
-pub mod login_form;
-pub mod register_form;
+pub mod form_options;
+pub mod form_tabs;
+pub mod social_buttons;

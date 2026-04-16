@@ -1,0 +1,16 @@
+// ─── Entry point ────────────────────────────────────────────────────────────
+// Import order follows the ITCSS / layered architecture visible in the sidebar:
+//  common    → variables, reset, animations  (settings & tools)
+//  layout    → body, container               (structure)
+//  ui        → inputs, buttons, …            (generic components)
+//  features  → tabs, social, form-options    (feature components)
+//  pages     → auth                          (page-specific styles)
+//  templates → auth-form                     (assembled templates)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@use 'common/index' as common;
+@use 'layout/index' as layout;
+@use 'ui/index' as ui;
+@use 'features/index' as features;
+@use 'pages/index' as pages;
+@use 'templates/index' as templates;

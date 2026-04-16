@@ -1,0 +1,11 @@
+@use '../common/variables' as *;
+
+.container {
+    background: $color-bg-container;
+    border-radius: $radius-container;
+    box-shadow: $shadow-container;
+    width: 100%;
+    max-width: 450px;
+    overflow: hidden;
+    border: 1px solid $color-border-subtle;
+}
