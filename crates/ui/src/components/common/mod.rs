@@ -13,22 +13,6 @@ impl LoginMode {
     }
 }
 
-pub fn class_name(
-    class: &str,
-    condition: &MaybeDyn<bool>,
-    if_class: &str,
-    else_class: &str,
-) -> String {
-    format!(
-        "{class} {}",
-        if condition.get() {
-            if_class
-        } else {
-            else_class
-        }
-    )
-}
-
 /// Правило добавления класса
 pub enum ClassRule {
     /// Всегда включать этот класс
@@ -52,7 +36,16 @@ impl From<(&'static str, MaybeDyn<bool>)> for ClassRule {
     }
 }
 
+impl From<(MaybeDyn<bool>, &'static str, &'static str)> for ClassRule {
+    fn from(
+        (condition, if_class, else_class): (MaybeDyn<bool>, &'static str, &'static str),
+    ) -> Self {
+        ClassRule::Ternary(condition, if_class, else_class)
+    }
+}
+
 /// Создаёт реактивное замыкание для генерации классов.
+///
 /// Возвращает `impl Fn() -> String`, который Sycamore автоматически конвертирует в `StringAttribute`.
 pub fn classes(rules: Vec<ClassRule>) -> impl Fn() -> String {
     move || {

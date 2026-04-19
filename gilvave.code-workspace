@@ -46,7 +46,7 @@
         "version": "2.0.0",
         "tasks": [
             {
-                "label": "My Task",
+                "label": "Trunk Serve",
                 "command": "trunk serve --config ui/Trunk.toml",
                 "type": "shell",
                 "group": "build"

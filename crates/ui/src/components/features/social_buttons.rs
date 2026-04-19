@@ -15,6 +15,7 @@ pub fn SocialButtons() -> View {
                 GoogleIcon()
                 "Google"
             }
+
             SocialButton(
                 on:click=move |_|
                     window()

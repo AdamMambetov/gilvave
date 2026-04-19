@@ -1,5 +1,6 @@
 mod app;
 mod components;
+pub mod utils;
 
 use app::App;
 

@@ -1,6 +1,6 @@
 use sycamore::{prelude::*, web::events::SubmitEvent};
 
-use crate::components::common::class_name;
+use crate::components::common::classes;
 use crate::components::features::social_buttons::SocialButtons;
 use crate::components::ui::checkbox::Checkbox;
 use crate::components::ui::divider::Divider;
@@ -57,32 +57,19 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
         }
     };
 
-    // let update_email = move |event: web_sys::Event| {
-    //     let input: HtmlInput = event.target().unwrap().into();
-    //     email.set(input.value());
-    //     email_error.set(false);
-    // };
-
-    // let update_password = move |event: web_sys::Event| {
-    //     let input = event.target().unwrap().unchecked_into::<HtmlInputElement>();
-    //     password.set(input.value());
-    //     password_error.set(false);
-    // };
-
-    // let toggle_remember = move |event: web_sys::Event| {
-    //     let input = event.target().unwrap().unchecked_into::<HtmlInputElement>();
-    //     remember.set(input.checked());
-    // };
-
     view! {
-        div(class=class_name("form-panel", &props.is_active, "active", "")) {
+        div(
+            class=classes(vec![
+                "form-panel".into(),
+                ("active", props.is_active.clone()).into(),
+            ]),
+        ) {
             h2 { "Добро пожаловать!" }
             form(on:submit=on_submit) {
                 InputGroup(
                     r#type="text",
                     placeholder="adam@mail.com",
                     bind:value=email,
-                    // on:input=&update_email,
                     label="Email или телефон",
                     is_error=email_error.into(),
                     error_message="Введите email или номер телефона",
@@ -92,10 +79,8 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                     r#type="password",
                     placeholder="••••••••",
                     bind:value=password,
-                    // on:input=&update_password,
                     label="Пароль",
                     is_error=password_error.into(),
-                    // is_error=Box::new(move || password_error.get()),
                     error_message="Введите пароль",
                 )
 

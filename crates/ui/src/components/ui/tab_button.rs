@@ -1,6 +1,6 @@
 use sycamore::prelude::*;
 
-use crate::components::common::class_name;
+use crate::components::common::classes;
 
 #[component(inline_props)]
 pub fn TabButton(
@@ -10,7 +10,10 @@ pub fn TabButton(
 ) -> View {
     view! {
         button(
-            class=class_name("tab-btn", &is_active, "active", ""),
+            class=classes(vec![
+                "tab-btn".into(),
+                ("active", is_active.clone()).into(),
+            ]),
             ..attributes,
         ) {
             (children)

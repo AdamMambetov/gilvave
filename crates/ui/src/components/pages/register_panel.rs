@@ -1,13 +1,17 @@
 use std::collections::HashMap;
 
+use gilvave_core::dto::user::{RegisterRequest, RegisterResponse};
 use serde::Deserialize;
-use sycamore::{prelude::*, web::events::SubmitEvent};
+use sycamore::{futures::spawn_local_scoped, prelude::*, web::events::SubmitEvent};
 use validator::Validate;
 
-use crate::components::{
-    common::class_name,
-    features::social_buttons::SocialButtons,
-    ui::{divider::Divider, input_group::InputGroup, submit_button::SubmitButton},
+use crate::{
+    components::{
+        common::classes,
+        features::social_buttons::SocialButtons,
+        ui::{divider::Divider, input_group::InputGroup, submit_button::SubmitButton},
+    },
+    utils::invoke,
 };
 
 #[derive(Props)]
@@ -48,6 +52,7 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
     .into();
 
     let on_submit = move |event: SubmitEvent| {
+        // not reset page
         event.prevent_default();
 
         let data = RegisterData {
@@ -60,6 +65,31 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
         match data.validate() {
             Ok(_) => {
                 form_map.values_mut().for_each(|signal| signal.set(false));
+
+                spawn_local_scoped(async move {
+                    // let args = serde_wasm_bindgen::to_value("ws://26.186.139.15:3000/ws").unwrap();
+                    // invoke("start_websocket_listener", args).await;
+
+                    let args = serde_wasm_bindgen::to_value(&RegisterRequest {
+                        username: data.name.to_string(),
+                        email: data.email.to_string(),
+                        password: data.password.to_string(),
+                    })
+                    .unwrap();
+                    let value = invoke("register", args).await;
+                    let register_response =
+                        serde_wasm_bindgen::from_value::<RegisterResponse>(value).unwrap();
+
+                    console_log!(
+                        r#"register response:
+                        id - {}
+                        username - {}
+                        email - {}"#,
+                        register_response.id,
+                        register_response.username,
+                        register_response.email,
+                    );
+                });
             }
             Err(errors) => {
                 form_map.values_mut().for_each(|signal| signal.set(false));
@@ -71,7 +101,12 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
     };
 
     view! {
-        div(class=class_name("form-panel", &props.is_active, "active", "")) {
+        div(
+            class=classes(vec![
+                "form-panel".into(),
+                ("active", props.is_active.clone()).into(),
+            ]),
+        ) {
             h2 { "Создать аккаунт" }
             form(on:submit=on_submit) {
                 InputGroup(
@@ -79,7 +114,6 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                     placeholder="Ислам",
                     bind:value=name,
                     label="Имя пользователя",
-                    // is_error=Box::new(move || name_error.get()),
                     is_error=name_error.into(),
                     error_message="Введите имя (минимум 2 символа)",
                 )
@@ -89,7 +123,6 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                     placeholder="example@mail.com",
                     bind:value=email,
                     label="Email",
-                    // is_error=Box::new(move || email_error.get()),
                     is_error=email_error.into(),
                     error_message="Введите корректный email",
                 )
@@ -99,7 +132,6 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                     placeholder="••••••••",
                     bind:value=password,
                     label="Пароль",
-                    // is_error=Box::new(move || password_error.get()),
                     is_error=password_error.into(),
                     error_message="Пароль должен быть не менее 6 символов",
                 )
@@ -110,11 +142,12 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                     bind:value=confirm_password,
                     label="Подтверждение пароля",
                     is_error=confirm_error.into(),
-                    // is_error=Box::new(move || confirm_error.get()),
                     error_message="Пароли не совпадают",
                 )
 
-                a(href="#", class="forgot-link") { "Нажимая кнопку «Зарегистрироваться», вы соглашаетесь с Условиями использования Gilvave" }
+                a(href="#", class="forgot-link") {
+                    "Нажимая кнопку «Зарегистрироваться», вы соглашаетесь с Условиями использования Gilvave"
+                }
 
                 SubmitButton(on:click=move |_| console_log!("{name}")) { "Зарегистрироваться" }
 
