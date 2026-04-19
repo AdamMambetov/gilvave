@@ -7,21 +7,23 @@ pub fn SocialButtons() -> View {
     view! {
         div(class="social-buttons") {
             SocialButton(
-                label="Google".to_string(),
-                icon=GoogleIcon(),
-                on_click=Box::new(move ||
+                on:click=move |_|
                     window()
                         .alert_with_message("🔐 Регистрация через Google (демо-режим)")
-                        .unwrap() ),
-            )
+                        .unwrap(),
+            ) {
+                GoogleIcon()
+                "Google"
+            }
             SocialButton(
-                label="GitHub".to_string(),
-                icon=GitHubIcon(),
-                on_click=Box::new(move ||
+                on:click=move |_|
                     window()
                         .alert_with_message("🔐 Регистрация через GitHub (демо-режим)")
-                        .unwrap() ),
-            )
+                        .unwrap(),
+            ) {
+                GitHubIcon()
+                "GitHub"
+            }
         }
     }
 }

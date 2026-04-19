@@ -1,15 +1,13 @@
 use sycamore::prelude::*;
 
-#[derive(Props)]
-pub struct SubmitButtonProps {
-    label: String,
-}
-
-#[component]
-pub fn SubmitButton(props: SubmitButtonProps) -> View {
+#[component(inline_props)]
+pub fn SubmitButton(
+    #[prop(attributes(html, button))] attributes: Attributes,
+    children: Children,
+) -> View {
     view! {
-        button(class="submit-btn", r#type="submit") {
-            (props.label)
+        button(class="submit-btn", r#type="submit", ..attributes) {
+            (children)
         }
     }
 }

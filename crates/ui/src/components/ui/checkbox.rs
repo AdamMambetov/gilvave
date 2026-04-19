@@ -1,21 +1,17 @@
 use sycamore::prelude::*;
 
-#[derive(Props)]
-pub struct CheckboxProps {
-    label: String,
-    bind_checked: Signal<bool>,
-}
-
-#[component]
-pub fn Checkbox(props: CheckboxProps) -> View {
+#[component(inline_props)]
+pub fn Checkbox(
+    #[prop(attributes(html, input))] attributes: Attributes,
+    children: Children,
+) -> View {
     view! {
         label(class="checkbox") {
             input(
                 r#type="checkbox",
-                bind:checked=props.bind_checked,
-                // on:input=toggle_remember,
+                ..attributes,
             )
-            (props.label)
+            (children)
         }
     }
 }

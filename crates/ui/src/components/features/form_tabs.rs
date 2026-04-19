@@ -13,13 +13,11 @@ pub fn FormTabs() -> View {
     view! {
         div(class="form-header") {
             TabButton(
-                label="Вход".to_string(),
-                on_click=Box::new(move || if !login_mode.is_login() { switch_form() } ),
-                is_active=Box::new(move || login_mode.is_login()))
+                on:click=move |_| if !login_mode.is_login() { switch_form() },
+                is_active=(move || login_mode.is_login()).into()) { "Вход" }
             TabButton(
-                label="Регистрация".to_string(),
-                on_click=Box::new(move || if login_mode.is_login() { switch_form() } ),
-                is_active=Box::new(move || !login_mode.is_login()))
+                on:click=move |_| if login_mode.is_login() { switch_form() },
+                is_active=(move || !login_mode.is_login()).into()) { "Регистрация" }
         }
     }
 }

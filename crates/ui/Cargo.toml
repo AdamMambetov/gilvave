@@ -15,3 +15,4 @@ serde.workspace = true
 
 gilvave-core = { path = "../core" }
 regex = "1.12.3"
+validator = { version = "0.20.0", features = ["derive"] }

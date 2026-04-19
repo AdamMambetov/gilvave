@@ -1,15 +1,15 @@
 use sycamore::{prelude::*, web::events::SubmitEvent};
 
 use crate::components::common::class_name;
-use crate::components::features::form_options::FormOptions;
 use crate::components::features::social_buttons::SocialButtons;
+use crate::components::ui::checkbox::Checkbox;
 use crate::components::ui::divider::Divider;
 use crate::components::ui::input_group::InputGroup;
 use crate::components::ui::submit_button::SubmitButton;
 
 #[derive(Props)]
 pub struct LoginFormProps {
-    is_active: Box<dyn Fn() -> bool>,
+    is_active: MaybeDyn<bool>,
 }
 
 #[component]
@@ -79,30 +79,36 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
             h2 { "Добро пожаловать!" }
             form(on:submit=on_submit) {
                 InputGroup(
-                    label="Email или телефон".to_string(),
-                    r#type="text".to_string(),
-                    placeholder="adam@mail.com".to_string(),
-                    bind_value=email,
-                    // on_input=&update_email,
-                    error_condition=Box::new(move || email_error.get()),
-                    error_message="Введите email или номер телефона".to_string(),
+                    r#type="text",
+                    placeholder="adam@mail.com",
+                    bind:value=email,
+                    // on:input=&update_email,
+                    label="Email или телефон",
+                    is_error=email_error.into(),
+                    error_message="Введите email или номер телефона",
                 )
 
                 InputGroup(
-                    label="Пароль".to_string(),
-                    r#type="password".to_string(),
-                    placeholder="••••••••".to_string(),
-                    bind_value=password,
-                    // on_input=&update_password,
-                    error_condition=Box::new(move || password_error.get()),
-                    error_message="Введите пароль".to_string(),
+                    r#type="password",
+                    placeholder="••••••••",
+                    bind:value=password,
+                    // on:input=&update_password,
+                    label="Пароль",
+                    is_error=password_error.into(),
+                    // is_error=Box::new(move || password_error.get()),
+                    error_message="Введите пароль",
                 )
 
-                FormOptions(bind_checked=remember)
+                div(class="form-options") {
+                    Checkbox(bind:checked=remember) {
+                        "Запомнить меня"
+                    }
+                    a(href="#", class="forgot-link") { "Забыли пароль?" }
+                }
 
-                SubmitButton(label="Войти".to_string())
+                SubmitButton() { ("Войти") }
 
-                Divider(text="или войдите через".to_string())
+                Divider() { ("или войдите через") }
 
                 SocialButtons()
             }

@@ -1,30 +1,28 @@
 use sycamore::prelude::*;
 
-use crate::components::common::class_name;
+use crate::components::common::{class_name, classes};
 
-#[derive(Props)]
-pub struct InputGroupProps {
-    label: String,
-    r#type: String,
-    placeholder: String,
-    bind_value: Signal<String>,
-    error_condition: Box<dyn Fn() -> bool>,
-    error_message: String,
-    // on_input: Box<dyn Fn(Event)>,
-}
-
-#[component]
-pub fn InputGroup(props: InputGroupProps) -> View {
+#[component(inline_props)]
+pub fn InputGroup(
+    #[prop(attributes(html, input))] attributes: Attributes,
+    label: Option<&'static str>,
+    is_error: MaybeDyn<bool>,
+    error_message: Option<&'static str>,
+) -> View {
     view! {
-        div(class=class_name("input-group", props.error_condition.as_ref(), "error", "")) {
-            label { (props.label) }
-            input(
-                r#type=props.r#type,
-                placeholder=props.placeholder,
-                bind:value=props.bind_value,
-                // on:input=props.on_input,
-            )
-            div(class="error-message") { (props.error_message) }
+        // div(class=class_name("input-group", &is_error, "error", "")) {
+        div(class=classes(vec![
+            "input-group".into(),
+            ("error", is_error.clone()).into()
+        ])) {
+        // div(class=|| {
+        //     let mut c = vec!["input-group"];
+        //     if is_error.get() { c.push("error"); }
+        //     c.join(" ")
+        // }) {
+            label { (label.unwrap_or("")) }
+            input(..attributes)
+            div(class="error-message") { (error_message.unwrap_or("")) }
         }
     }
 }

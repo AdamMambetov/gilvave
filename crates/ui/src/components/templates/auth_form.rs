@@ -14,8 +14,8 @@ pub fn AuthForm() -> View {
     view! {
         div(class="container") {
             FormTabs()
-            LoginPanel(is_active=Box::new(move || login_mode.is_login()))
-            RegisterPanel(is_active=Box::new(move || !login_mode.is_login()))
+            LoginPanel(is_active=(move || login_mode.is_login()).into())
+            RegisterPanel(is_active=(move || !login_mode.is_login()).into())
         }
     }
 }

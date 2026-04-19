@@ -1,20 +1,19 @@
 use sycamore::prelude::*;
 
-#[derive(Props)]
-pub struct TabButtonProps {
-    label: String,
-    on_click: Box<dyn FnMut()>,
-    is_active: Box<dyn Fn() -> bool>,
-}
+use crate::components::common::class_name;
 
-#[component]
-pub fn TabButton(mut props: TabButtonProps) -> View {
+#[component(inline_props)]
+pub fn TabButton(
+    #[prop(attributes(html, button))] attributes: Attributes,
+    children: Children,
+    is_active: MaybeDyn<bool>,
+) -> View {
     view! {
         button(
-            class=if (*props.is_active)() { "tab-btn active" } else { "tab-btn" },
-            on:click=move |_| (*props.on_click)(),
+            class=class_name("tab-btn", &is_active, "active", ""),
+            ..attributes,
         ) {
-            (props.label)
+            (children)
         }
     }
 }
