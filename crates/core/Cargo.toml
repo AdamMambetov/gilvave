@@ -7,3 +7,4 @@ authors = ["you"]
 
 [dependencies]
 serde.workspace = true
+keyring.workspace = true

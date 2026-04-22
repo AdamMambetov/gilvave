@@ -1,4 +1,8 @@
+use gilvave_core::dto::user::{AuthTokensResponse, LoginRequest, ProfileResponse};
+use sycamore::futures::spawn_local_scoped;
+use sycamore::web::rt::web_sys::console;
 use sycamore::{prelude::*, web::events::SubmitEvent};
+use wasm_bindgen::JsValue;
 
 use crate::components::common::classes;
 use crate::components::features::social_buttons::SocialButtons;
@@ -6,6 +10,7 @@ use crate::components::ui::checkbox::Checkbox;
 use crate::components::ui::divider::Divider;
 use crate::components::ui::input_group::InputGroup;
 use crate::components::ui::submit_button::SubmitButton;
+use crate::utils::invoke;
 
 #[derive(Props)]
 pub struct LoginFormProps {
@@ -45,9 +50,34 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                 email.get_clone(),
                 password.get_clone()
             );
-            window()
-                .alert_with_message("✅ Выполняется вход... (демо-режим)")
+            // window()
+            //     .alert_with_message("✅ Выполняется вход... (демо-режим)")
+            //     .unwrap();
+
+            spawn_local_scoped(async move {
+                let args = serde_wasm_bindgen::to_value(&LoginRequest {
+                    email: email.to_string(),
+                    password: password.to_string(),
+                })
                 .unwrap();
+                let value = invoke("login", args).await;
+                let login_response =
+                    serde_wasm_bindgen::from_value::<AuthTokensResponse>(value).unwrap();
+
+                console_log!(
+                    r#"login response:
+                    access_token - {}
+                    refresh_token - {}"#,
+                    login_response.access_token,
+                    login_response.refresh_token,
+                );
+
+                let value = invoke("get_profile", JsValue::NULL).await;
+                let profile_response =
+                    serde_wasm_bindgen::from_value::<ProfileResponse>(value).unwrap();
+
+                console_log!("{:?}", profile_response);
+            });
         } else {
             console_log!(
                 "error: email={}, password={}",
