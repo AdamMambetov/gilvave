@@ -1,0 +1,225 @@
+@use '../common/variables' as *;
+
+@keyframes homeExpand {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+// Fade in for content elements
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+// Smooth transition for chat messages
+.chat-message {
+    opacity: 0;
+    animation: slideIn 0.3s ease forwards;
+
+    &:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    &:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    &:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Server icons animation
+.server-icon {
+    opacity: 0;
+    animation: serverIconSlide 0.4s ease forwards;
+
+    &:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    &:nth-child(2) {
+        animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    &:nth-child(4) {
+        animation-delay: 0.25s;
+    }
+
+    &:nth-child(5) {
+        animation-delay: 0.3s;
+    }
+
+    &:nth-child(6) {
+        animation-delay: 0.35s;
+    }
+
+    &:nth-child(7) {
+        animation-delay: 0.4s;
+    }
+
+    &:nth-child(8) {
+        animation-delay: 0.45s;
+    }
+
+    &:nth-child(9) {
+        animation-delay: 0.5s;
+    }
+}
+
+@keyframes serverIconSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Channel list animation
+.channel-item {
+    opacity: 0;
+    animation: channelSlide 0.3s ease forwards;
+
+    &:nth-child(1) {
+        animation-delay: 0.5s;
+    }
+
+    &:nth-child(2) {
+        animation-delay: 0.55s;
+    }
+
+    &:nth-child(3) {
+        animation-delay: 0.6s;
+    }
+
+    &:nth-child(4) {
+        animation-delay: 0.65s;
+    }
+}
+
+@keyframes channelSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+// Member list animation
+.member-item {
+    opacity: 0;
+    animation: memberSlide 0.3s ease forwards;
+
+    &:nth-child(1) {
+        animation-delay: 0.55s;
+    }
+
+    &:nth-child(2) {
+        animation-delay: 0.6s;
+    }
+
+    &:nth-child(3) {
+        animation-delay: 0.65s;
+    }
+
+    &:nth-child(4) {
+        animation-delay: 0.7s;
+    }
+
+    &:nth-child(5) {
+        animation-delay: 0.75s;
+    }
+
+    &:nth-child(6) {
+        animation-delay: 0.8s;
+    }
+}
+
+@keyframes memberSlide {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+// Chat input animation
+.chat-input {
+    opacity: 0;
+    animation: inputFade 0.3s ease forwards 0.85s;
+
+    &:focus {
+        animation: inputFocus 0.3s ease forwards 0.85s;
+    }
+}
+
+@keyframes inputFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes inputFocus {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

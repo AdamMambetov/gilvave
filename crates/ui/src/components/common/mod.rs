@@ -1,15 +1,34 @@
 use sycamore::prelude::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub struct LoginMode(pub Signal<bool>);
+pub enum ActiveScreen {
+    Login,
+    Register,
+    Home,
+}
 
-impl LoginMode {
-    pub fn is_login(&self) -> bool {
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct ScreenWrapper(pub Signal<ActiveScreen>);
+
+impl ScreenWrapper {
+    pub fn get(&self) -> ActiveScreen {
         self.0.get()
     }
 
-    pub fn toggle(&self) {
-        self.0.set(!self.0.get());
+    pub fn set(&self, value: ActiveScreen) {
+        self.0.set(value);
+    }
+
+    pub fn is_login(&self) -> bool {
+        self.0.get() == ActiveScreen::Login
+    }
+
+    pub fn is_register(&self) -> bool {
+        self.0.get() == ActiveScreen::Register
+    }
+
+    pub fn is_home(&self) -> bool {
+        self.0.get() == ActiveScreen::Home
     }
 }
 

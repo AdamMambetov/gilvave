@@ -42,6 +42,27 @@
             display: block;
         }
     }
+
+    .chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        background: #40444b;
+        border: none;
+        border-radius: 4px;
+        color: $color-text-heading;
+        font-size: 16px;
+        outline: none;
+        transition: $transition-base;
+
+        &:focus {
+            background: #42464d;
+            box-shadow: none;
+        }
+
+        &::placeholder {
+            color: #72767d;
+        }
+    }
 }
 
 .error-message {

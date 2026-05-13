@@ -1,10 +1,12 @@
 use gilvave_core::dto::user::{AuthTokensResponse, LoginRequest, ProfileResponse};
+use gilvave_core::error::CoreError;
 use sycamore::futures::spawn_local_scoped;
+use sycamore::prelude::*;
+use sycamore::web::events::SubmitEvent;
 use sycamore::web::rt::web_sys::console;
-use sycamore::{prelude::*, web::events::SubmitEvent};
 use wasm_bindgen::JsValue;
 
-use crate::components::common::classes;
+use crate::components::common::{ActiveScreen, ScreenWrapper, classes};
 use crate::components::features::social_buttons::SocialButtons;
 use crate::components::ui::checkbox::Checkbox;
 use crate::components::ui::divider::Divider;
@@ -50,9 +52,6 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                 email.get_clone(),
                 password.get_clone()
             );
-            // window()
-            //     .alert_with_message("✅ Выполняется вход... (демо-режим)")
-            //     .unwrap();
 
             spawn_local_scoped(async move {
                 let args = serde_wasm_bindgen::to_value(&LoginRequest {
@@ -61,22 +60,15 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                 })
                 .unwrap();
                 let value = invoke("login", args).await;
-                let login_response =
-                    serde_wasm_bindgen::from_value::<AuthTokensResponse>(value).unwrap();
-
-                console_log!(
-                    r#"login response:
-                    access_token - {}
-                    refresh_token - {}"#,
-                    login_response.access_token,
-                    login_response.refresh_token,
-                );
-
-                let value = invoke("get_profile", JsValue::NULL).await;
-                let profile_response =
-                    serde_wasm_bindgen::from_value::<ProfileResponse>(value).unwrap();
-
-                console_log!("{:?}", profile_response);
+                match serde_wasm_bindgen::from_value::<CoreError>(value).unwrap() {
+                    CoreError::Ok => {
+                        console_log!("Login Success");
+                        use_context::<ScreenWrapper>().set(ActiveScreen::Home);
+                    }
+                    _ => {
+                        console_log!("Login error")
+                    }
+                }
             });
         } else {
             console_log!(
@@ -121,9 +113,9 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                     a(href="#", class="forgot-link") { "Забыли пароль?" }
                 }
 
-                SubmitButton() { ("Войти") }
+                SubmitButton() { "Войти" }
 
-                Divider() { ("или войдите через") }
+                Divider() { "или войдите через" }
 
                 SocialButtons()
             }

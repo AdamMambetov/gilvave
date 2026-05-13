@@ -8,4 +8,9 @@
     max-width: 450px;
     overflow: hidden;
     border: 1px solid $color-border-subtle;
+    display: none;
+
+    &.active {
+        display: block;
+    }
 }

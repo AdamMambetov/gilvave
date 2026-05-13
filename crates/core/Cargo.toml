@@ -8,3 +8,4 @@ authors = ["you"]
 [dependencies]
 serde.workspace = true
 keyring.workspace = true
+thiserror = "2.0.18"
