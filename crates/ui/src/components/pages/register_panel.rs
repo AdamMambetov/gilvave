@@ -1,13 +1,17 @@
 use std::collections::HashMap;
 
-use gilvave_core::dto::user::{RegisterRequest, RegisterResponse};
+use gilvave_core::{dto::user::RegisterRequest, error::CoreError};
 use serde::Deserialize;
-use sycamore::{futures::spawn_local_scoped, prelude::*, web::events::SubmitEvent};
+use sycamore::{
+    futures::spawn_local_scoped,
+    prelude::*,
+    web::{console_error, events::SubmitEvent},
+};
 use validator::Validate;
 
 use crate::{
     components::{
-        common::classes,
+        common::{ActiveScreen, ScreenWrapper, classes},
         features::social_buttons::SocialButtons,
         ui::{divider::Divider, input_group::InputGroup, submit_button::SubmitButton},
     },
@@ -67,9 +71,6 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                 form_map.values_mut().for_each(|signal| signal.set(false));
 
                 spawn_local_scoped(async move {
-                    // let args = serde_wasm_bindgen::to_value("ws://26.186.139.15:3000/ws").unwrap();
-                    // invoke("start_websocket_listener", args).await;
-
                     let args = serde_wasm_bindgen::to_value(&RegisterRequest {
                         username: data.name.to_string(),
                         email: data.email.to_string(),
@@ -77,18 +78,16 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                     })
                     .unwrap();
                     let value = invoke("register", args).await;
-                    let register_response =
-                        serde_wasm_bindgen::from_value::<RegisterResponse>(value).unwrap();
-
-                    console_log!(
-                        r#"register response:
-                        id - {}
-                        username - {}
-                        email - {}"#,
-                        register_response.id,
-                        register_response.username,
-                        register_response.email,
-                    );
+                    let res = serde_wasm_bindgen::from_value::<CoreError>(value).unwrap();
+                    match res {
+                        CoreError::Ok => {
+                            console_log!("Register Success");
+                            use_context::<ScreenWrapper>().set(ActiveScreen::Login);
+                        }
+                        _ => {
+                            console_error!("{res:#?}");
+                        }
+                    }
                 });
             }
             Err(errors) => {

@@ -20,15 +20,19 @@ impl ScreenWrapper {
     }
 
     pub fn is_login(&self) -> bool {
-        self.0.get() == ActiveScreen::Login
+        self.get() == ActiveScreen::Login
     }
 
     pub fn is_register(&self) -> bool {
-        self.0.get() == ActiveScreen::Register
+        self.get() == ActiveScreen::Register
+    }
+
+    pub fn is_auth(&self) -> bool {
+        self.is_login() || self.is_register()
     }
 
     pub fn is_home(&self) -> bool {
-        self.0.get() == ActiveScreen::Home
+        self.get() == ActiveScreen::Home
     }
 }
 

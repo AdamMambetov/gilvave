@@ -1,10 +1,9 @@
 use gilvave_core::{
-    dto::user::{AuthTokensResponse, ProfileResponse, RegisterResponse},
+    dto::user::ProfileResponse,
     error::CoreError,
     security::{set_access_token, set_refresh_token},
 };
 use tauri::State;
-use tauri_plugin_http::Error;
 
 use crate::{api::Api, state::AppState};
 
@@ -14,11 +13,11 @@ pub async fn register(
     username: String,
     email: String,
     password: String,
-) -> Result<RegisterResponse, String> {
-    if let Ok(res) = Api::register(&state.http_client, username, email, password).await {
-        return Ok(res);
+) -> Result<CoreError, ()> {
+    match Api::register(&state.http_client, username, email, password).await {
+        Ok(_) => Ok(CoreError::Ok),
+        Err(err) => Ok(err),
     }
-    Err("error".to_string())
 }
 
 #[tauri::command]
@@ -27,12 +26,14 @@ pub async fn login(
     email: String,
     password: String,
 ) -> Result<CoreError, ()> {
-    if let Ok(res) = Api::login(&state.http_client, email, password).await {
-        set_access_token(&res.access_token);
-        set_refresh_token(&res.refresh_token);
-        return Ok(CoreError::Ok);
+    match Api::login(&state.http_client, email, password).await {
+        Ok(res) => {
+            set_access_token(&res.access_token);
+            set_refresh_token(&res.refresh_token);
+            Ok(CoreError::Ok)
+        }
+        Err(err) => Ok(err),
     }
-    Ok(CoreError::LoginFail)
 }
 
 #[tauri::command]

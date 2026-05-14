@@ -1,4 +1,4 @@
-use crate::components::common::{ActiveScreen, classes};
+use crate::components::common::classes;
 use sycamore::prelude::*;
 
 use crate::components::{
@@ -7,20 +7,16 @@ use crate::components::{
     pages::{login_panel::*, register_panel::*},
 };
 
-#[derive(Props)]
-pub struct AuthFormProps {
-    visible: MaybeDyn<bool>,
-}
-
 #[component]
-pub fn AuthForm(props: AuthFormProps) -> View {
+pub fn AuthForm() -> View {
     let screen_wrapper = use_context::<ScreenWrapper>();
+    let is_auth_screen: MaybeDyn<bool> = (move || screen_wrapper.is_auth()).into();
 
     view! {
         div(
             class=classes(vec![
                 "container".into(),
-                ("active", props.visible.clone()).into(),
+                ("active", is_auth_screen.clone()).into(),
             ]),
         ) {
             FormTabs()

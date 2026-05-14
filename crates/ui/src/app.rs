@@ -16,18 +16,18 @@ pub fn App() -> View {
     let screen_wrapper = ScreenWrapper(create_signal(ActiveScreen::Login));
     provide_context(screen_wrapper);
 
-    // spawn_local_scoped(async move {
-    //     let res = invoke("get_profile", JsValue::NULL).await;
-    //     let profile = serde_wasm_bindgen::from_value::<ProfileResponse>(res);
-    //     if profile.is_ok() {
-    //         screen_wrapper.set(ActiveScreen::Home);
-    //     }
-    // });
+    spawn_local_scoped(async move {
+        let res = invoke("get_profile", JsValue::NULL).await;
+        let profile = serde_wasm_bindgen::from_value::<ProfileResponse>(res);
+        if profile.is_ok() {
+            screen_wrapper.set(ActiveScreen::Home);
+        }
+    });
 
     view! {
         main() {
-            AuthForm(visible=(move || !screen_wrapper.is_home()).into())
-            HomePanel(visible=(move || screen_wrapper.is_home()).into())
+            AuthForm()
+            HomePanel()
         }
     }
 }

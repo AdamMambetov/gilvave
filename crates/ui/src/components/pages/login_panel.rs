@@ -1,10 +1,9 @@
-use gilvave_core::dto::user::{AuthTokensResponse, LoginRequest, ProfileResponse};
+use gilvave_core::dto::user::LoginRequest;
 use gilvave_core::error::CoreError;
 use sycamore::futures::spawn_local_scoped;
 use sycamore::prelude::*;
+use sycamore::web::console_error;
 use sycamore::web::events::SubmitEvent;
-use sycamore::web::rt::web_sys::console;
-use wasm_bindgen::JsValue;
 
 use crate::components::common::{ActiveScreen, ScreenWrapper, classes};
 use crate::components::features::social_buttons::SocialButtons;
@@ -60,13 +59,14 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                 })
                 .unwrap();
                 let value = invoke("login", args).await;
-                match serde_wasm_bindgen::from_value::<CoreError>(value).unwrap() {
+                let res = serde_wasm_bindgen::from_value::<CoreError>(value).unwrap();
+                match res {
                     CoreError::Ok => {
                         console_log!("Login Success");
                         use_context::<ScreenWrapper>().set(ActiveScreen::Home);
                     }
                     _ => {
-                        console_log!("Login error")
+                        console_error!("{res:#?}")
                     }
                 }
             });

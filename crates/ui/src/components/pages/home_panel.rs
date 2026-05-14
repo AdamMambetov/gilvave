@@ -1,20 +1,18 @@
 use sycamore::prelude::*;
 
-use crate::components::common::classes;
-
-#[derive(Props)]
-pub struct HomePanelProps {
-    visible: MaybeDyn<bool>,
-}
+use crate::components::common::{ScreenWrapper, classes};
 
 #[component]
-pub fn HomePanel(props: HomePanelProps) -> View {
+pub fn HomePanel() -> View {
+    let screen_wrapper = use_context::<ScreenWrapper>();
+    let is_home_screen: MaybeDyn<bool> = (move || !screen_wrapper.is_auth()).into();
+
     view! {
         div(
             class=classes(vec![
                 "discord-container".into(),
                 "home-panel-container".into(),
-                ("active", props.visible.clone()).into()
+                ("active", is_home_screen.clone()).into()
             ]),
         ) {
             div(class="discord-sidebar") {

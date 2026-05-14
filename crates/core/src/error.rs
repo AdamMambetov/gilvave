@@ -1,17 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum CoreError {
     Ok,
-    LoginFail,
-    RegisterFail,
+    LoginFail(String),
+    RegisterFail(String),
 }
 
-impl From<String> for CoreError {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "LoginFail" => CoreError::LoginFail,
-            _ => CoreError::Ok,
-        }
-    }
+#[derive(Serialize, Deserialize)]
+pub struct ErrorResponse {
+    pub error: String,
 }
