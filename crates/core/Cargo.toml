@@ -9,3 +9,5 @@ authors = ["you"]
 serde.workspace = true
 keyring.workspace = true
 thiserror = "2.0.18"
+uuid = { version = "1.23.1", features = ["v4", "v7", "serde", "js"] }
+time = { version = "0.3.47", features = ["serde", "formatting", "parsing"] }

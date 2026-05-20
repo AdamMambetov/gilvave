@@ -1,30 +1,51 @@
-use sycamore::prelude::*;
+use gilvave_core::dto::server::ServerView;
+use sycamore::{futures::spawn_local_scoped, prelude::*};
+use wasm_bindgen::JsValue;
 
-use crate::components::common::{ScreenWrapper, classes};
+use crate::{
+    components::common::{ScreenWrapper, classes},
+    utils::invoke,
+};
 
 #[component]
 pub fn HomePanel() -> View {
     let screen_wrapper = use_context::<ScreenWrapper>();
     let is_home_screen: MaybeDyn<bool> = (move || !screen_wrapper.is_auth()).into();
+    // let is_home_screen: MaybeDyn<bool> = (move || true).into();
+    let server_list = create_signal::<Vec<ServerView>>(vec![]);
+
+    create_effect(move || {
+        if !screen_wrapper.is_auth() {
+            spawn_local_scoped(async move {
+                let res = invoke("get_user_servers", JsValue::NULL).await;
+                if let Ok(servers) = serde_wasm_bindgen::from_value::<Vec<ServerView>>(res) {
+                    server_list.set(servers);
+                } else {
+                    server_list.set(vec![]);
+                }
+            });
+        }
+    });
 
     view! {
         div(
             class=classes(vec![
                 "discord-container".into(),
                 "home-panel-container".into(),
-                ("active", is_home_screen.clone()).into()
+                ("active", is_home_screen.clone()).into(),
             ]),
         ) {
             div(class="discord-sidebar") {
                 div(class="server-icon") { "🏠" }
-                div(class="server-icon") { "💬" }
-                div(class="server-icon") { "👥" }
-                div(class="server-icon") { "🔔" }
-                div(class="server-icon new") { "+" }
                 div(class="separator") {}
-                div(class="server-icon") { "🎮" }
-                div(class="server-icon") { "🎵" }
-                div(class="server-icon") { "🎬" }
+                Indexed(
+                    list=server_list,
+                    view=|server| { view! { div(class="server-icon") { (server.name) } } },
+                )
+                div(
+                    class="server-icon new",
+                    //on:click=move |_| server_list.update(|list| list.push()),
+                ) { "+" }
             }
 
             div(class="discord-main") {

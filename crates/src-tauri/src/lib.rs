@@ -1,5 +1,8 @@
 // use gilvave_core::state::AppState;
-use gilvave_http::{commands::user, state::AppState};
+use gilvave_http::{
+    commands::{server, user},
+    state::AppState,
+};
 use tauri::Manager;
 use tauri_plugin_http::reqwest::Client;
 
@@ -51,7 +54,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             user::register,
             user::login,
-            user::get_profile
+            user::get_profile,
+            server::get_user_servers,
         ])
         .setup(|app| {
             app.handle().manage(AppState {

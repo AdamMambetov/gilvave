@@ -5,11 +5,15 @@ fn get_keyring(key: &str) -> Entry {
 }
 
 pub fn get_access_token() -> String {
-    get_keyring("access_token").get_password().unwrap()
+    get_keyring("access_token")
+        .get_password()
+        .unwrap_or_default()
 }
 
 pub fn get_refresh_token() -> String {
-    get_keyring("refresh_token").get_password().unwrap()
+    get_keyring("refresh_token")
+        .get_password()
+        .unwrap_or_default()
 }
 
 pub fn set_access_token(token: &str) {
