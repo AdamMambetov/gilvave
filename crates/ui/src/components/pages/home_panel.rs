@@ -12,8 +12,9 @@ use crate::{
 struct MemberContext(Signal<Vec<MemberView>>);
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")] // Needed for tauri command
 struct GetMembersArgs {
-    serverId: String,
+    server_id: String,
 }
 
 #[component]
@@ -159,10 +160,7 @@ pub fn HomePanel() -> View {
 fn on_click_server(server_id: String) {
     spawn_local_scoped(async move {
         let context = use_context::<MemberContext>();
-        let args = serde_wasm_bindgen::to_value(&GetMembersArgs {
-            serverId: server_id,
-        })
-        .unwrap();
+        let args = serde_wasm_bindgen::to_value(&GetMembersArgs { server_id }).unwrap();
         let res = invoke("get_members", args).await;
         if let Ok(members) = serde_wasm_bindgen::from_value::<Vec<MemberView>>(res) {
             context.0.set(members);
