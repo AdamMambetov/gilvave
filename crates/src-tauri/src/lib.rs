@@ -56,6 +56,7 @@ pub fn run() {
             user::login,
             user::get_profile,
             server::get_user_servers,
+            server::get_members,
         ])
         .setup(|app| {
             app.handle().manage(AppState {

@@ -1,5 +1,9 @@
+use std::fmt::format;
+
 use gilvave_core::{
-    dto::server::ServerView, error::CoreError, security::get_access_token, settings::BASE_HTTP_URL,
+    dto::server::{MemberView, ServerView},
+    security::get_access_token,
+    settings::BASE_HTTP_URL,
 };
 use tauri_plugin_http::reqwest::Client;
 
@@ -14,6 +18,21 @@ impl Api {
             .await
             .map_err(|e| e.without_url().to_string())?
             .json::<Vec<ServerView>>()
+            .await
+            .map_err(|e| e.without_url().to_string())
+    }
+
+    pub async fn get_members(
+        client: &Client,
+        server_id: String,
+    ) -> Result<Vec<MemberView>, String> {
+        client
+            .get(format!("{BASE_HTTP_URL}/servers/{server_id}/members"))
+            .bearer_auth(get_access_token())
+            .send()
+            .await
+            .map_err(|e| e.without_url().to_string())?
+            .json::<Vec<MemberView>>()
             .await
             .map_err(|e| e.without_url().to_string())
     }
