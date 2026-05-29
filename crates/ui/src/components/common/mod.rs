@@ -1,6 +1,7 @@
+use strum::{Display, EnumIter, EnumString};
 use sycamore::prelude::*;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, EnumIter, Display, EnumString)]
 pub enum ActiveScreen {
     Login,
     Register,

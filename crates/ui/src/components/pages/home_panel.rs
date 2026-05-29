@@ -1,20 +1,43 @@
-use gilvave_core::dto::server::{MemberView, ServerView};
+use gilvave_core::dto::{
+    channel::{
+        ChannelType::{TEXT, VOICE},
+        ChannelView,
+    },
+    server::{MemberView, ServerView},
+};
 use serde::Serialize;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 use wasm_bindgen::JsValue;
 
 use crate::{
-    components::common::{ScreenWrapper, classes},
+    components::{
+        common::{ActiveScreen, ScreenWrapper, classes},
+        features::member_item::MemberItem,
+    },
     utils::invoke,
 };
 
 #[derive(Clone)]
 struct MemberContext(Signal<Vec<MemberView>>);
 
+#[derive(Clone)]
+struct ChannelContext {
+    text: Signal<Vec<ChannelView>>,
+    voice: Signal<Vec<ChannelView>>,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")] // Needed for tauri command
-struct GetMembersArgs {
+struct ServerIdArgs {
     server_id: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")] // Needed for tauri command
+pub struct CreateServerArgs {
+    pub name: String,
+    pub icon_url: Option<String>,
+    pub is_public: bool,
 }
 
 #[component]
@@ -23,9 +46,16 @@ pub fn HomePanel() -> View {
     let is_home_screen: MaybeDyn<bool> = (move || screen_wrapper.is_home()).into();
     let server_list = create_signal::<Vec<ServerView>>(vec![]);
     let member_list = create_signal::<Vec<MemberView>>(vec![]);
+    let text_channel_list = create_signal::<Vec<ChannelView>>(vec![]);
+    let voice_channel_list = create_signal::<Vec<ChannelView>>(vec![]);
 
     let member_context = MemberContext(member_list);
     provide_context(member_context);
+    let channel_context = ChannelContext {
+        text: text_channel_list,
+        voice: voice_channel_list,
+    };
+    provide_context(channel_context);
 
     create_effect(move || {
         if screen_wrapper.is_home() {
@@ -40,6 +70,21 @@ pub fn HomePanel() -> View {
         }
     });
 
+    let on_create_server = move || {
+        spawn_local_scoped(async move {
+            let args = serde_wasm_bindgen::to_value(&CreateServerArgs {
+                name: "22".to_string(),
+                icon_url: None,
+                is_public: true,
+            })
+            .unwrap();
+            let res = invoke("create_server", args).await;
+            if let Ok(server_view) = serde_wasm_bindgen::from_value::<ServerView>(res) {
+                server_list.update(|list| list.push(server_view));
+            }
+        });
+    };
+
     view! {
         div(
             class=classes(vec![
@@ -49,20 +94,26 @@ pub fn HomePanel() -> View {
             ]),
         ) {
             div(class="discord-sidebar") {
-                div(class="server-icon") { "🏠" }
+                div(class="server-icon", on:click=move |_| {
+                    screen_wrapper.set(ActiveScreen::Login);
+                    screen_wrapper.set(ActiveScreen::Home);
+                }) { "🏠" }
                 div(class="separator") {}
                 Indexed(
                     list=server_list,
                     view=|server| {
                         let server_name = server.name;
                         view! {
-                            div(class="server-icon", on:click=move |_| on_click_server(server.id.0.to_string())) { (server_name) }
+                            div(
+                                class="server-icon",
+                                on:click=move |_| on_click_server(server.id.0.to_string()),
+                            ) { (server_name) }
                         }
                     },
                 )
                 div(
                     class="server-icon new",
-                    //on:click=move |_| server_list.update(|list| list.push()),
+                    on:click=move |_| on_create_server(),
                 ) { "+" }
             }
 
@@ -78,12 +129,28 @@ pub fn HomePanel() -> View {
                 }
 
                 div(class="discord-content") {
-                    div(class="channel-list") {
-                        div(class="channel-header") { "Участники" }
-                        div(class="channel-item active") { "Админы" }
-                        div(class="channel-item") { "Модераторы" }
-                        div(class="channel-item") { "Гости" }
-                        div(class="channel-item") { "🤖 Боты" }
+                    div(class="channel-panel") {
+                        div(class="channel-list") {
+                            div(class="channel-header") { "Текстовые" }
+
+                            Indexed(
+                                list=text_channel_list,
+                                view=|channel| { view! { div(class="channel-item") { (channel.name) } } },
+                            )
+                            // div(class="channel-item active") { "Стандартный" }
+                            // div(class="channel-item active") { "Второй" }
+                        }
+
+                        div(class="channel-list") {
+                            div(class="channel-header") { "Голосовые" }
+
+                            Indexed(
+                                list=voice_channel_list,
+                                view=|channel| { view! { div(class="channel-item") { (channel.name) } } },
+                            )
+                            // div(class="channel-item") { "Стандартный" }
+                            // div(class="channel-item") { "Голос 2" }
+                        }
                     }
 
                     div(class="messages-area") {
@@ -133,18 +200,8 @@ pub fn HomePanel() -> View {
 
                     Indexed(
                         list=member_list,
-                        view=|member| {
-                            let member_name = format!("👤 {}", member.username);
-                            view! {
-                                div(class="member-item") { (member_name) }
-                            }
-                        },
+                        view=|member| { view! { MemberItem(member_view=member) } },
                     )
-
-                    // div(class="member-item") { "👤 Админ (online)" }
-                    // div(class="member-item") { "👤 Модератор (online)" }
-                    // div(class="member-item") { "👤 User (online)" }
-                    // div(class="member-item") { "👤 Бот (online)" }
                 }
 
                 div(class="panel-section") {
@@ -160,12 +217,33 @@ pub fn HomePanel() -> View {
 fn on_click_server(server_id: String) {
     spawn_local_scoped(async move {
         let context = use_context::<MemberContext>();
-        let args = serde_wasm_bindgen::to_value(&GetMembersArgs { server_id }).unwrap();
+        let args = serde_wasm_bindgen::to_value(&ServerIdArgs {
+            server_id: server_id.clone(),
+        })
+        .unwrap();
         let res = invoke("get_members", args).await;
         if let Ok(members) = serde_wasm_bindgen::from_value::<Vec<MemberView>>(res) {
             context.0.set(members);
         } else {
             context.0.set(vec![]);
+        }
+
+        let context = use_context::<ChannelContext>();
+        let args = serde_wasm_bindgen::to_value(&ServerIdArgs {
+            server_id: server_id.clone(),
+        })
+        .unwrap();
+        let res = invoke("get_server_channels", args).await;
+        context.text.set(vec![]);
+        context.voice.set(vec![]);
+
+        if let Ok(channels) = serde_wasm_bindgen::from_value::<Vec<ChannelView>>(res) {
+            for channel in channels {
+                match channel.r#type {
+                    TEXT => context.text.update(move |list| list.push(channel)),
+                    VOICE => context.voice.update(move |list| list.push(channel)),
+                }
+            }
         }
     });
 }

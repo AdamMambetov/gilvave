@@ -1,5 +1,5 @@
 use gilvave_core::{
-    dto::user::ProfileResponse,
+    dto::user::UserView,
     error::CoreError,
     security::{set_access_token, set_refresh_token},
 };
@@ -37,7 +37,7 @@ pub async fn login(
 }
 
 #[tauri::command]
-pub async fn get_profile(state: State<'_, AppState>) -> Result<ProfileResponse, String> {
+pub async fn get_profile(state: State<'_, AppState>) -> Result<UserView, String> {
     if let Ok(res) = Api::get_profile(&state.http_client).await {
         return Ok(res);
     }

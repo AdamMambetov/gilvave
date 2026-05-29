@@ -9,6 +9,7 @@
     "core:default",
     "opener:default",
     "http:default",
-    "websocket:default"
+    "websocket:default",
+    "tracing:default"
   ]
 }

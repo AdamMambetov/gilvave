@@ -25,9 +25,10 @@ pub struct UpdateTokensRequest {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ProfileResponse {
+pub struct UserView {
     pub id: String,
     pub username: String,
     pub email: String,
     pub is_active: bool,
+    pub avatar: String,
 }

@@ -1,7 +1,5 @@
-use std::fmt::format;
-
 use gilvave_core::{
-    dto::server::{MemberView, ServerView},
+    dto::server::{MemberView, ServerCreateInfo, ServerView},
     security::get_access_token,
     settings::BASE_HTTP_URL,
 };
@@ -11,7 +9,7 @@ use crate::api::Api;
 
 impl Api {
     pub async fn get_user_servers(client: &Client) -> Result<Vec<ServerView>, String> {
-        client
+        let res = client
             .get(format!("{BASE_HTTP_URL}/servers"))
             .bearer_auth(get_access_token())
             .send()
@@ -19,7 +17,11 @@ impl Api {
             .map_err(|e| e.without_url().to_string())?
             .json::<Vec<ServerView>>()
             .await
-            .map_err(|e| e.without_url().to_string())
+            .map_err(|e| e.without_url().to_string());
+        if res.is_ok() {
+            tracing::info!("{:?}", res.clone().unwrap());
+        }
+        res
     }
 
     pub async fn get_members(
@@ -33,6 +35,22 @@ impl Api {
             .await
             .map_err(|e| e.without_url().to_string())?
             .json::<Vec<MemberView>>()
+            .await
+            .map_err(|e| e.without_url().to_string())
+    }
+
+    pub async fn create_server(
+        client: &Client,
+        server_info: ServerCreateInfo,
+    ) -> Result<ServerView, String> {
+        client
+            .post(format!("{BASE_HTTP_URL}/servers"))
+            .bearer_auth(get_access_token())
+            .json(&server_info)
+            .send()
+            .await
+            .map_err(|e| e.without_url().to_string())?
+            .json::<ServerView>()
             .await
             .map_err(|e| e.without_url().to_string())
     }

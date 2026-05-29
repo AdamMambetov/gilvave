@@ -16,4 +16,12 @@ pub struct ServerView {
 pub struct MemberView {
     pub user_id: UserId,
     pub username: String,
+    pub avatar: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ServerCreateInfo {
+    pub name: String,
+    pub icon_url: Option<String>,
+    pub is_public: bool,
 }

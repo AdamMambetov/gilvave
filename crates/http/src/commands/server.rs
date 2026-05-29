@@ -1,4 +1,4 @@
-use gilvave_core::dto::server::{MemberView, ServerView};
+use gilvave_core::dto::server::{MemberView, ServerCreateInfo, ServerView};
 use tauri::State;
 
 use crate::{api::Api, state::AppState};
@@ -14,4 +14,22 @@ pub async fn get_members(
     server_id: String,
 ) -> Result<Vec<MemberView>, String> {
     Api::get_members(&state.http_client, server_id).await
+}
+
+#[tauri::command]
+pub async fn create_server(
+    state: State<'_, AppState>,
+    name: String,
+    icon_url: Option<String>,
+    is_public: bool,
+) -> Result<ServerView, String> {
+    Api::create_server(
+        &state.http_client,
+        ServerCreateInfo {
+            name,
+            icon_url,
+            is_public,
+        },
+    )
+    .await
 }

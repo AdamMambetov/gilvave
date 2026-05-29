@@ -1,7 +1,5 @@
 use gilvave_core::{
-    dto::user::{
-        AuthTokensResponse, LoginRequest, ProfileResponse, RegisterRequest, UpdateTokensRequest,
-    },
+    dto::user::{AuthTokensResponse, LoginRequest, RegisterRequest, UpdateTokensRequest, UserView},
     error::{CoreError, ErrorResponse},
     security::{get_access_token, get_refresh_token, set_access_token, set_refresh_token},
     settings::BASE_HTTP_URL,
@@ -77,13 +75,13 @@ impl Api {
         Ok(res)
     }
 
-    pub async fn get_profile(client: &Client) -> anyhow::Result<ProfileResponse> {
+    pub async fn get_profile(client: &Client) -> anyhow::Result<UserView> {
         let res = client
             .get(format!("{BASE_HTTP_URL}/users/me"))
             .bearer_auth(get_access_token())
             .send()
             .await?
-            .json::<ProfileResponse>()
+            .json::<UserView>()
             .await?;
         Ok(res)
     }
