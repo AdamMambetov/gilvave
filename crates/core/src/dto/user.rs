@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::ids::UserId;
+
 #[derive(Serialize, Deserialize)]
 pub struct RegisterRequest {
     pub username: String,
@@ -26,7 +28,7 @@ pub struct UpdateTokensRequest {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserView {
-    pub id: String,
+    pub id: UserId,
     pub username: String,
     pub email: String,
     pub is_active: bool,

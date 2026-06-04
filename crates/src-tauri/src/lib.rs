@@ -1,51 +1,13 @@
-// use gilvave_core::state::AppState;
-use gilvave_http::{
-    commands::{channel, server, user},
-    state::AppState,
-};
+use std::sync::Arc;
+
+use gilvave_gateway::commands;
+use gilvave_http::commands::{channel, server, user};
+use gilvave_state::AppState;
 use tauri::Manager;
 use tauri_plugin_http::reqwest::Client;
 use tauri_plugin_tracing::{Builder, LevelFilter, WebviewLayer};
+use tokio::sync::RwLock;
 use tracing_subscriber::{Registry, fmt, layer::SubscriberExt, util::SubscriberInitExt};
-
-// async fn connect_websocket(
-//     url: String,
-// ) -> Option<Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>> {
-//     match connect_async(&url).await {
-//         Ok((ws_stream, _)) => Some(Arc::new(Mutex::new(ws_stream))),
-//         Err(e) => {
-//             eprintln!("Connection error: {}", e);
-//             None
-//         }
-//     }
-// }
-
-// fn start_websocket_listener(websocket: Arc<Mutex<WebSocketStream<MaybeTlsStream<TcpStream>>>>) {
-//     println!("start_websocket_listener");
-//     tauri::async_runtime::spawn(async move {
-//         let mut ws_guard = websocket.lock().await;
-//         while let Some(msg) = ws_guard.next().await {
-//             println!("while");
-//             match msg {
-//                 Ok(Message::Text(text)) => {
-//                     println!("Received: {}", text);
-//                     // Здесь можно отправить событие на фронтенд
-//                     // app_handle.emit("websocket-message", text).ok();
-//                 }
-//                 Ok(Message::Close(_)) => {
-//                     println!("WebSocket connection closed");
-//                     break;
-//                 }
-//                 Err(e) => {
-//                     eprintln!("WebSocket error: {}", e);
-//                     break;
-//                 }
-//                 _ => {}
-//             }
-//         }
-//     });
-//     println!("start_websocket_listener end");
-// }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -67,11 +29,16 @@ pub fn run() {
             server::get_members,
             server::create_server,
             channel::get_server_channels,
+            commands::listen_web_socket,
+            commands::join_channel,
         ])
         .setup(|app| {
-            app.handle().manage(AppState {
+            let app_handle = app.handle().clone();
+            app_handle.manage(AppState {
+                sender: Arc::new(RwLock::new(None)),
                 http_client: Client::new(),
             });
+
             Registry::default()
                 .with(fmt::layer())
                 .with(WebviewLayer::new(app.handle().clone()))

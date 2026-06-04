@@ -4,7 +4,7 @@ resolver = "3"
 
 [workspace.package]
 version = "0.1.0"
-rust-version = "1.75"
+rust-version = "1.96"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2024"
@@ -28,3 +28,4 @@ keyring = { version = "3.6.3", features = [
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 strum = { version = "0.28.0", features = ["derive"] }
+time = { version = "0.3.47", features = ["serde", "formatting", "parsing"] }

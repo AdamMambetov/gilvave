@@ -3,9 +3,10 @@ use gilvave_core::{
     error::CoreError,
     security::{set_access_token, set_refresh_token},
 };
+use gilvave_state::AppState;
 use tauri::State;
 
-use crate::{api::Api, state::AppState};
+use crate::api::Api;
 
 #[tauri::command]
 pub async fn register(
@@ -41,5 +42,5 @@ pub async fn get_profile(state: State<'_, AppState>) -> Result<UserView, String>
     if let Ok(res) = Api::get_profile(&state.http_client).await {
         return Ok(res);
     }
-    Err("error".to_string())
+    Err("get_profile error".to_string())
 }

@@ -17,6 +17,7 @@ tauri.workspace = true
 tauri-plugin-opener.workspace = true
 tauri-plugin-http.workspace = true
 tauri-plugin-websocket.workspace = true
+tauri-plugin-tracing = "0.3.4"
 serde.workspace = true
 serde_json.workspace = true
 futures-util.workspace = true
@@ -27,4 +28,5 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 
 gilvave-http = { path = "../http" }
-tauri-plugin-tracing = "0.3.4"
+gilvave-gateway = { path = "../gateway" }
+gilvave-state = { path = "../state" }

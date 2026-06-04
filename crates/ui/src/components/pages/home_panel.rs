@@ -60,6 +60,7 @@ pub fn HomePanel() -> View {
     create_effect(move || {
         if screen_wrapper.is_home() {
             spawn_local_scoped(async move {
+                invoke("listen_web_socket", JsValue::NULL).await;
                 let res = invoke("get_user_servers", JsValue::NULL).await;
                 if let Ok(servers) = serde_wasm_bindgen::from_value::<Vec<ServerView>>(res) {
                     server_list.set(servers);
@@ -82,6 +83,7 @@ pub fn HomePanel() -> View {
             if let Ok(server_view) = serde_wasm_bindgen::from_value::<ServerView>(res) {
                 server_list.update(|list| list.push(server_view));
             }
+            invoke("join_channel", JsValue::NULL).await;
         });
     };
 

@@ -1,9 +1,7 @@
 [package]
 name = "gilvave-http"
-version = "0.1.0"
-edition = "2021"
-description = "A Tauri App"
-authors = ["you"]
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
 tauri.workspace = true
@@ -14,4 +12,6 @@ futures-util.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
 
-gilvave-core ={ path = "../core" }
+gilvave-core = { path = "../core" }
+gilvave-gateway = { path = "../gateway" }
+gilvave-state = { path = "../state" }

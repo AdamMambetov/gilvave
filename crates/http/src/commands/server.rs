@@ -1,7 +1,8 @@
 use gilvave_core::dto::server::{MemberView, ServerCreateInfo, ServerView};
+use gilvave_state::AppState;
 use tauri::State;
 
-use crate::{api::Api, state::AppState};
+use crate::api::Api;
 
 #[tauri::command]
 pub async fn get_user_servers(state: State<'_, AppState>) -> Result<Vec<ServerView>, String> {
