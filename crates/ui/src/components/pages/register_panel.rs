@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use gilvave_core::{dto::user::RegisterRequest, error::CoreError};
+use gilvave_core::dto::{
+    command::{CommandArgs, CommandResult},
+    user::RegisterRequest,
+};
 use serde::Deserialize;
 use sycamore::{
     futures::spawn_local_scoped,
@@ -15,7 +18,7 @@ use crate::{
         features::social_buttons::SocialButtons,
         ui::{divider::Divider, input_group::InputGroup, submit_button::SubmitButton},
     },
-    utils::invoke,
+    utils::invoke_command,
 };
 
 #[derive(Props)]
@@ -71,21 +74,22 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                 form_map.values_mut().for_each(|signal| signal.set(false));
 
                 spawn_local_scoped(async move {
-                    let args = serde_wasm_bindgen::to_value(&RegisterRequest {
-                        username: data.name.to_string(),
-                        email: data.email.to_string(),
-                        password: data.password.to_string(),
-                    })
-                    .unwrap();
-                    let value = invoke("register", args).await;
-                    let res = serde_wasm_bindgen::from_value::<CoreError>(value).unwrap();
+                    let args = CommandArgs::Register {
+                        request: RegisterRequest {
+                            username: data.name.to_string(),
+                            email: data.email.to_string(),
+                            password: data.password.to_string(),
+                        },
+                    }
+                    .to_json();
+                    let res = invoke_command(args).await;
                     match res {
-                        CoreError::Ok => {
+                        CommandResult::Ok(_) => {
                             console_log!("Register Success");
                             use_context::<ScreenWrapper>().set(ActiveScreen::Login);
                         }
-                        _ => {
-                            console_error!("{res:#?}");
+                        CommandResult::Error(err) => {
+                            console_error!("{err:#?}");
                         }
                     }
                 });

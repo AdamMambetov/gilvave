@@ -1,7 +1,7 @@
-use wasm_bindgen::prelude::*;
+use gilvave_core::dto::command::CommandResult;
+use serde_json::Value;
+use tauri_sys::core::invoke;
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    pub async fn invoke(cmd: &str, args: JsValue) -> JsValue;
+pub async fn invoke_command(args: Value) -> CommandResult {
+    invoke::<CommandResult>("handle_command", args).await
 }

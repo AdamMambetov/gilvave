@@ -1,10 +1,11 @@
 use gilvave_core::dto::ws::ServerRecieve;
 use gilvave_state::MaybeSender;
+use tauri::{AppHandle, Emitter};
 use tokio::time::{Duration, sleep};
 
 use crate::service::WsService;
 
-pub async fn handle(web_socket: MaybeSender, text: String) {
+pub async fn handle(web_socket: MaybeSender, app_handle: AppHandle, text: String) {
     if let Ok(msg) = serde_json::from_str::<ServerRecieve>(&text) {
         match msg {
             ServerRecieve::Hello { heartbeat_interval } => {
@@ -18,7 +19,10 @@ pub async fn handle(web_socket: MaybeSender, text: String) {
             ServerRecieve::JoinSuccess => {
                 tracing::info!("join success")
             }
-            ServerRecieve::MessageNew(message_view) => {}
+            ServerRecieve::MessageNew(message_view) => {
+                tracing::info!("message new {}", message_view.content);
+                app_handle.emit("message_new", message_view).ok();
+            }
         }
     }
 }

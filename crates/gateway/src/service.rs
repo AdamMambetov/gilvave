@@ -1,5 +1,17 @@
-use gilvave_core::{dto::ws::ServerSend, ids::ChannelId};
-use gilvave_state::MaybeSender;
+use futures_util::{SinkExt, StreamExt};
+use gilvave_core::{
+    dto::ws::ServerSend, error::CoreError, ids::ChannelId, security::get_access_token,
+    settings::BASE_WS_URL,
+};
+use gilvave_state::{AppState, MaybeSender};
+use tauri::{AppHandle, State};
+use tokio::sync::mpsc;
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{Message, client::IntoClientRequest},
+};
+
+use crate::handler::handle;
 
 pub struct WsService;
 
@@ -13,14 +25,98 @@ impl WsService {
         }
     }
 
-    pub async fn join_channel(web_socket: MaybeSender) {
-        if let Some(sender) = web_socket.read().await.as_ref() {
-            sender
+    pub async fn join_channel(web_socket: MaybeSender) -> Result<(), CoreError> {
+        match web_socket.read().await.as_ref() {
+            Some(sender) => sender
                 .send(ServerSend::JoinChannel {
                     channel_id: ChannelId::try_from("5bd34915-3649-4644-81c4-a6ec89a9a7ee")
                         .unwrap(),
                 })
-                .ok();
+                .map_err(|e| CoreError::JoinChannelFail(e.to_string())),
+            None => Err(CoreError::JoinChannelFail(
+                "Read websocket fail!".to_string(),
+            )),
         }
+    }
+
+    pub async fn listen_web_socket(
+        state: State<'_, AppState>,
+        app_handle: AppHandle,
+    ) -> Result<bool, CoreError> {
+        let invalid_sender = state.sender.read().await.is_none();
+        if invalid_sender {
+            let mut request = BASE_WS_URL.into_client_request().unwrap();
+            request.headers_mut().insert(
+                "Authorization",
+                format!("Bearer {}", get_access_token()).parse().unwrap(),
+            );
+
+            let (sender, mut reciever) = mpsc::unbounded_channel::<ServerSend>();
+
+            {
+                let mut state_sender = state.sender.write().await;
+                *state_sender = Some(sender);
+            }
+
+            match connect_async(request).await {
+                Ok((ws_stream, _)) => {
+                    let (mut ws_sender, mut ws_reciever) = ws_stream.split();
+
+                    let recieve_task = async {
+                        tracing::info!("recieve_task start");
+                        while let Some(msg) = ws_reciever.next().await {
+                            tracing::info!("recieve_task while");
+                            match msg {
+                                Ok(Message::Text(text)) => {
+                                    tracing::info!("Received: {text}");
+                                    handle(
+                                        state.sender.clone(),
+                                        app_handle.clone(),
+                                        text.to_string(),
+                                    )
+                                    .await;
+                                }
+                                Ok(Message::Close(_)) => {
+                                    tracing::warn!("WebSocket connection closed");
+                                    break;
+                                }
+                                Err(e) => {
+                                    tracing::error!("WebSocket error: {e}");
+                                    break;
+                                }
+                                _ => {}
+                            }
+                        }
+                        tracing::info!("recieve_task end");
+                    };
+
+                    let send_task = async {
+                        tracing::info!("send_task start");
+                        while let Some(msg) = reciever.recv().await {
+                            tracing::info!("send_task while start");
+                            let json = serde_json::to_string(&msg).unwrap();
+                            if ws_sender.send(Message::Text(json.into())).await.is_err() {
+                                tracing::error!("ws_sender error!");
+                            }
+                            tracing::info!("send_task while end");
+                        }
+                        tracing::info!("send_task end");
+                    };
+
+                    tokio::select! {
+                        _ = recieve_task => {
+                            tracing::info!("recieve_task finished")
+                        },
+                        _ = send_task => {
+                            tracing::info!("send_task finished")
+                        },
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("Connection error: {e}");
+                }
+            };
+        }
+        Ok(true)
     }
 }

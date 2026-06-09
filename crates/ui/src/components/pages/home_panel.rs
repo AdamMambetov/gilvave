@@ -1,20 +1,25 @@
-use gilvave_core::dto::{
-    channel::{
-        ChannelType::{TEXT, VOICE},
-        ChannelView,
+use futures_util::StreamExt;
+use gilvave_core::{
+    dto::{
+        channel::{
+            ChannelType::{TEXT, VOICE},
+            ChannelView,
+        },
+        command::{CommandArgs, CommandResponse, CommandResult},
+        message::MessageView,
+        server::{MemberView, ServerCreateInfo, ServerView},
     },
-    server::{MemberView, ServerView},
+    ids::ServerId,
 };
-use serde::Serialize;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
-use wasm_bindgen::JsValue;
+use tauri_sys::event::listen;
 
 use crate::{
     components::{
         common::{ActiveScreen, ScreenWrapper, classes},
-        features::member_item::MemberItem,
+        features::{member_item::MemberItem, message_item::MessageItem},
     },
-    utils::invoke,
+    utils::invoke_command,
 };
 
 #[derive(Clone)]
@@ -26,20 +31,6 @@ struct ChannelContext {
     voice: Signal<Vec<ChannelView>>,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")] // Needed for tauri command
-struct ServerIdArgs {
-    server_id: String,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")] // Needed for tauri command
-pub struct CreateServerArgs {
-    pub name: String,
-    pub icon_url: Option<String>,
-    pub is_public: bool,
-}
-
 #[component]
 pub fn HomePanel() -> View {
     let screen_wrapper = use_context::<ScreenWrapper>();
@@ -48,6 +39,7 @@ pub fn HomePanel() -> View {
     let member_list = create_signal::<Vec<MemberView>>(vec![]);
     let text_channel_list = create_signal::<Vec<ChannelView>>(vec![]);
     let voice_channel_list = create_signal::<Vec<ChannelView>>(vec![]);
+    let message_list = create_signal::<Vec<MessageView>>(vec![]);
 
     let member_context = MemberContext(member_list);
     provide_context(member_context);
@@ -60,9 +52,9 @@ pub fn HomePanel() -> View {
     create_effect(move || {
         if screen_wrapper.is_home() {
             spawn_local_scoped(async move {
-                invoke("listen_web_socket", JsValue::NULL).await;
-                let res = invoke("get_user_servers", JsValue::NULL).await;
-                if let Ok(servers) = serde_wasm_bindgen::from_value::<Vec<ServerView>>(res) {
+                invoke_command(CommandArgs::ListenWebSocket.to_json()).await;
+                let res = invoke_command(CommandArgs::GetUserServers.to_json()).await;
+                if let CommandResult::Ok(CommandResponse::GetUserServers(servers)) = res {
                     server_list.set(servers);
                 } else {
                     server_list.set(vec![]);
@@ -73,19 +65,33 @@ pub fn HomePanel() -> View {
 
     let on_create_server = move || {
         spawn_local_scoped(async move {
-            let args = serde_wasm_bindgen::to_value(&CreateServerArgs {
-                name: "22".to_string(),
-                icon_url: None,
-                is_public: true,
-            })
-            .unwrap();
-            let res = invoke("create_server", args).await;
-            if let Ok(server_view) = serde_wasm_bindgen::from_value::<ServerView>(res) {
+            let args = CommandArgs::CreateServer {
+                server_info: ServerCreateInfo {
+                    name: "22".to_string(),
+                    icon_url: None,
+                    is_public: true,
+                },
+            }
+            .to_json();
+            let res = invoke_command(args).await;
+            if let CommandResult::Ok(CommandResponse::CreateServer(server_view)) = res {
                 server_list.update(|list| list.push(server_view));
             }
-            invoke("join_channel", JsValue::NULL).await;
+            invoke_command(CommandArgs::JoinChannel.to_json()).await;
         });
     };
+
+    spawn_local_scoped(async move {
+        let mut events = listen::<MessageView>("message_new").await.unwrap();
+        while let Some(event) = events.next().await {
+            console_log!(
+                "listen message_new '{}' from {}",
+                event.payload.content,
+                event.payload.author_name
+            );
+            message_list.update(|list| list.push(event.payload));
+        }
+    });
 
     view! {
         div(
@@ -108,7 +114,7 @@ pub fn HomePanel() -> View {
                         view! {
                             div(
                                 class="server-icon",
-                                on:click=move |_| on_click_server(server.id.0.to_string()),
+                                on:click=move |_| on_click_server(server.id),
                             ) { (server_name) }
                         }
                     },
@@ -156,37 +162,10 @@ pub fn HomePanel() -> View {
                     }
 
                     div(class="messages-area") {
-                        div(class="message") {
-                            div(class="message-header") {
-                                span(class="author") { "System" }
-                                span(class="timestamp") { "Сейчас" }
-                            }
-                            p { "Добро пожаловать в Discord-подобный интерфейс! 🎉" }
-                        }
-
-                        div(class="message") {
-                            div(class="message-header") {
-                                span(class="author") { "Admin" }
-                                span(class="timestamp") { "Сейчас" }
-                            }
-                            p { "Привет всем! Как дела?" }
-                        }
-
-                        div(class="message") {
-                            div(class="message-header") {
-                                span(class="author") { "User" }
-                                span(class="timestamp") { "Сейчас" }
-                            }
-                            p { "Привет! Все отлично! 👍" }
-                        }
-
-                        div(class="message") {
-                            div(class="message-header") {
-                                span(class="author") { "Admin" }
-                                span(class="timestamp") { "Сейчас" }
-                            }
-                            p { "Отлично! Создайте чат и начните общение!" }
-                        }
+                        Indexed(
+                            list=message_list,
+                            view=|message| { view! { MessageItem(message_view=message) } },
+                        )
 
                         div(class="input-area") {
                             input(class="chat-input", placeholder="Напишите сообщение...")
@@ -216,30 +195,30 @@ pub fn HomePanel() -> View {
     }
 }
 
-fn on_click_server(server_id: String) {
+fn on_click_server(server_id: ServerId) {
     spawn_local_scoped(async move {
         let context = use_context::<MemberContext>();
-        let args = serde_wasm_bindgen::to_value(&ServerIdArgs {
+        let args = CommandArgs::GetMembers {
             server_id: server_id.clone(),
-        })
-        .unwrap();
-        let res = invoke("get_members", args).await;
-        if let Ok(members) = serde_wasm_bindgen::from_value::<Vec<MemberView>>(res) {
+        }
+        .to_json();
+        let res = invoke_command(args).await;
+        if let CommandResult::Ok(CommandResponse::GetMembers(members)) = res {
             context.0.set(members);
         } else {
             context.0.set(vec![]);
         }
 
         let context = use_context::<ChannelContext>();
-        let args = serde_wasm_bindgen::to_value(&ServerIdArgs {
+        let args = CommandArgs::GetServerChannels {
             server_id: server_id.clone(),
-        })
-        .unwrap();
-        let res = invoke("get_server_channels", args).await;
+        }
+        .to_json();
+        let res = invoke_command(args).await;
         context.text.set(vec![]);
         context.voice.set(vec![]);
 
-        if let Ok(channels) = serde_wasm_bindgen::from_value::<Vec<ChannelView>>(res) {
+        if let CommandResult::Ok(CommandResponse::GetServerChannels(channels)) = res {
             for channel in channels {
                 match channel.r#type {
                     TEXT => context.text.update(move |list| list.push(channel)),

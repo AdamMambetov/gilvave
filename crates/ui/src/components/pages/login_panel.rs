@@ -1,5 +1,5 @@
+use gilvave_core::dto::command::{CommandArgs, CommandResult};
 use gilvave_core::dto::user::LoginRequest;
-use gilvave_core::error::CoreError;
 use sycamore::futures::spawn_local_scoped;
 use sycamore::prelude::*;
 use sycamore::web::console_error;
@@ -11,7 +11,7 @@ use crate::components::ui::checkbox::Checkbox;
 use crate::components::ui::divider::Divider;
 use crate::components::ui::input_group::InputGroup;
 use crate::components::ui::submit_button::SubmitButton;
-use crate::utils::invoke;
+use crate::utils::invoke_command;
 
 #[derive(Props)]
 pub struct LoginFormProps {
@@ -53,20 +53,21 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
             );
 
             spawn_local_scoped(async move {
-                let args = serde_wasm_bindgen::to_value(&LoginRequest {
-                    email: email.to_string(),
-                    password: password.to_string(),
-                })
-                .unwrap();
-                let value = invoke("login", args).await;
-                let res = serde_wasm_bindgen::from_value::<CoreError>(value).unwrap();
+                let args = CommandArgs::Login {
+                    request: LoginRequest {
+                        email: email.to_string(),
+                        password: password.to_string(),
+                    },
+                }
+                .to_json();
+                let res = invoke_command(args).await;
                 match res {
-                    CoreError::Ok => {
+                    CommandResult::Ok(_) => {
                         console_log!("Login Success");
                         use_context::<ScreenWrapper>().set(ActiveScreen::Home);
                     }
-                    _ => {
-                        console_error!("{res:#?}")
+                    CommandResult::Error(err) => {
+                        console_error!("{err:#?}")
                     }
                 }
             });

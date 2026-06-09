@@ -11,26 +11,19 @@ use crate::api::Api;
 impl Api {
     pub async fn register(
         client: &Client,
-        username: String,
-        email: String,
-        password: String,
+        register_request: RegisterRequest,
     ) -> Result<(), CoreError> {
-        let json = RegisterRequest {
-            username,
-            email,
-            password,
-        };
         let res = client
             .post(format!("{BASE_HTTP_URL}/users/register"))
-            .json(&json)
+            .json(&register_request)
             .send()
             .await
             .map_err(|err| CoreError::RegisterFail(err.to_string()))?;
         let status = res.status();
         let is_error = status.is_client_error() || status.is_server_error();
-        let error_text = res.json::<ErrorResponse>().await.unwrap().error;
 
         if is_error {
+            let error_text = res.json::<ErrorResponse>().await.unwrap().error;
             Err(CoreError::RegisterFail(error_text))
         } else {
             Ok(())
@@ -39,13 +32,11 @@ impl Api {
 
     pub async fn login(
         client: &Client,
-        email: String,
-        password: String,
+        request: LoginRequest,
     ) -> Result<AuthTokensResponse, CoreError> {
-        let json = LoginRequest { email, password };
         let res = client
             .post(format!("{BASE_HTTP_URL}/users/login"))
-            .json(&json)
+            .json(&request)
             .send()
             .await
             .map_err(|err| CoreError::LoginFail(err.to_string()))?;
@@ -75,14 +66,17 @@ impl Api {
         Ok(res)
     }
 
-    pub async fn get_profile(client: &Client) -> anyhow::Result<UserView> {
+    pub async fn get_profile(client: &Client) -> Result<UserView, CoreError> {
         let res = client
             .get(format!("{BASE_HTTP_URL}/users/me"))
             .bearer_auth(get_access_token())
             .send()
-            .await?
+            .await
+            .map_err(|err| CoreError::GetProfileFail(err.to_string()))?;
+
+        Ok(res
             .json::<UserView>()
-            .await?;
-        Ok(res)
+            .await
+            .map_err(|err| CoreError::GetProfileFail(err.to_string()))?)
     }
 }

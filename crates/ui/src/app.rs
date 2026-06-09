@@ -1,7 +1,7 @@
-use gilvave_core::dto::user::UserView;
+use gilvave_core::dto::command::CommandArgs;
 use strum::IntoEnumIterator;
 use sycamore::{futures::spawn_local_scoped, prelude::*, web::events::Event};
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use web_sys::HtmlSelectElement;
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
         pages::home_panel::HomePanel,
         templates::auth_form::AuthForm,
     },
-    utils::invoke,
+    utils::invoke_command,
 };
 
 #[component]
@@ -20,9 +20,8 @@ pub fn App() -> View {
     let screens = ActiveScreen::iter().collect::<Vec<_>>();
 
     spawn_local_scoped(async move {
-        let res = invoke("get_profile", JsValue::NULL).await;
-        let profile = serde_wasm_bindgen::from_value::<UserView>(res);
-        if profile.is_ok() {
+        let res = invoke_command(CommandArgs::GetProfile.to_json()).await;
+        if res.is_ok() {
             screen_wrapper.set(ActiveScreen::Home);
         }
     });

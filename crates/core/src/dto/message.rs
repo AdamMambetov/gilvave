@@ -3,7 +3,7 @@ use time::OffsetDateTime;
 
 use crate::ids::{ChannelId, MessageId, UserId};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MessageView {
     pub id: MessageId,
     pub channel_id: ChannelId,
