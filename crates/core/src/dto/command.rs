@@ -7,8 +7,8 @@ use crate::{
         server::{MemberView, ServerCreateInfo, ServerView},
         user::{AuthTokensResponse, LoginRequest, RegisterRequest, UserView},
     },
-    error::CoreError,
-    ids::ServerId,
+    error::ErrorInfo,
+    ids::{ChannelId, ServerId},
 };
 
 #[derive(Serialize, Deserialize)]
@@ -21,7 +21,7 @@ pub enum CommandArgs {
     GetUserServers,
     CreateServer { server_info: ServerCreateInfo },
     ListenWebSocket,
-    JoinChannel,
+    JoinChannel { channel_id: ChannelId },
 }
 
 impl CommandArgs {
@@ -46,7 +46,7 @@ pub enum CommandResponse {
 #[derive(Serialize, Deserialize)]
 pub enum CommandResult {
     Ok(CommandResponse),
-    Error(CoreError),
+    Error(ErrorInfo),
 }
 
 impl CommandResult {

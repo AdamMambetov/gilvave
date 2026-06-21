@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use gilvave_core::{
     dto::{
         channel::{
-            ChannelType::{TEXT, VOICE},
+            ChannelType::{self},
             ChannelView,
         },
         command::{CommandArgs, CommandResponse, CommandResult},
@@ -17,7 +17,7 @@ use tauri_sys::event::listen;
 use crate::{
     components::{
         common::{ActiveScreen, ScreenWrapper, classes},
-        features::{member_item::MemberItem, message_item::MessageItem},
+        features::{channel_item::ChannelItem, member_item::MemberItem, message_item::MessageItem},
     },
     utils::invoke_command,
 };
@@ -53,6 +53,8 @@ pub fn HomePanel() -> View {
         if screen_wrapper.is_home() {
             spawn_local_scoped(async move {
                 invoke_command(CommandArgs::ListenWebSocket.to_json()).await;
+            });
+            spawn_local_scoped(async move {
                 let res = invoke_command(CommandArgs::GetUserServers.to_json()).await;
                 if let CommandResult::Ok(CommandResponse::GetUserServers(servers)) = res {
                     server_list.set(servers);
@@ -77,7 +79,6 @@ pub fn HomePanel() -> View {
             if let CommandResult::Ok(CommandResponse::CreateServer(server_view)) = res {
                 server_list.update(|list| list.push(server_view));
             }
-            invoke_command(CommandArgs::JoinChannel.to_json()).await;
         });
     };
 
@@ -143,7 +144,14 @@ pub fn HomePanel() -> View {
 
                             Indexed(
                                 list=text_channel_list,
-                                view=|channel| { view! { div(class="channel-item") { (channel.name) } } },
+                                view=|channel| { view! {
+                                    ChannelItem(
+                                        channel_view=channel,
+                                        on_join_channel=|| {
+                                            console_log!("join channel success from ui");
+                                        },
+                                    )
+                                }},
                             )
                             // div(class="channel-item active") { "Стандартный" }
                             // div(class="channel-item active") { "Второй" }
@@ -203,28 +211,29 @@ fn on_click_server(server_id: ServerId) {
         }
         .to_json();
         let res = invoke_command(args).await;
+
+        context.0.set(vec![]);
         if let CommandResult::Ok(CommandResponse::GetMembers(members)) = res {
             context.0.set(members);
-        } else {
-            context.0.set(vec![]);
         }
-
+    });
+    spawn_local_scoped(async move {
         let context = use_context::<ChannelContext>();
         let args = CommandArgs::GetServerChannels {
             server_id: server_id.clone(),
         }
         .to_json();
         let res = invoke_command(args).await;
+
         context.text.set(vec![]);
         context.voice.set(vec![]);
-
         if let CommandResult::Ok(CommandResponse::GetServerChannels(channels)) = res {
             for channel in channels {
                 match channel.r#type {
-                    TEXT => context.text.update(move |list| list.push(channel)),
-                    VOICE => context.voice.update(move |list| list.push(channel)),
+                    ChannelType::TEXT => context.text.update(|list| list.push(channel)),
+                    ChannelType::VOICE => context.voice.update(|list| list.push(channel)),
                 }
             }
         }
-    });
+    })
 }

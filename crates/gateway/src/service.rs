@@ -1,6 +1,6 @@
 use futures_util::{SinkExt, StreamExt};
 use gilvave_core::{
-    dto::ws::ServerSend, error::CoreError, ids::ChannelId, security::get_access_token,
+    dto::ws::ServerSend, error::ErrorInfo, ids::ChannelId, security::get_access_token,
     settings::BASE_WS_URL,
 };
 use gilvave_state::{AppState, MaybeSender};
@@ -25,24 +25,22 @@ impl WsService {
         }
     }
 
-    pub async fn join_channel(web_socket: MaybeSender) -> Result<(), CoreError> {
-        match web_socket.read().await.as_ref() {
+    pub async fn join_channel(
+        sender_ptr: MaybeSender,
+        channel_id: ChannelId,
+    ) -> Result<(), ErrorInfo> {
+        match sender_ptr.read().await.as_ref() {
             Some(sender) => sender
-                .send(ServerSend::JoinChannel {
-                    channel_id: ChannelId::try_from("5bd34915-3649-4644-81c4-a6ec89a9a7ee")
-                        .unwrap(),
-                })
-                .map_err(|e| CoreError::JoinChannelFail(e.to_string())),
-            None => Err(CoreError::JoinChannelFail(
-                "Read websocket fail!".to_string(),
-            )),
+                .send(ServerSend::JoinChannel { channel_id })
+                .map_err(|e| ErrorInfo(1u16, e.to_string())),
+            None => Err(ErrorInfo(1u16, "Read websocket fail!".to_string())),
         }
     }
 
     pub async fn listen_web_socket(
         state: State<'_, AppState>,
         app_handle: AppHandle,
-    ) -> Result<bool, CoreError> {
+    ) -> Result<bool, ErrorInfo> {
         let invalid_sender = state.sender.read().await.is_none();
         if invalid_sender {
             let mut request = BASE_WS_URL.into_client_request().unwrap();

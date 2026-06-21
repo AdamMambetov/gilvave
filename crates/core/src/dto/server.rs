@@ -19,7 +19,7 @@ pub struct MemberView {
     pub avatar: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ServerCreateInfo {
     pub name: String,
     pub icon_url: Option<String>,

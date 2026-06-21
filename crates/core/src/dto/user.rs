@@ -2,14 +2,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::ids::UserId;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct RegisterRequest {
     pub username: String,
     pub email: String,
     pub password: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
