@@ -194,16 +194,6 @@
     }
 }
 
-// Chat input animation
-.chat-input {
-    opacity: 0;
-    animation: inputFade 0.3s ease forwards 0.85s;
-
-    &:focus {
-        animation: inputFocus 0.3s ease forwards 0.85s;
-    }
-}
-
 @keyframes inputFade {
     from {
         opacity: 0;

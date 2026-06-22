@@ -13,15 +13,31 @@ use crate::{
 
 #[derive(Serialize, Deserialize)]
 pub enum CommandArgs {
-    Register { request: RegisterRequest },
-    Login { request: LoginRequest },
+    Register {
+        request: RegisterRequest,
+    },
+    Login {
+        request: LoginRequest,
+    },
     GetProfile,
-    GetMembers { server_id: ServerId },
-    GetServerChannels { server_id: ServerId },
+    GetMembers {
+        server_id: ServerId,
+    },
+    GetServerChannels {
+        server_id: ServerId,
+    },
     GetUserServers,
-    CreateServer { server_info: ServerCreateInfo },
+    CreateServer {
+        server_info: ServerCreateInfo,
+    },
     ListenWebSocket,
-    JoinChannel { channel_id: ChannelId },
+    JoinChannel {
+        channel_id: ChannelId,
+    },
+    MessageCreate {
+        channel_id: ChannelId,
+        content: String,
+    },
 }
 
 impl CommandArgs {
@@ -41,6 +57,7 @@ pub enum CommandResponse {
     CreateServer(ServerView),
     ListenWebSocket(bool),
     JoinChannel,
+    MessageCreate,
 }
 
 #[derive(Serialize, Deserialize)]

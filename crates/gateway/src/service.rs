@@ -117,4 +117,20 @@ impl WsService {
         }
         Ok(true)
     }
+
+    pub async fn message_create(
+        sender_ptr: MaybeSender,
+        channel_id: ChannelId,
+        content: String,
+    ) -> Result<(), ErrorInfo> {
+        match sender_ptr.read().await.as_ref() {
+            Some(sender) => sender
+                .send(ServerSend::MessageCreate {
+                    channel_id,
+                    content,
+                })
+                .map_err(|e| ErrorInfo(1u16, e.to_string())),
+            None => Err(ErrorInfo(1u16, "Read websocket fail!".to_string())),
+        }
+    }
 }

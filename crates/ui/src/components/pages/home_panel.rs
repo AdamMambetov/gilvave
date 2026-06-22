@@ -9,10 +9,11 @@ use gilvave_core::{
         message::MessageView,
         server::{MemberView, ServerCreateInfo, ServerView},
     },
-    ids::ServerId,
+    ids::{ChannelId, ServerId},
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 use tauri_sys::event::listen;
+use web_sys::SubmitEvent;
 
 use crate::{
     components::{
@@ -29,6 +30,7 @@ struct MemberContext(Signal<Vec<MemberView>>);
 struct ChannelContext {
     text: Signal<Vec<ChannelView>>,
     voice: Signal<Vec<ChannelView>>,
+    current: Signal<Option<ChannelId>>,
 }
 
 #[component]
@@ -40,12 +42,15 @@ pub fn HomePanel() -> View {
     let text_channel_list = create_signal::<Vec<ChannelView>>(vec![]);
     let voice_channel_list = create_signal::<Vec<ChannelView>>(vec![]);
     let message_list = create_signal::<Vec<MessageView>>(vec![]);
+    let message_text = create_signal(String::new());
+    let current_channel_id = create_signal::<Option<ChannelId>>(None);
 
     let member_context = MemberContext(member_list);
     provide_context(member_context);
     let channel_context = ChannelContext {
         text: text_channel_list,
         voice: voice_channel_list,
+        current: current_channel_id,
     };
     provide_context(channel_context);
 
@@ -80,6 +85,26 @@ pub fn HomePanel() -> View {
                 server_list.update(|list| list.push(server_view));
             }
         });
+    };
+
+    let on_submit = move |event: SubmitEvent| {
+        event.prevent_default();
+
+        let msg = message_text.get_clone();
+        let channel_id = current_channel_id.get();
+        if msg.is_empty() || channel_id.is_none() {
+            return;
+        }
+
+        spawn_local_scoped(async move {
+            let args = CommandArgs::MessageCreate {
+                channel_id: channel_id.unwrap(),
+                content: msg,
+            }
+            .to_json();
+            invoke_command(args).await;
+        });
+        message_text.set(String::new());
     };
 
     spawn_local_scoped(async move {
@@ -146,9 +171,11 @@ pub fn HomePanel() -> View {
                                 list=text_channel_list,
                                 view=|channel| { view! {
                                     ChannelItem(
-                                        channel_view=channel,
-                                        on_join_channel=|| {
+                                        channel_view=channel.clone(),
+                                        on_join_channel=|channel_id| {
                                             console_log!("join channel success from ui");
+                                            let context = use_context::<ChannelContext>();
+                                            context.current.set(Some(channel_id));
                                         },
                                     )
                                 }},
@@ -175,9 +202,13 @@ pub fn HomePanel() -> View {
                             view=|message| { view! { MessageItem(message_view=message) } },
                         )
 
-                        div(class="input-area") {
-                            input(class="chat-input", placeholder="Напишите сообщение...")
-                            button(class="chat-btn") { "✈️" }
+                        form(class="input-area", on:submit=on_submit) {
+                            input(
+                                class="chat-input",
+                                placeholder="Напишите сообщение...",
+                                bind:value=message_text,
+                            )
+                            button(class="chat-btn", r#type="submit") { "✈️" }
                         }
                     }
                 }

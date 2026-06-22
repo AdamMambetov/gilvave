@@ -70,5 +70,8 @@ pub async fn handle_command(
         CommandArgs::JoinChannel { channel_id } =>
             WsService::join_channel(state.sender.clone(), channel_id),
             |_| CommandResult::Ok(CommandResponse::JoinChannel),
+        CommandArgs::MessageCreate { channel_id, content } =>
+            WsService::message_create(state.sender.clone(), channel_id, content.clone()),
+            |_| CommandResult::Ok(CommandResponse::MessageCreate),
     })
 }
