@@ -1,11 +1,16 @@
 @use '../common/variables' as *;
 
+html, body {
+    overflow: hidden;
+}
+
 body {
     font-family: $font-family;
     background: linear-gradient(135deg, $color-bg-page 0%, $color-bg-page-mid 50%, $color-bg-page-end 100%);
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 50px 0 0 0;
+    margin: 0;
 }

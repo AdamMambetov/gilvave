@@ -21,7 +21,13 @@ pub fn run() {
         .plugin(tauri_plugin_websocket::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![handler::handle_command])
+        .invoke_handler(tauri::generate_handler![
+            handler::handle_command,
+            handler::window_minimize,
+            handler::window_toggle_maximize,
+            handler::window_close,
+            handler::window_start_dragging,
+        ])
         .setup(|app| {
             let app_handle = app.handle().clone();
             app_handle.manage(AppState {

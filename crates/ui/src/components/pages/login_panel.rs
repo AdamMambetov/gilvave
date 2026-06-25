@@ -1,13 +1,11 @@
 use gilvave_core::dto::command::{CommandArgs, CommandResult};
 use gilvave_core::dto::user::LoginRequest;
-use sycamore::futures::spawn_local_scoped;
-use sycamore::prelude::*;
 use sycamore::web::console_error;
 use sycamore::web::events::SubmitEvent;
+use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::components::common::{ActiveScreen, ScreenWrapper, classes};
 use crate::components::features::social_buttons::SocialButtons;
-use crate::components::ui::checkbox::Checkbox;
 use crate::components::ui::divider::Divider;
 use crate::components::ui::input_group::InputGroup;
 use crate::components::ui::submit_button::SubmitButton;
@@ -22,7 +20,6 @@ pub struct LoginFormProps {
 pub fn LoginPanel(props: LoginFormProps) -> View {
     let email = create_signal(String::new());
     let password = create_signal(String::new());
-    let remember = create_signal(false);
     let email_error = create_signal(false);
     let password_error = create_signal(false);
 
@@ -93,9 +90,9 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                     r#type="text",
                     placeholder="adam@mail.com",
                     bind:value=email,
-                    label="Email или телефон",
+                    label="Email",
                     is_error=email_error.into(),
-                    error_message="Введите email или номер телефона",
+                    error_message="Введите email",
                 )
 
                 InputGroup(
@@ -107,12 +104,7 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                     error_message="Введите пароль",
                 )
 
-                div(class="form-options") {
-                    Checkbox(bind:checked=remember) {
-                        "Запомнить меня"
-                    }
-                    a(href="#", class="forgot-link") { "Забыли пароль?" }
-                }
+                a(href="#", class="forgot-link") { "Забыли пароль?" }
 
                 SubmitButton() { "Войти" }
 

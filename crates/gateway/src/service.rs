@@ -5,7 +5,10 @@ use gilvave_core::{
 };
 use gilvave_state::{AppState, MaybeSender};
 use tauri::{AppHandle, State};
-use tokio::sync::mpsc;
+use tokio::{
+    sync::mpsc,
+    time::{Duration, timeout},
+};
 use tokio_tungstenite::{
     connect_async,
     tungstenite::{Message, client::IntoClientRequest},
@@ -33,6 +36,22 @@ impl WsService {
             Some(sender) => sender
                 .send(ServerSend::JoinChannel { channel_id })
                 .map_err(|e| ErrorInfo(1u16, e.to_string())),
+            None => Err(ErrorInfo(1u16, "Read websocket fail!".to_string())),
+        }
+    }
+
+    pub async fn left_channel(
+        sender_ptr: MaybeSender,
+        channel_id: ChannelId,
+    ) -> Result<(), ErrorInfo> {
+        match sender_ptr.read().await.as_ref() {
+            Some(sender) => {
+                _ = timeout(Duration::from_secs(1), async {});
+
+                sender
+                    .send(ServerSend::LeftChannel { channel_id })
+                    .map_err(|e| ErrorInfo(1u16, e.to_string()))
+            }
             None => Err(ErrorInfo(1u16, "Read websocket fail!".to_string())),
         }
     }

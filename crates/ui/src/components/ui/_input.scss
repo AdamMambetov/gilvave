@@ -1,41 +1,43 @@
 @use '../common/variables' as *;
 
 .input-group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 
     label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         color: $color-text-label;
-        font-weight: $font-weight-medium;
-        font-size: $font-size-sm;
+        font-weight: 500;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
     }
 
     input {
         width: 100%;
-        padding: $padding-input;
-        background: $color-bg-input;
-        border: 2px solid $color-border;
-        border-radius: $radius-input;
-        font-size: $font-size-base;
+        padding: 12px 14px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        font-size: 14px;
         color: $color-text-heading;
-        transition: $transition-base;
+        transition: border-color 0.2s, box-shadow 0.2s;
         outline: none;
 
         &:focus {
             border-color: $color-primary;
-            box-shadow: $shadow-input-focus;
-            background: $color-bg-input-focus;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
         }
 
         &::placeholder {
-            color: $color-text-dim;
+            color: rgba(255, 255, 255, 0.2);
         }
     }
 
     &.error {
         input {
             border-color: $color-error;
+            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
         }
 
         .error-message {
@@ -46,28 +48,28 @@
     .chat-input {
         flex: 1;
         padding: 12px 16px;
-        background: #40444b;
-        border: none;
-        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
         color: $color-text-heading;
-        font-size: 16px;
+        font-size: 14px;
         outline: none;
-        transition: $transition-base;
+        transition: border-color 0.2s;
 
         &:focus {
-            background: #42464d;
+            border-color: $color-primary;
             box-shadow: none;
         }
 
         &::placeholder {
-            color: #72767d;
+            color: rgba(255, 255, 255, 0.2);
         }
     }
 }
 
 .error-message {
     color: $color-error;
-    font-size: $font-size-xs;
-    margin-top: 5px;
+    font-size: 11px;
+    margin-top: 6px;
     display: none;
 }

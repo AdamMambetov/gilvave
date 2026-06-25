@@ -1,26 +1,27 @@
 @use '../common/variables' as *;
 
 .form-panel {
-    padding: $padding-panel;
+    padding: 28px 32px 24px;
     display: none;
-    animation: fadeIn 0.4s ease;
+    animation: fadeIn 0.3s ease;
 
     &.active {
         display: block;
     }
 
     @media (max-width: $breakpoint-sm) {
-        padding: $padding-panel-sm;
+        padding: 24px 20px 20px;
     }
 }
 
 h2 {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
     color: $color-text-heading;
-    font-size: $font-size-xl;
+    font-size: 20px;
+    font-weight: 600;
 
     @media (max-width: $breakpoint-sm) {
-        font-size: 24px;
+        font-size: 18px;
     }
 }

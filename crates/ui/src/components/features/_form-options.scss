@@ -4,17 +4,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    font-size: $font-size-sm;
+    margin-bottom: 20px;
+    font-size: 13px;
 }
 
 .forgot-link {
     color: $color-primary;
     text-decoration: none;
-    transition: color 0.3s;
+    transition: color 0.2s;
+    display: block;
+    margin-bottom: 16px;
+    font-size: 12px;
 
     &:hover {
         color: $color-primary-end;
-        text-decoration: underline;
     }
 }

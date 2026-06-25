@@ -6,10 +6,11 @@
     gap: 8px;
     cursor: pointer;
     color: $color-text-label;
+    font-size: 13px;
 
     input {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         cursor: pointer;
         accent-color: $color-primary;
     }

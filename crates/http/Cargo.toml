@@ -15,3 +15,7 @@ tracing.workspace = true
 gilvave-core = { path = "../core" }
 gilvave-gateway = { path = "../gateway" }
 gilvave-state = { path = "../state" }
+
+[dev-dependencies]
+uuid = { version = "1", features = ["v4"] }
+time.workspace = true

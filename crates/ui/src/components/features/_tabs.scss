@@ -2,37 +2,37 @@
 
 .form-header {
     display: flex;
-    border-bottom: 2px solid $color-border-header;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .tab-btn {
     flex: 1;
     background: none;
     border: none;
-    padding: $padding-tab;
-    font-size: $font-size-lg;
-    font-weight: $font-weight-semibold;
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    transition: $transition-base;
-    color: $color-text-tab;
+    transition: color 0.2s;
+    color: $color-text-muted;
     position: relative;
 
     &.active {
-        color: $color-primary;
+        color: $color-text-white;
 
         &::after {
             content: '';
             position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, $color-primary, $color-primary-end);
+            bottom: -1px;
+            left: 16px;
+            right: 16px;
+            height: 2px;
+            background: $color-primary;
+            border-radius: 2px 2px 0 0;
         }
     }
 
     &:hover:not(.active) {
-        background: $color-border-header;
-        color: #ccc;
+        color: $color-text-label;
     }
 }

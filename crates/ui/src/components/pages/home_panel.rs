@@ -1,36 +1,33 @@
-use futures_util::StreamExt;
 use gilvave_core::{
     dto::{
-        channel::{
-            ChannelType::{self},
-            ChannelView,
-        },
+        channel::ChannelView,
         command::{CommandArgs, CommandResponse, CommandResult},
         message::MessageView,
         server::{MemberView, ServerCreateInfo, ServerView},
     },
-    ids::{ChannelId, ServerId},
+    ids::ChannelId,
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
-use tauri_sys::event::listen;
-use web_sys::SubmitEvent;
 
 use crate::{
     components::{
-        common::{ActiveScreen, ScreenWrapper, classes},
-        features::{channel_item::ChannelItem, member_item::MemberItem, message_item::MessageItem},
+        common::{ScreenWrapper, classes},
+        features::{
+            channel_panel::ChannelPanel, members_panel::MembersPanel, messages_area::MessagesArea,
+            server_sidebar::ServerSidebar,
+        },
     },
     utils::invoke_command,
 };
 
 #[derive(Clone)]
-struct MemberContext(Signal<Vec<MemberView>>);
+pub struct MemberContext(pub Signal<Vec<MemberView>>);
 
 #[derive(Clone)]
-struct ChannelContext {
-    text: Signal<Vec<ChannelView>>,
-    voice: Signal<Vec<ChannelView>>,
-    current: Signal<Option<ChannelId>>,
+pub struct ChannelContext {
+    pub text: Signal<Vec<ChannelView>>,
+    pub voice: Signal<Vec<ChannelView>>,
+    pub current: Signal<Option<ChannelId>>,
 }
 
 #[component]
@@ -61,11 +58,13 @@ pub fn HomePanel() -> View {
             });
             spawn_local_scoped(async move {
                 let res = invoke_command(CommandArgs::GetUserServers.to_json()).await;
-                if let CommandResult::Ok(CommandResponse::GetUserServers(servers)) = res {
-                    server_list.set(servers);
-                } else {
-                    server_list.set(vec![]);
-                }
+                server_list.set(
+                    if let CommandResult::Ok(CommandResponse::GetUserServers(servers)) = res {
+                        servers
+                    } else {
+                        vec![]
+                    },
+                );
             });
         }
     });
@@ -87,38 +86,6 @@ pub fn HomePanel() -> View {
         });
     };
 
-    let on_submit = move |event: SubmitEvent| {
-        event.prevent_default();
-
-        let msg = message_text.get_clone();
-        let channel_id = current_channel_id.get();
-        if msg.is_empty() || channel_id.is_none() {
-            return;
-        }
-
-        spawn_local_scoped(async move {
-            let args = CommandArgs::MessageCreate {
-                channel_id: channel_id.unwrap(),
-                content: msg,
-            }
-            .to_json();
-            invoke_command(args).await;
-        });
-        message_text.set(String::new());
-    };
-
-    spawn_local_scoped(async move {
-        let mut events = listen::<MessageView>("message_new").await.unwrap();
-        while let Some(event) = events.next().await {
-            console_log!(
-                "listen message_new '{}' from {}",
-                event.payload.content,
-                event.payload.author_name
-            );
-            message_list.update(|list| list.push(event.payload));
-        }
-    });
-
     view! {
         div(
             class=classes(vec![
@@ -127,29 +94,10 @@ pub fn HomePanel() -> View {
                 ("active", is_home_screen.clone()).into(),
             ]),
         ) {
-            div(class="discord-sidebar") {
-                div(class="server-icon", on:click=move |_| {
-                    screen_wrapper.set(ActiveScreen::Login);
-                    screen_wrapper.set(ActiveScreen::Home);
-                }) { "🏠" }
-                div(class="separator") {}
-                Indexed(
-                    list=server_list,
-                    view=|server| {
-                        let server_name = server.name;
-                        view! {
-                            div(
-                                class="server-icon",
-                                on:click=move |_| on_click_server(server.id),
-                            ) { (server_name) }
-                        }
-                    },
-                )
-                div(
-                    class="server-icon new",
-                    on:click=move |_| on_create_server(),
-                ) { "+" }
-            }
+            ServerSidebar(
+                server_list=server_list,
+                on_create_server=on_create_server,
+            )
 
             div(class="discord-main") {
                 div(class="discord-header") {
@@ -163,108 +111,17 @@ pub fn HomePanel() -> View {
                 }
 
                 div(class="discord-content") {
-                    div(class="channel-panel") {
-                        div(class="channel-list") {
-                            div(class="channel-header") { "Текстовые" }
+                    ChannelPanel()
 
-                            Indexed(
-                                list=text_channel_list,
-                                view=|channel| { view! {
-                                    ChannelItem(
-                                        channel_view=channel.clone(),
-                                        on_join_channel=|channel_id| {
-                                            console_log!("join channel success from ui");
-                                            let context = use_context::<ChannelContext>();
-                                            context.current.set(Some(channel_id));
-                                        },
-                                    )
-                                }},
-                            )
-                            // div(class="channel-item active") { "Стандартный" }
-                            // div(class="channel-item active") { "Второй" }
-                        }
-
-                        div(class="channel-list") {
-                            div(class="channel-header") { "Голосовые" }
-
-                            Indexed(
-                                list=voice_channel_list,
-                                view=|channel| { view! { div(class="channel-item") { (channel.name) } } },
-                            )
-                            // div(class="channel-item") { "Стандартный" }
-                            // div(class="channel-item") { "Голос 2" }
-                        }
-                    }
-
-                    div(class="messages-area") {
-                        Indexed(
-                            list=message_list,
-                            view=|message| { view! { MessageItem(message_view=message) } },
-                        )
-
-                        form(class="input-area", on:submit=on_submit) {
-                            input(
-                                class="chat-input",
-                                placeholder="Напишите сообщение...",
-                                bind:value=message_text,
-                            )
-                            button(class="chat-btn", r#type="submit") { "✈️" }
-                        }
-                    }
-                }
-            }
-
-            div(class="discord-members-panel") {
-                div(class="panel-section") {
-                    h3 { "Онлайн" }
-
-                    Indexed(
-                        list=member_list,
-                        view=|member| { view! { MemberItem(member_view=member) } },
+                    MessagesArea(
+                        message_list=message_list,
+                        message_text=message_text,
+                        current_channel_id=current_channel_id,
                     )
                 }
-
-                div(class="panel-section") {
-                    h3 { "Офлайн" }
-                    // div(class="member-item") { "👤 Guest (offline)" }
-                    // div(class="member-item") { "👤 Stranger (offline)" }
-                }
             }
+
+            MembersPanel()
         }
     }
-}
-
-fn on_click_server(server_id: ServerId) {
-    spawn_local_scoped(async move {
-        let context = use_context::<MemberContext>();
-        let args = CommandArgs::GetMembers {
-            server_id: server_id.clone(),
-        }
-        .to_json();
-        let res = invoke_command(args).await;
-
-        context.0.set(vec![]);
-        if let CommandResult::Ok(CommandResponse::GetMembers(members)) = res {
-            context.0.set(members);
-        }
-    });
-    spawn_local_scoped(async move {
-        let context = use_context::<ChannelContext>();
-        let args = CommandArgs::GetServerChannels {
-            server_id: server_id.clone(),
-        }
-        .to_json();
-        let res = invoke_command(args).await;
-
-        context.text.set(vec![]);
-        context.voice.set(vec![]);
-        if let CommandResult::Ok(CommandResponse::GetServerChannels(channels)) = res {
-            for channel in channels {
-                match channel.r#type {
-                    ChannelType::TEXT => context.text.update(|list| list.push(channel)),
-                    ChannelType::VOICE => context.voice.update(|list| list.push(channel)),
-                }
-            }
-        }
-    })
 }

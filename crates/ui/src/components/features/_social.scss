@@ -2,7 +2,7 @@
 
 .social-buttons {
     display: flex;
-    gap: 15px;
+    gap: 10px;
 
     @media (max-width: $breakpoint-sm) {
         flex-direction: column;

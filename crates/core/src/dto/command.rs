@@ -34,6 +34,9 @@ pub enum CommandArgs {
     JoinChannel {
         channel_id: ChannelId,
     },
+    LeftChannel {
+        channel_id: ChannelId,
+    },
     MessageCreate {
         channel_id: ChannelId,
         content: String,
@@ -57,6 +60,7 @@ pub enum CommandResponse {
     CreateServer(ServerView),
     ListenWebSocket(bool),
     JoinChannel,
+    LeftChannel,
     MessageCreate,
 }
 

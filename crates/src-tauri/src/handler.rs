@@ -6,7 +6,7 @@ use gilvave_core::{
 use gilvave_gateway::service::WsService;
 use gilvave_http::api::Api;
 use gilvave_state::AppState;
-use tauri::{AppHandle, State, async_runtime::block_on};
+use tauri::{AppHandle, Manager, State, WebviewWindow, async_runtime::block_on};
 
 macro_rules! dispatch {
     // $api_call:expr схватит функцию до первой запятой
@@ -70,8 +70,51 @@ pub async fn handle_command(
         CommandArgs::JoinChannel { channel_id } =>
             WsService::join_channel(state.sender.clone(), channel_id),
             |_| CommandResult::Ok(CommandResponse::JoinChannel),
+        CommandArgs::LeftChannel { channel_id } =>
+            WsService::left_channel(state.sender.clone(), channel_id),
+            |_| CommandResult::Ok(CommandResponse::LeftChannel),
         CommandArgs::MessageCreate { channel_id, content } =>
             WsService::message_create(state.sender.clone(), channel_id, content.clone()),
             |_| CommandResult::Ok(CommandResponse::MessageCreate),
     })
+}
+
+fn get_main_window(app_handle: &AppHandle) -> Option<WebviewWindow> {
+    app_handle.get_webview_window("main")
+}
+
+#[tauri::command]
+pub async fn window_minimize(app_handle: AppHandle) -> Result<(), ()> {
+    if let Some(window) = get_main_window(&app_handle) {
+        let _ = window.minimize();
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn window_toggle_maximize(app_handle: AppHandle) -> Result<(), ()> {
+    if let Some(window) = get_main_window(&app_handle) {
+        if window.is_maximized().unwrap_or(false) {
+            let _ = window.unmaximize();
+        } else {
+            let _ = window.maximize();
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn window_close(app_handle: AppHandle) -> Result<(), ()> {
+    if let Some(window) = get_main_window(&app_handle) {
+        let _ = window.close();
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn window_start_dragging(app_handle: AppHandle) -> Result<(), ()> {
+    if let Some(window) = get_main_window(&app_handle) {
+        let _ = window.start_dragging();
+    }
+    Ok(())
 }

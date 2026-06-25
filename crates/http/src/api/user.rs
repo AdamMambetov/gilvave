@@ -64,7 +64,7 @@ impl Api {
             .bearer_auth(get_access_token())
             .send()
             .await
-            .map_err(|e| ErrorInfo(e.status().unwrap().as_u16(), e.to_string()))?;
+            .map_err(|e| ErrorInfo(1u16, e.to_string()))?;
         Api::response_to::<UserView>(res).await
     }
 }
