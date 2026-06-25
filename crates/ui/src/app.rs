@@ -4,9 +4,9 @@ use sycamore::{futures::spawn_local_scoped, prelude::*};
 use crate::{
     components::{
         common::{ActiveScreen, ScreenWrapper},
+        layout::header::AppHeader,
         pages::home_panel::HomePanel,
         templates::auth_form::AuthForm,
-        ui::header::AppHeader,
     },
     utils::invoke_command,
 };

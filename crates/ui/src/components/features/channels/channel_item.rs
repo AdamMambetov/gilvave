@@ -4,13 +4,22 @@ use gilvave_core::dto::{
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*, web::console_error};
 
-use crate::{components::pages::home_panel::ChannelContext, utils::invoke_command};
+use crate::{
+    components::common::{ChannelContext, classes},
+    utils::invoke_command,
+};
 
 #[component(inline_props)]
 pub fn ChannelItem(channel_view: ChannelView) -> View {
+    let context = use_context::<ChannelContext>();
+    let is_active = create_memo(move || context.current.get() == Some(channel_view.id));
+
     view! {
         div(
-            class="channel-item",
+            class=classes(vec![
+                "channel-item".into(),
+                ("active", is_active.into()).into(),
+            ]),
             on:click=move |_| {
                 spawn_local_scoped(async move {
                     let context = use_context::<ChannelContext>();

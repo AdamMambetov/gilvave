@@ -11,24 +11,14 @@ use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
     components::{
-        common::{ScreenWrapper, classes},
+        common::{ChannelContext, MemberContext, ScreenWrapper, classes},
         features::{
-            channel_panel::ChannelPanel, members_panel::MembersPanel, messages_area::MessagesArea,
-            server_sidebar::ServerSidebar,
+            channels::channel_panel::ChannelPanel, members::members_panel::MembersPanel,
+            chat::messages_area::MessagesArea, servers::server_sidebar::ServerSidebar,
         },
     },
     utils::invoke_command,
 };
-
-#[derive(Clone)]
-pub struct MemberContext(pub Signal<Vec<MemberView>>);
-
-#[derive(Clone)]
-pub struct ChannelContext {
-    pub text: Signal<Vec<ChannelView>>,
-    pub voice: Signal<Vec<ChannelView>>,
-    pub current: Signal<Option<ChannelId>>,
-}
 
 #[component]
 pub fn HomePanel() -> View {

@@ -5,9 +5,10 @@ use sycamore::web::events::SubmitEvent;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::components::common::{ActiveScreen, ScreenWrapper, classes};
-use crate::components::features::social_buttons::SocialButtons;
+use crate::components::features::auth::social_buttons::SocialButtons;
 use crate::components::ui::divider::Divider;
 use crate::components::ui::input_group::InputGroup;
+use crate::components::ui::spinner::Spinner;
 use crate::components::ui::submit_button::SubmitButton;
 use crate::utils::invoke_command;
 
@@ -22,6 +23,8 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
     let password = create_signal(String::new());
     let email_error = create_signal(false);
     let password_error = create_signal(false);
+    let loading = create_signal(false);
+    let loading_clone = loading.clone();
 
     let on_submit = move |event: SubmitEvent| {
         event.prevent_default();
@@ -50,6 +53,7 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
             );
 
             spawn_local_scoped(async move {
+                loading.set(true);
                 let args = CommandArgs::Login {
                     request: LoginRequest {
                         email: email.to_string(),
@@ -58,6 +62,7 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                 }
                 .to_json();
                 let res = invoke_command(args).await;
+                loading.set(false);
                 match res {
                     CommandResult::Ok(_) => {
                         console_log!("Login Success");
@@ -112,6 +117,11 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
 
                 SocialButtons()
             }
+            (if loading_clone.get() {
+                view! { Spinner() }
+            } else {
+                view! {}
+            })
         }
     }
 }

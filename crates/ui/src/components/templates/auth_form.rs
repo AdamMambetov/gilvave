@@ -3,7 +3,7 @@ use sycamore::prelude::*;
 
 use crate::components::{
     common::ScreenWrapper,
-    features::form_tabs::*,
+    features::auth::form_tabs::*,
     pages::{login_panel::*, register_panel::*},
 };
 

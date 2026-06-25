@@ -5,11 +5,9 @@ use gilvave_core::dto::{
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
-    components::common::{ActiveScreen, ScreenWrapper},
+    components::common::{ActiveScreen, ChannelContext, MemberContext, ScreenWrapper},
     utils::invoke_command,
 };
-
-use super::super::pages::home_panel::{ChannelContext, MemberContext};
 
 #[component(inline_props)]
 pub fn ServerSidebar(

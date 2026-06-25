@@ -1,6 +1,6 @@
 use sycamore::prelude::*;
 
-use crate::components::pages::home_panel::ChannelContext;
+use crate::components::common::ChannelContext;
 
 use super::channel_item::ChannelItem;
 

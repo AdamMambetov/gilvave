@@ -15,8 +15,11 @@ use validator::Validate;
 use crate::{
     components::{
         common::{ActiveScreen, ScreenWrapper, classes},
-        features::social_buttons::SocialButtons,
-        ui::{divider::Divider, input_group::InputGroup, submit_button::SubmitButton},
+        features::auth::social_buttons::SocialButtons,
+        ui::{
+            divider::Divider, input_group::InputGroup, spinner::Spinner,
+            submit_button::SubmitButton,
+        },
     },
     utils::invoke_command,
 };
@@ -49,6 +52,8 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
     let email_error = create_signal(false);
     let password_error = create_signal(false);
     let confirm_error = create_signal(false);
+    let loading = create_signal(false);
+    let loading_clone = loading.clone();
 
     let mut form_map: HashMap<&str, Signal<bool>> = [
         ("name", name_error),
@@ -74,6 +79,7 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                 form_map.values_mut().for_each(|signal| signal.set(false));
 
                 spawn_local_scoped(async move {
+                    loading.set(true);
                     let args = CommandArgs::Register {
                         request: RegisterRequest {
                             username: data.name.to_string(),
@@ -83,6 +89,7 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                     }
                     .to_json();
                     let res = invoke_command(args).await;
+                    loading.set(false);
                     match res {
                         CommandResult::Ok(_) => {
                             console_log!("Register Success");
@@ -158,6 +165,11 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
 
                 SocialButtons()
             }
+            (if loading_clone.get() {
+                view! { Spinner() }
+            } else {
+                view! {}
+            })
         }
     }
 }

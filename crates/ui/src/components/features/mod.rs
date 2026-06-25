@@ -1,9 +1,5 @@
-pub mod channel_item;
-pub mod channel_panel;
-pub mod form_tabs;
-pub mod member_item;
-pub mod members_panel;
-pub mod message_item;
-pub mod messages_area;
-pub mod social_buttons;
-pub mod server_sidebar;
+pub mod auth;
+pub mod channels;
+pub mod chat;
+pub mod members;
+pub mod servers;

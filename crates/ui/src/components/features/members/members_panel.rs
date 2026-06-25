@@ -1,6 +1,6 @@
 use sycamore::prelude::*;
 
-use crate::components::pages::home_panel::MemberContext;
+use crate::components::common::MemberContext;
 
 use super::member_item::MemberItem;
 
