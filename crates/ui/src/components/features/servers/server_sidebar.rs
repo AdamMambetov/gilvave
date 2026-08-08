@@ -17,6 +17,19 @@ pub fn ServerSidebar(
     let screen_wrapper = use_context::<ScreenWrapper>();
 
     let handle_home_click = move |_| {
+        spawn_local_scoped(async {
+            let context = use_context::<ChannelContext>();
+            if context.current.get().is_some() {
+                let args = CommandArgs::LeftChannel {
+                    channel_id: context.current.get().unwrap(),
+                }
+                .to_json();
+                context.current.set(None);
+                invoke_command(args).await;
+            }
+        });
+        // TODO: сделать понятнее обновление списка серверов
+        //       при нажатии на home
         screen_wrapper.set(ActiveScreen::Login);
         screen_wrapper.set(ActiveScreen::Home);
     };
@@ -61,6 +74,15 @@ fn on_click_server(server_id: gilvave_core::ids::ServerId) {
     });
     spawn_local_scoped(async move {
         let context = use_context::<ChannelContext>();
+        if context.current.get().is_some() {
+            let args = CommandArgs::LeftChannel {
+                channel_id: context.current.get().unwrap(),
+            }
+            .to_json();
+            context.current.set(None);
+            invoke_command(args).await;
+        }
+
         let args = CommandArgs::GetServerChannels {
             server_id: server_id.clone(),
         }

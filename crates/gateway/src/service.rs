@@ -60,8 +60,7 @@ impl WsService {
         state: State<'_, AppState>,
         app_handle: AppHandle,
     ) -> Result<bool, ErrorInfo> {
-        let invalid_sender = state.sender.read().await.is_none();
-        if invalid_sender {
+        loop {
             let mut request = BASE_WS_URL.into_client_request().unwrap();
             request.headers_mut().insert(
                 "Authorization",
@@ -78,8 +77,10 @@ impl WsService {
             match connect_async(request).await {
                 Ok((ws_stream, _)) => {
                     let (mut ws_sender, mut ws_reciever) = ws_stream.split();
+                    let state_sender = state.sender.clone();
 
-                    let recieve_task = async {
+                    let app_handle_cloned = app_handle.clone();
+                    let mut receive_task = tokio::spawn(async move {
                         tracing::info!("recieve_task start");
                         while let Some(msg) = ws_reciever.next().await {
                             tracing::info!("recieve_task while");
@@ -87,8 +88,8 @@ impl WsService {
                                 Ok(Message::Text(text)) => {
                                     tracing::info!("Received: {text}");
                                     handle(
-                                        state.sender.clone(),
-                                        app_handle.clone(),
+                                        state_sender.clone(),
+                                        app_handle_cloned.clone(),
                                         text.to_string(),
                                     )
                                     .await;
@@ -105,9 +106,9 @@ impl WsService {
                             }
                         }
                         tracing::info!("recieve_task end");
-                    };
+                    });
 
-                    let send_task = async {
+                    let mut send_task = tokio::spawn(async move {
                         tracing::info!("send_task start");
                         while let Some(msg) = reciever.recv().await {
                             tracing::info!("send_task while start");
@@ -118,19 +119,23 @@ impl WsService {
                             tracing::info!("send_task while end");
                         }
                         tracing::info!("send_task end");
-                    };
+                    });
 
                     tokio::select! {
-                        _ = recieve_task => {
-                            tracing::info!("recieve_task finished")
+                        _ = &mut receive_task => {
+                            tracing::info!("recieve_task finished");
+                            send_task.abort();
                         },
-                        _ = send_task => {
-                            tracing::info!("send_task finished")
+                        _ = &mut send_task => {
+                            tracing::info!("send_task finished");
+                            receive_task.abort();
                         },
                     }
                 }
                 Err(e) => {
                     tracing::error!("Connection error: {e}");
+                    continue;
+                    // TODO: подождать и сделать переподключение
                 }
             };
         }
