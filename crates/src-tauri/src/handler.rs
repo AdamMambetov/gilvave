@@ -76,6 +76,12 @@ pub async fn handle_command(
         CommandArgs::MessageCreate { channel_id, content } =>
             WsService::message_create(state.sender.clone(), channel_id, content.clone()),
             |_| CommandResult::Ok(CommandResponse::MessageCreate),
+        CommandArgs::ChannelHistoryBefore { channel_id, timestamp } =>
+            WsService::channel_history_before(state.sender.clone(), channel_id, timestamp),
+            |_| CommandResult::Ok(CommandResponse::ChannelHistoryBefore),
+        CommandArgs::ChannelHistoryAfter { channel_id, timestamp } =>
+            WsService::channel_history_after(state.sender.clone(), channel_id, timestamp),
+            |_| CommandResult::Ok(CommandResponse::ChannelHistoryAfter),
     })
 }
 

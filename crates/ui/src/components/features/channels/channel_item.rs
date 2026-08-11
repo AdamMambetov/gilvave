@@ -33,14 +33,19 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
 
                     let args = CommandArgs::JoinChannel{
                         channel_id: channel_view.id
-                    }
-                    .to_json();
+                    }.to_json();
                     let res = invoke_command(args).await;
                     if let CommandResult::Ok(CommandResponse::JoinChannel) = res {
                         context.current.set(Some(channel_view.id));
                     } else if let CommandResult::Error(err) = res {
                         console_error!("join channel error: {err:#?}");
                     }
+
+                    let args = CommandArgs::ChannelHistoryBefore {
+                        channel_id: channel_view.id,
+                        timestamp: time::OffsetDateTime::now_utc(),
+                    }.to_json();
+                    invoke_command(args).await;
                 });
             },
         ) {

@@ -19,15 +19,6 @@ use crate::handler::handle;
 pub struct WsService;
 
 impl WsService {
-    pub async fn heartbeat(web_socket: MaybeSender) {
-        if let Some(sender) = web_socket.read().await.as_ref() {
-            let res = sender.send(ServerSend::Heartbeat);
-            if res.is_err() {
-                tracing::error!("heartbeat error: {}", res.err().unwrap())
-            }
-        }
-    }
-
     pub async fn join_channel(
         sender_ptr: MaybeSender,
         channel_id: ChannelId,
@@ -61,6 +52,8 @@ impl WsService {
         app_handle: AppHandle,
     ) -> Result<bool, ErrorInfo> {
         loop {
+            tracing::info!("listen_web_socket start");
+
             let mut request = BASE_WS_URL.into_client_request().unwrap();
             request.headers_mut().insert(
                 "Authorization",
@@ -77,7 +70,6 @@ impl WsService {
             match connect_async(request).await {
                 Ok((ws_stream, _)) => {
                     let (mut ws_sender, mut ws_reciever) = ws_stream.split();
-                    let state_sender = state.sender.clone();
 
                     let app_handle_cloned = app_handle.clone();
                     let mut receive_task = tokio::spawn(async move {
@@ -87,12 +79,7 @@ impl WsService {
                             match msg {
                                 Ok(Message::Text(text)) => {
                                     tracing::info!("Received: {text}");
-                                    handle(
-                                        state_sender.clone(),
-                                        app_handle_cloned.clone(),
-                                        text.to_string(),
-                                    )
-                                    .await;
+                                    handle(app_handle_cloned.clone(), text.to_string()).await;
                                 }
                                 Ok(Message::Close(_)) => {
                                     tracing::warn!("WebSocket connection closed");
@@ -115,6 +102,7 @@ impl WsService {
                             let json = serde_json::to_string(&msg).unwrap();
                             if ws_sender.send(Message::Text(json.into())).await.is_err() {
                                 tracing::error!("ws_sender error!");
+                                break;
                             }
                             tracing::info!("send_task while end");
                         }
@@ -133,9 +121,10 @@ impl WsService {
                     }
                 }
                 Err(e) => {
-                    tracing::error!("Connection error: {e}");
-                    continue;
                     // TODO: подождать и сделать переподключение
+                    tracing::error!("Connection error: {e}");
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
                 }
             };
         }
@@ -152,6 +141,38 @@ impl WsService {
                 .send(ServerSend::MessageCreate {
                     channel_id,
                     content,
+                })
+                .map_err(|e| ErrorInfo(1u16, e.to_string())),
+            None => Err(ErrorInfo(1u16, "Read websocket fail!".to_string())),
+        }
+    }
+
+    pub async fn channel_history_before(
+        sender_ptr: MaybeSender,
+        channel_id: ChannelId,
+        timestamp: time::OffsetDateTime,
+    ) -> Result<(), ErrorInfo> {
+        match sender_ptr.read().await.as_ref() {
+            Some(sender) => sender
+                .send(ServerSend::ChannelHistoryBefore {
+                    channel_id,
+                    timestamp,
+                })
+                .map_err(|e| ErrorInfo(1u16, e.to_string())),
+            None => Err(ErrorInfo(1u16, "Read websocket fail!".to_string())),
+        }
+    }
+
+    pub async fn channel_history_after(
+        sender_ptr: MaybeSender,
+        channel_id: ChannelId,
+        timestamp: time::OffsetDateTime,
+    ) -> Result<(), ErrorInfo> {
+        match sender_ptr.read().await.as_ref() {
+            Some(sender) => sender
+                .send(ServerSend::ChannelHistoryAfter {
+                    channel_id,
+                    timestamp,
                 })
                 .map_err(|e| ErrorInfo(1u16, e.to_string())),
             None => Err(ErrorInfo(1u16, "Read websocket fail!".to_string())),

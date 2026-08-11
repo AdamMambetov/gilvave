@@ -41,6 +41,14 @@ pub enum CommandArgs {
         channel_id: ChannelId,
         content: String,
     },
+    ChannelHistoryBefore {
+        channel_id: ChannelId,
+        timestamp: time::OffsetDateTime,
+    },
+    ChannelHistoryAfter {
+        channel_id: ChannelId,
+        timestamp: time::OffsetDateTime,
+    },
 }
 
 impl CommandArgs {
@@ -62,6 +70,8 @@ pub enum CommandResponse {
     JoinChannel,
     LeftChannel,
     MessageCreate,
+    ChannelHistoryBefore,
+    ChannelHistoryAfter,
 }
 
 #[derive(Serialize, Deserialize)]
