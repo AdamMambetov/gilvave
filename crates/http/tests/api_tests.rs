@@ -277,12 +277,16 @@ fn test_server_view_different_names() {
         name: "Server A".to_string(),
         icon_url: "".to_string(),
         created_at: time::OffsetDateTime::now_utc(),
+        description: String::new(),
+        member_count: 0,
     };
     let s2 = ServerView {
         id: ServerId(test_uuid()),
         name: "Server B".to_string(),
         icon_url: "".to_string(),
         created_at: time::OffsetDateTime::now_utc(),
+        description: String::new(),
+        member_count: 0,
     };
     assert_ne!(s1, s2);
 }

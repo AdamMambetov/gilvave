@@ -10,6 +10,10 @@ pub struct ServerView {
     pub icon_url: String,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub member_count: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

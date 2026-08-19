@@ -63,6 +63,9 @@ pub async fn handle_command(
         CommandArgs::GetUserServers =>
             Api::get_user_servers(client),
             |s| CommandResult::Ok(CommandResponse::GetUserServers(s)),
+        CommandArgs::GetPublicServers =>
+            Api::get_public_servers(client),
+            |s| CommandResult::Ok(CommandResponse::GetPublicServers(s)),
         CommandArgs::CreateServer { server_info } =>
             Api::create_server(client, server_info.clone()),
             |s| CommandResult::Ok(CommandResponse::CreateServer(s)),

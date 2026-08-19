@@ -20,6 +20,16 @@ impl Api {
         Api::response_to::<Vec<ServerView>>(res).await
     }
 
+    pub async fn get_public_servers(client: &Client) -> Result<Vec<ServerView>, ErrorInfo> {
+        let res = client
+            .get(format!("{BASE_HTTP_URL}/servers/public"))
+            .bearer_auth(get_access_token())
+            .send()
+            .await
+            .map_err(|e| ErrorInfo::default(e.without_url().to_string()))?;
+        Api::response_to::<Vec<ServerView>>(res).await
+    }
+
     pub async fn get_members(
         client: &Client,
         server_id: ServerId,

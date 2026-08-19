@@ -27,6 +27,7 @@ pub enum CommandArgs {
         server_id: ServerId,
     },
     GetUserServers,
+    GetPublicServers,
     CreateServer {
         server_info: ServerCreateInfo,
     },
@@ -65,6 +66,7 @@ pub enum CommandResponse {
     GetMembers(Vec<MemberView>),
     GetServerChannels(Vec<ChannelView>),
     GetUserServers(Vec<ServerView>),
+    GetPublicServers(Vec<ServerView>),
     CreateServer(ServerView),
     ListenWebSocket(bool),
     JoinChannel,
