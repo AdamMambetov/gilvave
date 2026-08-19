@@ -6,6 +6,7 @@ use gilvave_core::{
     },
     error::ErrorInfo,
     ids::{ChannelId, ServerId},
+    settings::DeviceInfo,
 };
 use uuid::Uuid;
 
@@ -67,6 +68,7 @@ fn test_login_request_serialize() {
     let req = LoginRequest {
         email: "user@test.com".to_string(),
         password: "secret".to_string(),
+        device_info: DeviceInfo::default().to_json(),
     };
     let json = serde_json::to_string(&req).unwrap();
     assert!(json.contains("user@test.com"));
@@ -320,6 +322,7 @@ fn test_login_request_special_characters() {
     let req = LoginRequest {
         email: "user+tag@domain.com".to_string(),
         password: "p@$$w0rd!#%".to_string(),
+        device_info: DeviceInfo::default().to_json(),
     };
     let json = serde_json::to_string(&req).unwrap();
     let parsed: LoginRequest = serde_json::from_str(&json).unwrap();

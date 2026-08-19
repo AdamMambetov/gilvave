@@ -13,8 +13,8 @@ use crate::{
     components::{
         common::{ChannelContext, MemberContext, ScreenWrapper, classes},
         features::{
-            channels::channel_panel::ChannelPanel, members::members_panel::MembersPanel,
-            chat::messages_area::MessagesArea, servers::server_sidebar::ServerSidebar,
+            channels::channel_panel::ChannelPanel, chat::messages_area::MessagesArea,
+            members::members_panel::MembersPanel, servers::server_sidebar::ServerSidebar,
         },
     },
     utils::invoke_command,
@@ -34,10 +34,12 @@ pub fn HomePanel() -> View {
 
     let member_context = MemberContext(member_list);
     provide_context(member_context);
+
     let channel_context = ChannelContext {
         text: text_channel_list,
         voice: voice_channel_list,
         current: current_channel_id,
+        messages: message_list,
     };
     provide_context(channel_context);
 

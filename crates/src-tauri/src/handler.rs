@@ -38,6 +38,8 @@ pub async fn handle_command(
     command: CommandArgs,
 ) -> Result<CommandResult, ()> {
     let client = &state.http_client;
+    let db = &state.db;
+
     Ok(dispatch! { command, client,
         CommandArgs::Register { request } =>
             Api::register(client, request.clone()),

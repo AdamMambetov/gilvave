@@ -1,5 +1,6 @@
 use gilvave_core::dto::command::{CommandArgs, CommandResult};
 use gilvave_core::dto::user::LoginRequest;
+use gilvave_core::settings::collect_device_info;
 use sycamore::web::console_error;
 use sycamore::web::events::SubmitEvent;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
@@ -58,6 +59,7 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                     request: LoginRequest {
                         email: email.to_string(),
                         password: password.to_string(),
+                        device_info: collect_device_info().to_json(),
                     },
                 }
                 .to_json();

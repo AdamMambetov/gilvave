@@ -1,2 +1,85 @@
 pub const BASE_HTTP_URL: &str = "http://kim.netbird.cloud:3000";
 pub const BASE_WS_URL: &str = "ws://kim.netbird.cloud:3100/ws";
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct DeviceInfo {
+    pub platform: Option<String>,
+    pub os_version: Option<String>,
+    pub client: String, // "desktop" | "mobile" | "web"
+    pub client_version: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub browser: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub browser_version: Option<String>,
+}
+
+impl DeviceInfo {
+    /// client_version берётся из Cargo.toml пакета — не захардкожен в коде
+    pub fn client_version() -> String {
+        env!("CARGO_PKG_VERSION").to_string()
+    }
+
+    /// Готовая JSON-строка для отправки на сервер и записи в JSONB-колонку
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap_or(serde_json::Value::Null)
+    }
+}
+
+#[cfg(not(target_os = "android"))]
+pub fn collect_desktop() -> DeviceInfo {
+    use sysinfo::System;
+
+    // name() → "Windows" / "macOS" / "Linux" / "Android"
+    // os_version() → "11" / "15.1" / "Ubuntu 22.04"
+    // host_name() → "DESKTOP-7K2F9A" / hostname машины
+    // cpu_arch()  → "x86_64" / "aarch64"
+    DeviceInfo {
+        platform: System::name(),
+        os_version: System::os_version(),
+        client: "desktop".into(),
+        client_version: DeviceInfo::client_version(),
+        device_name: System::host_name(),
+        browser: None,
+        browser_version: None,
+    }
+}
+#[cfg(target_arch = "wasm32")]
+pub fn collect_web() -> DeviceInfo {
+    let user_agent = web_sys::window()
+        .and_then(|w| Some(w.navigator()))
+        .and_then(|n| n.user_agent().ok())
+        .unwrap_or_default();
+
+    let parser = woothee::parser::Parser::new();
+    let parsed = parser.parse(&user_agent).unwrap_or_default();
+
+    DeviceInfo {
+        // woothee даёт "Windows" / "Mac OSX" / "Android" / "Linux"
+        platform: Some(parsed.os.to_string()),
+        // "NT 10.0" для Windows / "10.15.6" для macOS
+        os_version: Some(parsed.os_version.to_string()),
+        client: "web".into(),
+        client_version: DeviceInfo::client_version(),
+        device_name: None,
+        browser: Some(parsed.name.to_string()),
+        browser_version: Some(parsed.version.to_string()),
+    }
+}
+pub fn collect_device_info() -> DeviceInfo {
+    #[cfg(target_arch = "wasm32")]
+    {
+        collect_web()
+    }
+    #[cfg(target_os = "android")]
+    {
+        collect_android()
+    }
+    #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
+    {
+        collect_desktop()
+    }
+}

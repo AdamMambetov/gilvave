@@ -24,10 +24,15 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
                 spawn_local_scoped(async move {
                     let context = use_context::<ChannelContext>();
                     if context.current.get().is_some() {
+                        if context.current.get().unwrap() == channel_view.id {
+                            return
+                        }
+
                         let args = CommandArgs::LeftChannel {
                             channel_id: context.current.get().unwrap()
                         }.to_json();
                         context.current.set(None);
+                        context.messages.set(vec![]);
                         invoke_command(args).await;
                     }
 

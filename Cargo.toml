@@ -28,3 +28,11 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 strum = { version = "0.28.0", features = ["derive"] }
 time = { version = "0.3.55", features = ["serde", "formatting", "parsing", "wasm-bindgen"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+web-sys = { version = "0.3.99", features = [
+    "HtmlSelectElement",
+    "Element",
+    "HtmlElement",
+    "Navigator",
+    "Window",
+] }

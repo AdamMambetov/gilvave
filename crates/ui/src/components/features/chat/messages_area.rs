@@ -103,13 +103,7 @@ pub fn MessagesArea(
             // queue_microtask достаточно, т.к. эффекты Sycamore выполняются
             // в микротасках. Для надёжности можно использовать RAF.
             queue_microtask(move || {
-                // let el = container.get().unchecked_into::<HtmlElement>();
                 let delta = el.scroll_height() - old_scroll_height;
-                console_log!("old_scroll_top: {old_scroll_top}");
-                console_log!("old_scroll_height: {old_scroll_height}");
-                console_log!("delta: {delta}");
-                let new_scroll_top = old_scroll_top + delta;
-                console_log!("new_scroll_top: {new_scroll_top}");
                 el.set_scroll_top(old_scroll_top + delta);
             });
         }

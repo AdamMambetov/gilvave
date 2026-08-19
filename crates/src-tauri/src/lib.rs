@@ -4,9 +4,12 @@ use gilvave_state::AppState;
 use tauri::Manager;
 use tauri_plugin_http::reqwest::Client;
 use tauri_plugin_tracing::{Builder, LevelFilter, WebviewLayer};
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 use tracing_subscriber::{Registry, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
+use crate::database::initialize_database;
+
+mod database;
 mod handler;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -30,10 +33,6 @@ pub fn run() {
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
-            app_handle.manage(AppState {
-                sender: Arc::new(RwLock::new(None)),
-                http_client: Client::new(),
-            });
 
             Registry::default()
                 .with(fmt::layer())
@@ -41,7 +40,13 @@ pub fn run() {
                 .with(filter)
                 .init();
 
-            tracing::debug!("Debug from app!");
+            let db = initialize_database(&app_handle).unwrap();
+            app_handle.manage(AppState {
+                sender: Arc::new(RwLock::new(None)),
+                http_client: Client::new(),
+                db: Arc::new(Mutex::new(Some(db))),
+            });
+
             Ok(())
         })
         .run(tauri::generate_context!())

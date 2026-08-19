@@ -18,8 +18,8 @@ serde.workspace = true
 strum.workspace = true
 futures-util.workspace = true
 time.workspace = true
+web-sys.workspace = true
 
 gilvave-core = { path = "../core" }
 regex = "1.12.3"
 validator = { version = "0.20.0", features = ["derive"] }
-web-sys = { version = "0.3.99", features = ["HtmlSelectElement", "Element", "HtmlElement"] }
