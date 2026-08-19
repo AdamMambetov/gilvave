@@ -49,6 +49,127 @@
     margin: 4px 0;
 }
 
+// Server modal
+.server-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+}
+
+.server-modal {
+    background: $color-bg-container;
+    border-radius: $radius-container;
+    padding: $padding-panel;
+    box-shadow: $shadow-container;
+    min-width: 420px;
+    max-width: 500px;
+    animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.server-modal-header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    span {
+        font-size: $font-size-xl;
+        font-weight: $font-weight-semibold;
+        color: $color-text-heading;
+    }
+}
+
+.server-modal-body {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.server-modal-card {
+    width: 180px;
+    height: 180px;
+    border: 2px solid $color-border;
+    border-radius: $radius-container;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: $transition-base;
+    background: $color-bg-input;
+
+    &:hover {
+        border-color: $color-primary;
+        background: $color-bg-input-focus;
+        transform: translateY(-4px);
+        box-shadow: $shadow-submit-hover;
+    }
+
+    &:active {
+        transform: translateY(-2px);
+    }
+}
+
+.server-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: $transition-base;
+
+    &.create {
+        background: rgba($color-primary, 0.15);
+        color: $color-primary;
+
+        .server-modal-card:hover & {
+            background: rgba($color-primary, 0.25);
+        }
+    }
+
+    &.join {
+        background: rgba($color-primary-end, 0.15);
+        color: $color-primary-end;
+
+        .server-modal-card:hover & {
+            background: rgba($color-primary-end, 0.25);
+        }
+    }
+}
+
+.server-modal-label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-label;
+    transition: color 0.2s;
+
+    .server-modal-card:hover & {
+        color: $color-text-white;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
 @media (max-width: $breakpoint-sm) {
     .discord-sidebar {
         width: 100%;
@@ -56,5 +177,21 @@
         flex-direction: row;
         justify-content: center;
         padding: 10px 0;
+    }
+
+    .server-modal {
+        min-width: unset;
+        width: 90%;
+        padding: $padding-panel-sm;
+    }
+
+    .server-modal-body {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .server-modal-card {
+        width: 100%;
+        height: 120px;
     }
 }
