@@ -32,6 +32,9 @@ fn make_server_card(server: ServerView, expanded_id: Signal<Option<ServerId>>) -
     let sicon = server.icon_url.clone();
     let smembers = server.member_count;
 
+    let first_char_c = first_char.clone();
+    let sname_c = sname.clone();
+
     let toggle_expand = move |_| {
         let current = expanded_id.get();
         if current == Some(sid) {
@@ -41,49 +44,49 @@ fn make_server_card(server: ServerView, expanded_id: Signal<Option<ServerId>>) -
         }
     };
 
-    let is_expanded = expanded_id.with(|eid| *eid == Some(sid));
-
-    if is_expanded {
-        view! {
-            div(class="server-browser-card expanded", on:click=toggle_expand) {
-                div(class="card-cover") {
-                    img(src=sicon, alt="")
+    view! {
+        div(
+            class=classes(vec![
+                "server-browser-card".into(),
+                ("expanded", MaybeDyn::from(move || expanded_id.get() == Some(sid))).into(),
+            ]),
+            on:click=toggle_expand,
+        ) {
+            div(class="card-cover") {
+                img(src=sicon, alt="")
+            }
+            div(class=classes(vec![
+                "card-collapsed-overlay".into(),
+                ("hidden", MaybeDyn::from(move || expanded_id.get() == Some(sid))).into(),
+            ])) {
+                div(class="card-icon-bottom") {
+                    span { (first_char) }
                 }
-                div(class="card-expanded-body") {
-                    div(class="card-icon-centered") {
-                        span { (first_char) }
-                    }
-                    div(class="card-server-name") { (sname) }
-                    div(class="card-description") { (sdesc_full) }
-                    div(class="card-members") {
-                        svg(xmlns="http://www.w3.org/2000/svg", width="14", height="14", viewBox="0 0 24 24", fill="none", stroke="currentColor", stroke-width="2", stroke-linecap="round", stroke-linejoin="round") {
-                            path(d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2")
-                            circle(cx="9", cy="7", r="4")
-                            path(d="M23 21v-2a4 4 0 0 0-3-3.87")
-                            path(d="M16 3.13a4 4 0 0 1 0 7.75")
-                        }
-                        span { (format!("{} участников", smembers)) }
-                    }
-                    div(class="card-join-row") {
-                        button(class="card-join-btn") { "Присоединиться" }
-                    }
+                div(class="card-collapsed-text") {
+                    div(class="card-server-name-sm") { (sname) }
+                    div(class="card-desc-short") { (sdesc_short) }
                 }
             }
-        }
-    } else {
-        view! {
-            div(class="server-browser-card", on:click=toggle_expand) {
-                div(class="card-cover") {
-                    img(src=sicon, alt="")
+            div(class=classes(vec![
+                "card-expanded-body".into(),
+                ("hidden", MaybeDyn::from(move || expanded_id.get() != Some(sid))).into(),
+            ])) {
+                div(class="card-icon-centered") {
+                    span { (first_char_c) }
                 }
-                div(class="card-collapsed-overlay") {
-                    div(class="card-icon-bottom") {
-                        span { (first_char) }
+                div(class="card-server-name") { (sname_c) }
+                div(class="card-description") { (sdesc_full) }
+                div(class="card-members") {
+                    svg(xmlns="http://www.w3.org/2000/svg", width="14", height="14", viewBox="0 0 24 24", fill="none", stroke="currentColor", stroke-width="2", stroke-linecap="round", stroke-linejoin="round") {
+                        path(d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2")
+                        circle(cx="9", cy="7", r="4")
+                        path(d="M23 21v-2a4 4 0 0 0-3-3.87")
+                        path(d="M16 3.13a4 4 0 0 1 0 7.75")
                     }
-                    div(class="card-collapsed-text") {
-                        div(class="card-server-name-sm") { (sname) }
-                        div(class="card-desc-short") { (sdesc_short) }
-                    }
+                    span { (format!("{} участников", smembers)) }
+                }
+                div(class="card-join-row") {
+                    button(class="card-join-btn") { "Присоединиться" }
                 }
             }
         }
