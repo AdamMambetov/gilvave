@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Приватный / Публичный — с плавающим индикатором</title>
+    <style>
+        /* ===== ГЛОБАЛЬНЫЙ СТИЛЬ ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            background: #0b0e14;
+            /* тёмный фон */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* ===== КОНТЕЙНЕР ===== */
+        .container {
+            background: #141a24;
+            border-radius: 28px;
+            padding: 50px 40px 40px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 36px;
+        }
+
+        .container h2 {
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.3);
+            margin: 0;
+        }
+
+        /* ===== ОБЁРТКА ТАБОВ (относительная для позиционирования индикатора) ===== */
+        .toggle-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 340px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 60px;
+            padding: 6px;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ===== КОНТЕЙНЕР САМИХ ТАБОВ ===== */
+        .toggle-tabs {
+            display: flex;
+            position: relative;
+            background: transparent;
+            border-radius: 60px;
+            z-index: 2;
+        }
+
+        /* ===== РАДИО-КНОПКИ СКРЫВАЕМ ===== */
+        .toggle-tabs input[type="radio"] {
+            display: none;
+        }
+
+        /* ===== МЕТКИ ===== */
+        .toggle-tabs label {
+            flex: 1;
+            padding: 14px 18px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: color 0.35s ease;
+            color: rgba(255, 255, 255, 0.35);
+            letter-spacing: 0.3px;
+            user-select: none;
+            position: relative;
+            z-index: 3;
+            background: transparent;
+            white-space: nowrap;
+        }
+
+        /* Активный текст — яркий */
+        .toggle-tabs input[type="radio"]:checked+label {
+            color: #ffffff;
+        }
+
+        /* ===== ПЛАВАЮЩИЙ ИНДИКАТОР (двигается) ===== */
+        .floating-bg {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            height: calc(100% - 12px);
+            width: calc(50% - 6px);
+            /* по умолчанию половина */
+            border-radius: 60px;
+            transition: all 0.45s cubic-bezier(0.34, 1.2, 0.64, 1);
+            z-index: 1;
+            pointer-events: none;
+            box-shadow:
+                0 0 30px rgba(124, 58, 237, 0.5),
+                0 0 60px rgba(124, 58, 237, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            background: #7c3aed;
+        }
+
+        /* Когда выбран "Публичный" — индикатор сдвигается вправо и меняет цвет */
+        .toggle-tabs input#public:checked~.floating-bg {
+            left: calc(50% + 0px);
+            background: #2563eb;
+            box-shadow:
+                0 0 30px rgba(37, 99, 235, 0.6),
+                0 0 70px rgba(37, 99, 235, 0.25),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        }
+
+        /* Можно добавить лёгкий эффект пульсации на индикатор (доп. динамика) */
+        .floating-bg::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 60px;
+            background: inherit;
+            filter: blur(20px);
+            opacity: 0.5;
+            z-index: -1;
+            transition: opacity 0.4s;
+        }
+
+        .toggle-tabs input#public:checked~.floating-bg::after {
+            opacity: 0.6;
+        }
+
+        /* ===== СТАТУС-БАР (для фидбека) ===== */
+        .status-indicator {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px 28px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s;
+            min-width: 150px;
+            text-align: center;
+            letter-spacing: 0.2px;
+        }
+
+        .status-indicator span {
+            font-weight: 700;
+        }
+
+        .status-indicator .private-color {
+            color: #a78bfa;
+        }
+
+        .status-indicator .public-color {
+            color: #60a5fa;
+        }
+
+        /* ===== МЕЛКАЯ АНИМАЦИЯ ПРИ ЗАГРУЗКЕ ===== */
+        .container {
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>🔒 Видимость профиля</h2>
+
+        <div class="toggle-wrapper">
+            <div class="toggle-tabs">
+
+                <!-- Приватный (выбран по умолчанию) -->
+                <input type="radio" name="visibility" id="private" value="private" checked />
+                <label for="private">🔐 Приватный</label>
+
+                <!-- Публичный -->
+                <input type="radio" name="visibility" id="public" value="public" />
+                <label for="public">🌍 Публичный</label>
+
+                <!-- ⬇️ ПЛАВАЮЩИЙ ИНДИКАТОР (двигается) -->
+                <div class="floating-bg"></div>
+
+            </div>
+        </div>
+
+        <!-- Индикатор статуса -->
+        <div class="status-indicator" id="statusDisplay">
+            Текущий: <span class="private-color">🔐 Приватный</span>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const privateRadio = document.getElementById('private');
+            const publicRadio = document.getElementById('public');
+            const statusDisplay = document.getElementById('statusDisplay');
+
+            function updateStatus() {
+                if (privateRadio.checked) {
+                    statusDisplay.innerHTML = `Текущий: <span class="private-color">🔐 Приватный</span>`;
+                } else if (publicRadio.checked) {
+                    statusDisplay.innerHTML = `Текущий: <span class="public-color">🌍 Публичный</span>`;
+                }
+            }
+
+            privateRadio.addEventListener('change', updateStatus);
+            publicRadio.addEventListener('change', updateStatus);
+
+            // Инициализация
+            updateStatus();
+        })();
+    </script>
+
+</body>
+
+</html>

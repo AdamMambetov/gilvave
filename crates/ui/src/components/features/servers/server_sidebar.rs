@@ -347,15 +347,32 @@ pub fn ServerSidebar(
                             bind:value=server_name,
                         )
                     }
-                    div(class="create-form-options") {
-                        label(class="checkbox") {
-                            input(
-                                r#type="checkbox",
-                                bind:checked=is_public,
-                            )
-                            span { "Публичный сервер" }
+                    div(class="create-form-tabs") {
+                        div(class="toggle-wrapper") {
+                            div(class="toggle-tabs") {
+                                div(
+                                    class=classes(vec![
+                                        "toggle-tab".into(),
+                                        ("active", MaybeDyn::from(move || !is_public.get())).into(),
+                                    ]),
+                                    on:click=move |_| is_public.set(false),
+                                ) { "🔐 Приватный" }
+                                div(
+                                    class=classes(vec![
+                                        "toggle-tab".into(),
+                                        ("active", MaybeDyn::from(move || is_public.get())).into(),
+                                    ]),
+                                    on:click=move |_| is_public.set(true),
+                                ) { "🌍 Публичный" }
+                                div(class=classes(vec![
+                                    "floating-bg".into(),
+                                    ("public", MaybeDyn::from(move || is_public.get())).into(),
+                                ])) {}
+                            }
                         }
-                        span(class="checkbox-hint") { "Публичные серверы видны всем пользователям" }
+                        span(class="checkbox-hint") {
+                            (if is_public.get() { "🌍 Публичные серверы видны всем пользователям" } else { "🔐 Только приглашённые пользователи" })
+                        }
                     }
                     div(class="create-form-actions") {
                         button(class="submit-btn create-submit", on:click=handle_create) { "Создать" }
