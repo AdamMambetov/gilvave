@@ -12,7 +12,7 @@ use crate::{
 #[component(inline_props)]
 pub fn ChannelItem(channel_view: ChannelView) -> View {
     let context = use_context::<ChannelContext>();
-    let is_active = create_memo(move || context.current.get() == Some(channel_view.id));
+    let is_active = create_memo(move || context.current_id.get() == Some(channel_view.id));
 
     view! {
         div(
@@ -23,15 +23,15 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
             on:click=move |_| {
                 spawn_local_scoped(async move {
                     let context = use_context::<ChannelContext>();
-                    if context.current.get().is_some() {
-                        if context.current.get().unwrap() == channel_view.id {
+                    if context.current_id.get().is_some() {
+                        if context.current_id.get().unwrap() == channel_view.id {
                             return
                         }
 
                         let args = CommandArgs::LeftChannel {
-                            channel_id: context.current.get().unwrap()
+                            channel_id: context.current_id.get().unwrap()
                         }.to_json();
-                        context.current.set(None);
+                        context.current_id.set(None);
                         context.messages.set(vec![]);
                         invoke_command(args).await;
                     }
@@ -41,7 +41,7 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
                     }.to_json();
                     let res = invoke_command(args).await;
                     if let CommandResult::Ok(CommandResponse::JoinChannel) = res {
-                        context.current.set(Some(channel_view.id));
+                        context.current_id.set(Some(channel_view.id));
                     } else if let CommandResult::Error(err) = res {
                         console_error!("join channel error: {err:#?}");
                     }

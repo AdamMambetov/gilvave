@@ -10,7 +10,7 @@ use crate::components::{
 #[component]
 pub fn AuthForm() -> View {
     let screen_wrapper = use_context::<ScreenWrapper>();
-    let is_auth_screen: MaybeDyn<bool> = (move || screen_wrapper.is_auth()).into();
+    let is_auth_screen = MaybeDyn::from(move || screen_wrapper.is_auth());
 
     view! {
         div(

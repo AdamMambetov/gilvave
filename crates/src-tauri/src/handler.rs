@@ -38,7 +38,6 @@ pub async fn handle_command(
     command: CommandArgs,
 ) -> Result<CommandResult, ()> {
     let client = &state.http_client;
-    let db = &state.db;
 
     Ok(dispatch! { command, client,
         CommandArgs::Register { request } =>
@@ -60,6 +59,9 @@ pub async fn handle_command(
         CommandArgs::GetServerChannels { server_id } =>
             Api::get_server_channels(client, server_id),
             |c| CommandResult::Ok(CommandResponse::GetServerChannels(c)),
+        CommandArgs::GetServerById { server_id } =>
+            Api::get_server_by_id(client, server_id),
+            |s| CommandResult::Ok(CommandResponse::GetServerById(s)),
         CommandArgs::GetUserServers =>
             Api::get_user_servers(client),
             |s| CommandResult::Ok(CommandResponse::GetUserServers(s)),

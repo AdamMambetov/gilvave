@@ -1,8 +1,5 @@
 use futures_util::StreamExt;
-use gilvave_core::{
-    dto::{command::CommandArgs, message::MessageView},
-    ids::ChannelId,
-};
+use gilvave_core::dto::{command::CommandArgs, message::MessageView};
 use sycamore::{futures::spawn_local_scoped, prelude::*, web::queue_microtask};
 use tauri_sys::event::listen;
 use wasm_bindgen::JsCast;
@@ -12,17 +9,16 @@ use super::message_item::MessageItem;
 use crate::{components::common::ChannelContext, utils::invoke_command};
 
 #[component(inline_props)]
-pub fn MessagesArea(
-    message_list: Signal<Vec<MessageView>>,
-    message_text: Signal<String>,
-    current_channel_id: Signal<Option<ChannelId>>,
-) -> View {
+pub fn MessagesArea() -> View {
+    let channel_context = use_context::<ChannelContext>();
+
+    let message_text = create_signal(String::new());
     let container = create_node_ref();
     let on_submit = move |event: SubmitEvent| {
         event.prevent_default();
 
         let msg = message_text.get_clone().trim().to_string();
-        let channel_id = current_channel_id.get();
+        let channel_id = channel_context.current_id.get();
         if msg.is_empty() || channel_id.is_none() {
             return;
         }
@@ -57,8 +53,13 @@ pub fn MessagesArea(
             spawn_local_scoped(async move {
                 let context = use_context::<ChannelContext>();
                 let args = CommandArgs::ChannelHistoryBefore {
-                    channel_id: context.current.get().unwrap(),
-                    timestamp: message_list.get_clone().first().unwrap().created_at,
+                    channel_id: context.current_id.get().unwrap(),
+                    timestamp: channel_context
+                        .messages
+                        .get_clone()
+                        .first()
+                        .unwrap()
+                        .created_at,
                 }
                 .to_json();
                 invoke_command(args).await;
@@ -69,8 +70,13 @@ pub fn MessagesArea(
             spawn_local_scoped(async move {
                 let context = use_context::<ChannelContext>();
                 let args = CommandArgs::ChannelHistoryAfter {
-                    channel_id: context.current.get().unwrap(),
-                    timestamp: message_list.get_clone().last().unwrap().created_at,
+                    channel_id: context.current_id.get().unwrap(),
+                    timestamp: channel_context
+                        .messages
+                        .get_clone()
+                        .last()
+                        .unwrap()
+                        .created_at,
                 }
                 .to_json();
                 invoke_command(args).await;
@@ -81,7 +87,9 @@ pub fn MessagesArea(
     spawn_local_scoped(async move {
         let mut events = listen::<MessageView>("message_new").await.unwrap();
         while let Some(event) = events.next().await {
-            message_list.update(|list| list.push(event.payload));
+            channel_context
+                .messages
+                .update(|list| list.push(event.payload));
         }
     });
     spawn_local_scoped(async move {
@@ -93,7 +101,7 @@ pub fn MessagesArea(
             let old_scroll_top = el.scroll_top();
             let old_scroll_height = el.scroll_height();
 
-            message_list.update(|list| {
+            channel_context.messages.update(|list| {
                 for msg in event.payload.into_iter() {
                     list.insert(0, msg);
                 }
@@ -113,7 +121,9 @@ pub fn MessagesArea(
             .await
             .unwrap();
         while let Some(mut event) = events.next().await {
-            message_list.update(|list| list.append(event.payload.as_mut()));
+            channel_context
+                .messages
+                .update(|list| list.append(event.payload.as_mut()));
         }
     });
 
@@ -121,7 +131,7 @@ pub fn MessagesArea(
         div(class="messages-area") {
             div(class="messages-list", r#ref=container, on:scroll=on_scroll) {
                 Keyed(
-                    list=message_list,
+                    list=channel_context.messages,
                     key=|m| m.id,
                     view=|message| { view! { MessageItem(message_view=message) } },
                 )

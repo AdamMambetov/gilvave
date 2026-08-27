@@ -1,7 +1,7 @@
 use gilvave_core::{
     dto::{
         channel::{ChannelType, ChannelView},
-        server::{MemberView, ServerCreateInfo, ServerView},
+        server::{MemberView, ServerCreateInfo, ServerSmallPart},
         user::{AuthTokensResponse, LoginRequest, RegisterRequest, UpdateTokensRequest, UserView},
     },
     error::ErrorInfo,
@@ -139,7 +139,7 @@ fn test_server_view_deserialize() {
         r#"{{"id":"{}","name":"My Server","icon_url":"https://example.com/icon.png","created_at":"2024-01-15T10:30:00Z"}}"#,
         TEST_UUID
     );
-    let server: ServerView = serde_json::from_str(&json).unwrap();
+    let server: ServerSmallPart = serde_json::from_str(&json).unwrap();
     assert_eq!(server.id.0, test_uuid());
     assert_eq!(server.name, "My Server");
     assert!(server.icon_url.contains("icon.png"));
@@ -149,7 +149,6 @@ fn test_server_view_deserialize() {
 fn test_server_create_info_serialize() {
     let info = ServerCreateInfo {
         name: "New Server".to_string(),
-        icon_url: Some("https://example.com/icon.png".to_string()),
         is_public: true,
     };
     let json = serde_json::to_string(&info).unwrap();
@@ -161,7 +160,6 @@ fn test_server_create_info_serialize() {
 fn test_server_create_info_no_icon() {
     let info = ServerCreateInfo {
         name: "Private Server".to_string(),
-        icon_url: None,
         is_public: false,
     };
     let json = serde_json::to_string(&info).unwrap();
@@ -231,8 +229,8 @@ fn test_server_view_eq() {
         r#"{{"id":"{}","name":"Server","icon_url":"","created_at":"2024-01-01T00:00:00Z"}}"#,
         TEST_UUID
     );
-    let s1: ServerView = serde_json::from_str(&json).unwrap();
-    let s2: ServerView = serde_json::from_str(&json).unwrap();
+    let s1: ServerSmallPart = serde_json::from_str(&json).unwrap();
+    let s2: ServerSmallPart = serde_json::from_str(&json).unwrap();
     assert_eq!(s1, s2);
 }
 
@@ -272,21 +270,15 @@ fn test_channel_view_neq() {
 
 #[test]
 fn test_server_view_different_names() {
-    let s1 = ServerView {
+    let s1 = ServerSmallPart {
         id: ServerId(test_uuid()),
         name: "Server A".to_string(),
         icon_url: "".to_string(),
-        created_at: time::OffsetDateTime::now_utc(),
-        description: String::new(),
-        member_count: 0,
     };
-    let s2 = ServerView {
+    let s2 = ServerSmallPart {
         id: ServerId(test_uuid()),
         name: "Server B".to_string(),
         icon_url: "".to_string(),
-        created_at: time::OffsetDateTime::now_utc(),
-        description: String::new(),
-        member_count: 0,
     };
     assert_ne!(s1, s2);
 }

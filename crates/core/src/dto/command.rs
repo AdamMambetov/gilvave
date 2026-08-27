@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 use crate::{
     dto::{
         channel::ChannelView,
-        server::{MemberView, ServerCreateInfo, ServerView},
+        server::{MemberView, Server, ServerCreateInfo, ServerSmallPart},
         user::{AuthTokensResponse, LoginRequest, RegisterRequest, UserView},
     },
     error::ErrorInfo,
@@ -24,6 +24,9 @@ pub enum CommandArgs {
         server_id: ServerId,
     },
     GetServerChannels {
+        server_id: ServerId,
+    },
+    GetServerById {
         server_id: ServerId,
     },
     GetUserServers,
@@ -65,9 +68,10 @@ pub enum CommandResponse {
     GetProfile(UserView),
     GetMembers(Vec<MemberView>),
     GetServerChannels(Vec<ChannelView>),
-    GetUserServers(Vec<ServerView>),
-    GetPublicServers(Vec<ServerView>),
-    CreateServer(ServerView),
+    GetServerById(Server),
+    GetUserServers(Vec<ServerSmallPart>),
+    GetPublicServers(Vec<Server>),
+    CreateServer(Server),
     ListenWebSocket(bool),
     JoinChannel,
     LeftChannel,

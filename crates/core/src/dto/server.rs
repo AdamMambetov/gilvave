@@ -4,16 +4,24 @@ use time::OffsetDateTime;
 use crate::ids::{ServerId, UserId};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-pub struct ServerView {
+pub struct ServerSmallPart {
     pub id: ServerId,
     pub name: String,
     pub icon_url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct Server {
+    pub id: ServerId,
+    pub owner_id: UserId,
+    pub name: String,
+    pub description: String,
+    pub icon_url: String,
+    pub cover: String,
+    pub is_public: bool,
+    pub members_count: i32,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
-    #[serde(default)]
-    pub description: String,
-    #[serde(default)]
-    pub member_count: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -26,6 +34,5 @@ pub struct MemberView {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ServerCreateInfo {
     pub name: String,
-    pub icon_url: Option<String>,
     pub is_public: bool,
 }
