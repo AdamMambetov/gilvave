@@ -20,14 +20,17 @@ impl Api {
         Api::response_to::<Vec<ServerSmallPart>>(res).await
     }
 
-    pub async fn get_public_servers(client: &Client) -> Result<Vec<Server>, ErrorInfo> {
+    pub async fn get_public_servers(
+        client: &Client,
+        page: u32,
+    ) -> Result<(Vec<Server>, bool), ErrorInfo> {
         let res = client
-            .get(format!("{BASE_HTTP_URL}/servers/public"))
+            .get(format!("{BASE_HTTP_URL}/servers/public/{page}"))
             .bearer_auth(get_access_token())
             .send()
             .await
             .map_err(|e| ErrorInfo::default(e.without_url().to_string()))?;
-        Api::response_to::<Vec<Server>>(res).await
+        Api::response_to::<(Vec<Server>, bool)>(res).await
     }
 
     pub async fn get_members(
@@ -63,6 +66,19 @@ impl Api {
     ) -> Result<Server, ErrorInfo> {
         let res = client
             .get(format!("{BASE_HTTP_URL}/servers/{server_id}"))
+            .bearer_auth(get_access_token())
+            .send()
+            .await
+            .map_err(|e| ErrorInfo::default(e.without_url().to_string()))?;
+        Api::response_to::<Server>(res).await
+    }
+
+    pub async fn join_public_server(
+        client: &Client,
+        server_id: ServerId,
+    ) -> Result<Server, ErrorInfo> {
+        let res = client
+            .post(format!("{BASE_HTTP_URL}/servers/{server_id}/join_public"))
             .bearer_auth(get_access_token())
             .send()
             .await

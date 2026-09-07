@@ -1,166 +1,25 @@
-use gilvave_core::ids::ServerId;
 use gilvave_core::{
     dto::{
         command::{CommandArgs, CommandResponse, CommandResult},
-        server::{Server, ServerCreateInfo, ServerSmallPart},
+        server::{Server, ServerCreateInfo},
     },
-    ids::UserId,
+    ids::{ServerId, UserId},
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::components::common::{CreateServerContext, ModalView, ServerContext};
 use crate::{
-    components::common::{ActiveScreen, ChannelContext, ScreenWrapper, classes},
+    components::common::{ChannelContext, classes},
     utils::invoke_command,
 };
 
-fn make_server_card(server: Server, expanded_id: Signal<Option<ServerId>>) -> View {
-    let id = server.id;
-    let name = server.name.clone();
-    let name_sm = server.name.clone();
-    let first_char = server
-        .name
-        .chars()
-        .next()
-        .unwrap_or('?')
-        .to_uppercase()
-        .to_string();
-    let desc_short = {
-        let d = server.description.clone();
-        let truncated: String = d.chars().take(60).collect();
-        if truncated.len() < d.len() {
-            format!("{}...", truncated)
-        } else {
-            truncated
-        }
-    };
-
-    let first_char_c = first_char.clone();
-
-    let toggle_expand = move |_| {
-        let current = expanded_id.get();
-        if current == Some(id) {
-            expanded_id.set(None);
-        } else {
-            expanded_id.set(Some(id));
-        }
-    };
-
-    view! {
-        div(
-            class=classes(vec![
-                "server-browser-card".into(),
-                ("expanded", { expanded_id.get() == Some(id) }.into()).into(),
-            ]),
-            on:click=toggle_expand,
-        ) {
-            div(class="card-cover") {
-                img(src=server.icon_url, alt="")
-            }
-            div(
-                class=classes(vec![
-                    "card-collapsed-overlay".into(),
-                    ("hidden", { expanded_id.get() == Some(id) }.into()).into(),
-                ]),
-            ) {
-                div(class="card-icon-bottom") {
-                    span { (first_char) }
-                }
-                div(class="card-collapsed-text") {
-                    div(class="card-server-name-sm") { (name_sm) }
-                    div(class="card-desc-short") { (desc_short) }
-                }
-            }
-            div(
-                class=classes(vec![
-                    "card-expanded-body".into(),
-                    ("hidden", { expanded_id.get() != Some(id) }.into()).into(),
-                ]),
-            ) {
-                div(class="card-icon-centered") {
-                    span { (first_char_c) }
-                }
-                div(class="card-server-name") { (name) }
-                div(class="card-description") { (server.description) }
-                div(class="card-members") {
-                    svg(
-                        xmlns="http://www.w3.org/2000/svg",
-                        width="14",
-                        height="14",
-                        viewBox="0 0 24 24",
-                        fill="none",
-                        stroke="currentColor",
-                        stroke-width="2",
-                        stroke-linecap="round",
-                        stroke-linejoin="round",
-                    ) {
-                        path(d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2")
-                        circle(cx="9", cy="7", r="4")
-                        path(d="M23 21v-2a4 4 0 0 0-3-3.87")
-                        path(d="M16 3.13a4 4 0 0 1 0 7.75")
-                    }
-                    span { (format!("{} участников", server.members_count)) }
-                }
-                div(class="card-join-row") {
-                    button(class="card-join-btn") { "Присоединиться" }
-                }
-            }
-        }
-    }
-}
-
-#[component(inline_props)]
-fn JoinServerModal(
-    public_servers: Signal<Vec<Server>>,
-    expanded_id: Signal<Option<ServerId>>,
-    is_visible: ReadSignal<bool>,
-    on_back: impl Fn(web_sys::MouseEvent) + 'static,
-    on_close: impl Fn(web_sys::MouseEvent) + 'static,
-) -> View {
-    view! {
-        div(
-            class=classes(vec![
-                "server-modal-overlay".into(),
-                "large".into(),
-                ("hidden", { is_visible.map(|v| !v) }.into()).into(),
-            ]),
-            on:click=on_close,
-        ) {
-            div(
-                class="server-modal join-modal",
-                on:click=move |e: web_sys::MouseEvent| e.stop_propagation(),
-            ) {
-                div(class="server-modal-header") {
-                    span { "Присоединиться к серверу" }
-                    div(class="join-modal-search") {
-                        input(
-                            r#type="text",
-                            placeholder="Поиск серверов...",
-                        )
-                    }
-                }
-                div(class="join-modal-body") {
-                    div(class="join-modal-grid") {
-                        Indexed(
-                            list=public_servers,
-                            view=move |server| {
-                                make_server_card(server, expanded_id)
-                            },
-                        )
-                    }
-                }
-                div(class="join-modal-footer") {
-                    button(class="back-btn", on:click=on_back) { "← Назад" }
-                }
-            }
-        }
-    }
-}
+use super::{
+    join_server_modal::JoinServerModal,
+    server_actions::{create_server, select_server},
+};
 
 #[component(inline_props)]
 pub fn ServerSidebar() -> View {
-    let screen_wrapper = use_context::<ScreenWrapper>();
-
     let context = CreateServerContext {
         is_modal_open: create_signal(false),
         modal_view: create_signal(ModalView::Home),
@@ -185,8 +44,8 @@ pub fn ServerSidebar() -> View {
                 invoke_command(args).await;
             }
         });
-        screen_wrapper.set(ActiveScreen::Login);
-        screen_wrapper.set(ActiveScreen::Home);
+        let context = use_context::<ServerContext>();
+        context.current.set(None);
     };
 
     let on_plus_click = move |_| {
@@ -271,6 +130,14 @@ pub fn ServerSidebar() -> View {
             },
         ];
         context.public_servers.set(hardcoded);
+        spawn_local_scoped(async move {
+            let args = CommandArgs::GetPublicServers { page: 1 }.to_json();
+            let res = invoke_command(args).await;
+            if let CommandResult::Ok(CommandResponse::GetPublicServers((servers, _has_more))) = res
+            {
+                context.public_servers.set(servers);
+            }
+        });
     };
 
     let handle_create = move |_| {
@@ -290,7 +157,7 @@ pub fn ServerSidebar() -> View {
             .to_json();
             let res = invoke_command(args).await;
             if let CommandResult::Ok(CommandResponse::CreateServer(_server)) = res {
-                on_create_server(server_context.list, info);
+                create_server(server_context.list, info);
             }
         });
         context.is_modal_open.set(false);
@@ -330,7 +197,7 @@ pub fn ServerSidebar() -> View {
                     view! {
                         div(
                             class="server-icon",
-                            on:click=move |_| on_click_server(server.id),
+                            on:click=move |_| select_server(server.id),
                         ) { (server_name) }
                     }
                 },
@@ -463,61 +330,9 @@ pub fn ServerSidebar() -> View {
         }
 
         JoinServerModal(
-            public_servers=context.public_servers,
-            expanded_id=context.expanded_id,
             is_visible=is_join_visible,
             on_back=back_to_home,
             on_close=close,
         )
     }
-}
-
-fn on_click_server(server_id: ServerId) {
-    let context = use_context::<ServerContext>();
-    if let Some(server) = context.current.get_clone()
-        && server.id == server_id
-    {
-        return;
-    }
-
-    spawn_local_scoped(async move {
-        let args = CommandArgs::GetServerById {
-            server_id: server_id.clone(),
-        }
-        .to_json();
-        let res = invoke_command(args).await;
-
-        context.members.set(vec![]);
-        if let CommandResult::Ok(CommandResponse::GetServerById(server)) = res {
-            context.current.set(Some(server));
-        }
-    });
-    spawn_local_scoped(async move {
-        let args = CommandArgs::GetMembers {
-            server_id: server_id.clone(),
-        }
-        .to_json();
-        let res = invoke_command(args).await;
-
-        context.members.set(vec![]);
-        if let CommandResult::Ok(CommandResponse::GetMembers(members)) = res {
-            context.members.set(members);
-        }
-    });
-}
-
-fn on_create_server(server_list: Signal<Vec<ServerSmallPart>>, server_info: ServerCreateInfo) {
-    spawn_local_scoped(async move {
-        let args = CommandArgs::CreateServer { server_info }.to_json();
-        let res = invoke_command(args).await;
-        if let CommandResult::Ok(CommandResponse::CreateServer(server)) = res {
-            server_list.update(|list| {
-                list.push(ServerSmallPart {
-                    id: server.id,
-                    name: server.name,
-                    icon_url: server.icon_url,
-                })
-            });
-        }
-    });
 }

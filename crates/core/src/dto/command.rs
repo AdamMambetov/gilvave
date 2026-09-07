@@ -30,9 +30,14 @@ pub enum CommandArgs {
         server_id: ServerId,
     },
     GetUserServers,
-    GetPublicServers,
+    GetPublicServers {
+        page: u32,
+    },
     CreateServer {
         server_info: ServerCreateInfo,
+    },
+    JoinPublicServer {
+        server_id: ServerId,
     },
     ListenWebSocket,
     JoinChannel {
@@ -70,8 +75,9 @@ pub enum CommandResponse {
     GetServerChannels(Vec<ChannelView>),
     GetServerById(Server),
     GetUserServers(Vec<ServerSmallPart>),
-    GetPublicServers(Vec<Server>),
+    GetPublicServers((Vec<Server>, bool)),
     CreateServer(Server),
+    JoinPublicServer(Server),
     ListenWebSocket(bool),
     JoinChannel,
     LeftChannel,

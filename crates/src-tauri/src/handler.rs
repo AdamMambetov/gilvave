@@ -65,12 +65,15 @@ pub async fn handle_command(
         CommandArgs::GetUserServers =>
             Api::get_user_servers(client),
             |s| CommandResult::Ok(CommandResponse::GetUserServers(s)),
-        CommandArgs::GetPublicServers =>
-            Api::get_public_servers(client),
+        CommandArgs::GetPublicServers { page } =>
+            Api::get_public_servers(client, page),
             |s| CommandResult::Ok(CommandResponse::GetPublicServers(s)),
         CommandArgs::CreateServer { server_info } =>
             Api::create_server(client, server_info.clone()),
             |s| CommandResult::Ok(CommandResponse::CreateServer(s)),
+        CommandArgs::JoinPublicServer { server_id } =>
+            Api::join_public_server(client, server_id),
+            |s| CommandResult::Ok(CommandResponse::JoinPublicServer(s)),
         CommandArgs::ListenWebSocket =>
             WsService::listen_web_socket(state.clone(), app_handle.clone()),
             |r| CommandResult::Ok(CommandResponse::ListenWebSocket(r)),
