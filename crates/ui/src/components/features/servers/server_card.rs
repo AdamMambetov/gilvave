@@ -1,7 +1,7 @@
 use gilvave_core::{
     dto::{
         command::{CommandArgs, CommandResponse, CommandResult},
-        server::Server,
+        server::{Server, ServerSmallPart},
     },
     ids::ServerId,
 };
@@ -11,6 +11,14 @@ use crate::{
     components::common::{CreateServerContext, ServerContext, classes},
     utils::invoke_command,
 };
+
+pub(super) fn card_icon(icon_url: String, first_char: String) -> View {
+    if icon_url.is_empty() {
+        view! { span { (first_char) } }
+    } else {
+        view! { img(src=icon_url) }
+    }
+}
 
 pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>) -> View {
     let id = server.id;
@@ -33,30 +41,37 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
         }
     };
 
-    let expanded_icon = first_char.clone();
     let toggle_expand = move |_| {
         expanded_id.set((expanded_id.get() != Some(id)).then_some(id));
     };
+
+    let server_c = server.clone();
     let join_server = move |_| {
+        let server_cc = server_c.clone();
         spawn_local_scoped(async move {
             let args = CommandArgs::JoinPublicServer {
-                server_id: server.id,
+                server_id: server_c.id,
             }
             .to_json();
             let res = invoke_command(args).await;
-            if let CommandResult::Ok(CommandResponse::JoinPublicServer(server)) = res {
+            if let CommandResult::Ok(CommandResponse::JoinPublicServer) = res {
                 let context = use_context::<ServerContext>();
-                context.current.set(Some(server));
+                context.list.update(|list| {
+                    list.push(ServerSmallPart {
+                        id: server_cc.id,
+                        name: server_cc.name.clone(),
+                        icon_url: server_cc.icon_url.clone(),
+                    })
+                });
+                context.current.set(Some(server_cc.clone()));
                 let context = use_context::<CreateServerContext>();
                 context.is_modal_open.set(false);
             }
         });
     };
-    let card_icon = if server.icon_url.is_empty() {
-        view! { span { (first_char) } }
-    } else {
-        view! { img(src=server.icon_url, width="50", height="50") }
-    };
+
+    let center_icon = card_icon(server.icon_url.clone(), first_char.clone());
+    let bottom_icon = card_icon(server.icon_url.clone(), first_char.clone());
 
     view! {
         div(
@@ -75,7 +90,7 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
                     ("hidden", { expanded_id.get() == Some(id) }.into()).into(),
                 ]),
             ) {
-                div(class="card-icon-bottom") { (card_icon) }
+                div(class="card-icon-bottom") { (bottom_icon) }
                 div(class="card-collapsed-text") {
                     div(class="card-server-name-sm") { (name_sm) }
                     div(class="card-desc-short") { (desc_short) }
@@ -87,7 +102,7 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
                     ("hidden", { expanded_id.get() != Some(id) }.into()).into(),
                 ]),
             ) {
-                div(class="card-icon-centered") { span { (expanded_icon) } }
+                div(class="card-icon-centered") { (center_icon) }
                 div(class="card-server-name") { (name) }
                 div(class="card-description") { (server.description) }
                 div(class="card-members") {

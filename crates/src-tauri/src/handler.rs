@@ -73,7 +73,7 @@ pub async fn handle_command(
             |s| CommandResult::Ok(CommandResponse::CreateServer(s)),
         CommandArgs::JoinPublicServer { server_id } =>
             Api::join_public_server(client, server_id),
-            |s| CommandResult::Ok(CommandResponse::JoinPublicServer(s)),
+            |_| CommandResult::Ok(CommandResponse::JoinPublicServer),
         CommandArgs::ListenWebSocket =>
             WsService::listen_web_socket(state.clone(), app_handle.clone()),
             |r| CommandResult::Ok(CommandResponse::ListenWebSocket(r)),

@@ -7,7 +7,10 @@ use gilvave_core::{
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
-use crate::components::common::{CreateServerContext, ModalView, ServerContext};
+use crate::components::{
+    common::{CreateServerContext, ModalView, ServerContext},
+    ui::icons::{ServerIcon, ServerIconCustom},
+};
 use crate::{
     components::common::{ChannelContext, classes},
     utils::invoke_command,
@@ -185,27 +188,27 @@ pub fn ServerSidebar() -> View {
 
     view! {
         div(class="discord-sidebar") {
-            div(
-                class="server-icon",
+            ServerIconCustom(
+                icon="🏠".into(),
                 on:click=handle_home_click,
-            ) { "🏠" }
+            )
             div(class="separator")
             Indexed(
                 list=server_context.list,
                 view=|server| {
-                    let server_name = server.name;
+                    let server_id = server.id;
                     view! {
-                        div(
-                            class="server-icon",
-                            on:click=move |_| select_server(server.id),
-                        ) { (server_name) }
+                        ServerIcon(
+                            server=server,
+                            on:click=move |_| select_server(server_id),
+                        )
                     }
                 },
             )
-            div(
-                class="server-icon new",
+            ServerIconCustom(
+                icon="+".into(),
                 on:click=on_plus_click,
-            ) { "+" }
+            )
         }
 
         div(

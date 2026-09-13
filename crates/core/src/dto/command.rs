@@ -77,7 +77,7 @@ pub enum CommandResponse {
     GetUserServers(Vec<ServerSmallPart>),
     GetPublicServers((Vec<Server>, bool)),
     CreateServer(Server),
-    JoinPublicServer(Server),
+    JoinPublicServer,
     ListenWebSocket(bool),
     JoinChannel,
     LeftChannel,
