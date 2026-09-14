@@ -13,20 +13,17 @@
 .server-icon {
     width: 48px;
     height: 48px;
-    border-radius: 50%;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: $transition-base;
     position: relative;
+    overflow: hidden;
     
     &:has(span) {
-        background: #36393f;
-    }
-
-    &:hover {
-        background: #40444b;
+        background: linear-gradient(135deg, $color-primary, $color-primary-end);
     }
 
     &.new {
