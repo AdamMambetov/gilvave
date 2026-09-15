@@ -87,9 +87,25 @@ pub fn MessagesArea() -> View {
     spawn_local_scoped(async move {
         let mut events = listen::<MessageView>("message_new").await.unwrap();
         while let Some(event) = events.next().await {
+            let el = container.get().unchecked_into::<HtmlElement>();
+            let old_scroll_top = el.scroll_top();
+            let old_scroll_height = el.scroll_height();
+            let old_client_height = el.client_height();
+
+            const SCROLL_THRESHOLD: i32 = 1;
+            let is_bottom =
+                (old_scroll_height - old_client_height - old_scroll_top).abs() <= SCROLL_THRESHOLD;
+
             channel_context
                 .messages
                 .update(|list| list.push(event.payload));
+
+            queue_microtask(move || {
+                if is_bottom {
+                    let delta = el.scroll_height() - old_scroll_height;
+                    el.set_scroll_top(old_scroll_top + delta);
+                }
+            });
         }
     });
     spawn_local_scoped(async move {
