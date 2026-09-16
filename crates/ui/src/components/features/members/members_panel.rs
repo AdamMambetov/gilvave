@@ -5,7 +5,7 @@ use crate::{components::common::ServerContext, utils::invoke_command};
 
 use super::member_item::MemberItem;
 
-#[component(inline_props)]
+#[component()]
 pub fn MembersPanel() -> View {
     let server_context = use_context::<ServerContext>();
 

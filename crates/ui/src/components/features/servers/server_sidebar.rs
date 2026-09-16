@@ -9,12 +9,9 @@ use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::components::{
     common::{CreateServerContext, ModalView, ServerContext},
-    ui::icons::{ServerIcon, ServerIconCustom},
+    ui::icons::ServerIcon,
 };
-use crate::{
-    components::common::{ChannelContext, classes},
-    utils::invoke_command,
-};
+use crate::{components::common::classes, utils::invoke_command};
 
 use super::{
     join_server_modal::JoinServerModal,
@@ -34,22 +31,6 @@ pub fn ServerSidebar() -> View {
     provide_context(context.clone());
 
     let server_context = use_context::<ServerContext>();
-
-    let handle_home_click = move |_| {
-        spawn_local_scoped(async {
-            let context = use_context::<ChannelContext>();
-            if let Some(channel) = context.current.get_clone() {
-                let args = CommandArgs::LeftChannel {
-                    channel_id: channel.id,
-                }
-                .to_json();
-                context.current.set(None);
-                invoke_command(args).await;
-            }
-        });
-        let context = use_context::<ServerContext>();
-        context.current.set(None);
-    };
 
     let on_plus_click = move |_| {
         let context = use_context::<CreateServerContext>();
@@ -187,29 +168,27 @@ pub fn ServerSidebar() -> View {
     });
 
     view! {
-        div(class="discord-sidebar") {
-            ServerIconCustom(
-                icon="🏠".into(),
-                on:click=handle_home_click,
-            )
-            div(class="separator")
-            Indexed(
-                list=server_context.list,
-                view=|server| {
-                    let server_id = server.id;
-                    view! {
-                        ServerIcon(
-                            server=server,
-                            on:click=move |_| select_server(server_id),
-                        )
-                    }
-                },
-            )
-            ServerIconCustom(
-                icon="+".into(),
-                on:click=on_plus_click,
-            )
-        }
+        Indexed(
+            list=server_context.list,
+            view=|server| {
+                let id = server.id;
+                let name = create_signal(server.name);
+                let icon_url = create_signal(server.icon_url);
+
+                view! {
+                    ServerIcon(
+                        server_name=name,
+                        icon_url=icon_url,
+                        on:click=move |_| select_server(id),
+                    )
+                }
+            },
+        )
+        ServerIcon(
+            server_name=create_signal("+".to_string()),
+            icon_url=create_signal(String::default()),
+            on:click=on_plus_click,
+        )
 
         div(
             class=classes(vec![

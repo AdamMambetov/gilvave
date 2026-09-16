@@ -11,22 +11,24 @@ use crate::{
 
 #[component(inline_props)]
 pub fn ChannelItem(channel_view: ChannelView) -> View {
+    let channel_name = channel_view.name.clone();
+    let channel_id = channel_view.id;
+    let channel_signal = create_signal(channel_view);
+
     let context = use_context::<ChannelContext>();
-    let channel_cc = Box::new(channel_view.clone());
     let is_active = create_memo(move || match context.current.get_clone() {
-        Some(channel) => channel.id == channel_cc.id,
+        Some(channel) => channel.id == channel_id,
         None => false,
     });
 
-    // TODO: Исправить миллион клонирований!
-    let channel_ccc = channel_view.clone();
-    let channel_cc = channel_view.clone();
     let on_click = move |_| {
-        let channel_c = channel_ccc.clone();
         spawn_local_scoped(async move {
+            let channel_item = channel_signal.get_clone();
+            let channel_item_id = channel_item.id;
+
             let context = use_context::<ChannelContext>();
             if let Some(channel) = context.current.get_clone() {
-                if channel.id == channel_c.id {
+                if channel.id == channel_item_id {
                     return;
                 }
 
@@ -40,19 +42,18 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
             }
 
             let args = CommandArgs::JoinChannel {
-                channel_id: channel_c.id,
+                channel_id: channel_item_id,
             }
             .to_json();
             let res = invoke_command(args).await;
             if let CommandResult::Ok(CommandResponse::JoinChannel) = res {
-                // context.current.set(None);
-                // context.current.set(Some(*channel_c));
+                context.current.set(Some(channel_item));
             } else if let CommandResult::Error(err) = res {
                 console_error!("join channel error: {err:#?}");
             }
 
             let args = CommandArgs::ChannelHistoryBefore {
-                channel_id: channel_c.id,
+                channel_id: channel_item_id,
                 timestamp: time::OffsetDateTime::now_utc(),
             }
             .to_json();
@@ -68,7 +69,7 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
             ]),
             on:click=on_click,
         ) {
-            (channel_cc.name.clone())
+            (channel_name)
         }
     }
 }

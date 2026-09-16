@@ -18,12 +18,12 @@ pub fn ChannelPanel() -> View {
 
     create_effect(move || {
         spawn_local_scoped(async move {
-            if context.current_id.get().is_some() {
+            if let Some(channel) = context.current.get_clone() {
                 let args = CommandArgs::LeftChannel {
-                    channel_id: context.current_id.get().unwrap(),
+                    channel_id: channel.id,
                 }
                 .to_json();
-                context.current_id.set(None);
+                context.current.set(None);
                 invoke_command(args).await;
             }
         });

@@ -8,9 +8,13 @@ use web_sys::{Event, HtmlElement, SubmitEvent};
 use super::message_item::MessageItem;
 use crate::{components::common::ChannelContext, utils::invoke_command};
 
-#[component(inline_props)]
+#[component()]
 pub fn MessagesArea() -> View {
     let channel_context = use_context::<ChannelContext>();
+    let channel_name = create_memo(move || match channel_context.current.get_clone() {
+        Some(channel) => channel.name,
+        None => "<UNKNOWN>".into(),
+    });
 
     let message_text = create_signal(String::new());
     let container = create_node_ref();
@@ -84,6 +88,11 @@ pub fn MessagesArea() -> View {
         }
     };
 
+    create_effect(move || {
+        channel_context.current.track();
+        channel_context.messages.set(vec![]);
+    });
+
     spawn_local_scoped(async move {
         let mut events = listen::<MessageView>("message_new").await.unwrap();
         while let Some(event) = events.next().await {
@@ -146,7 +155,7 @@ pub fn MessagesArea() -> View {
     view! {
         div(class="messages-area") {
             div(class="messages-list", r#ref=container, on:scroll=on_scroll) {
-                WelcomeMessage(channel_name="".into())
+                WelcomeMessage(channel_name=channel_name)
 
                 Keyed(
                     list=channel_context.messages,
@@ -167,12 +176,10 @@ pub fn MessagesArea() -> View {
 }
 
 #[component(inline_props)]
-fn WelcomeMessage(channel_name: String) -> View {
-    let msg = format!("Добро пожаловать на канал {channel_name}!");
-
+fn WelcomeMessage(channel_name: ReadSignal<String>) -> View {
     view! {
         div(class="welcome-message") {
-            p { (msg) }
+            p { (format!("Добро пожаловать на канал {channel_name}!")) }
         }
     }
 }
