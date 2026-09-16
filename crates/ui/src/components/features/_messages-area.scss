@@ -60,6 +60,18 @@
     }
 }
 
+.welcome-message {
+    padding: 40px 20px;
+    text-align: center;
+    color: #72767d;
+
+    p {
+        margin: 0;
+        font-size: 18px;
+        font-style: italic;
+    }
+}
+
 .input-area {
     display: flex;
     align-items: center;

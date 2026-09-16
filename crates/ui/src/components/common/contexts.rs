@@ -4,15 +4,15 @@ use gilvave_core::{
         message::MessageView,
         server::{MemberView, Server, ServerSmallPart},
     },
-    ids::{ChannelId, ServerId},
+    ids::ServerId,
 };
 use sycamore::prelude::*;
 
 #[derive(Clone)]
 pub struct ChannelContext {
+    pub current: Signal<Option<ChannelView>>,
     pub text: Signal<Vec<ChannelView>>,
     pub voice: Signal<Vec<ChannelView>>,
-    pub current_id: Signal<Option<ChannelId>>,
     pub messages: Signal<Vec<MessageView>>,
 }
 

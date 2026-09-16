@@ -1,11 +1,8 @@
-use gilvave_core::{
-    dto::{
-        channel::ChannelView,
-        command::{CommandArgs, CommandResponse, CommandResult},
-        message::MessageView,
-        server::{MemberView, Server, ServerSmallPart},
-    },
-    ids::ChannelId,
+use gilvave_core::dto::{
+    channel::ChannelView,
+    command::{CommandArgs, CommandResponse, CommandResult},
+    message::MessageView,
+    server::{MemberView, Server, ServerSmallPart},
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
@@ -35,7 +32,7 @@ pub fn HomePanel() -> View {
     let channel_context = ChannelContext {
         text: create_signal::<Vec<ChannelView>>(vec![]),
         voice: create_signal::<Vec<ChannelView>>(vec![]),
-        current_id: create_signal::<Option<ChannelId>>(None),
+        current: create_signal::<Option<ChannelView>>(None),
         messages: create_signal::<Vec<MessageView>>(vec![]),
     };
     provide_context(channel_context.clone());

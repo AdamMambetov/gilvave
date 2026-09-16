@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::ids::ChannelId;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum ChannelType {
     TEXT,
     VOICE,

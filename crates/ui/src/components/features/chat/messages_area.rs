@@ -18,14 +18,14 @@ pub fn MessagesArea() -> View {
         event.prevent_default();
 
         let msg = message_text.get_clone().trim().to_string();
-        let channel_id = channel_context.current_id.get();
-        if msg.is_empty() || channel_id.is_none() {
+        let channel = channel_context.current.get_clone();
+        if msg.is_empty() || channel.is_none() {
             return;
         }
 
         spawn_local_scoped(async move {
             let args = CommandArgs::MessageCreate {
-                channel_id: channel_id.unwrap(),
+                channel_id: channel.unwrap().id,
                 content: msg,
             }
             .to_json();
@@ -53,7 +53,7 @@ pub fn MessagesArea() -> View {
             spawn_local_scoped(async move {
                 let context = use_context::<ChannelContext>();
                 let args = CommandArgs::ChannelHistoryBefore {
-                    channel_id: context.current_id.get().unwrap(),
+                    channel_id: context.current.get_clone().unwrap().id,
                     timestamp: channel_context
                         .messages
                         .get_clone()
@@ -70,7 +70,7 @@ pub fn MessagesArea() -> View {
             spawn_local_scoped(async move {
                 let context = use_context::<ChannelContext>();
                 let args = CommandArgs::ChannelHistoryAfter {
-                    channel_id: context.current_id.get().unwrap(),
+                    channel_id: context.current.get_clone().unwrap().id,
                     timestamp: channel_context
                         .messages
                         .get_clone()
@@ -146,6 +146,8 @@ pub fn MessagesArea() -> View {
     view! {
         div(class="messages-area") {
             div(class="messages-list", r#ref=container, on:scroll=on_scroll) {
+                WelcomeMessage(channel_name="".into())
+
                 Keyed(
                     list=channel_context.messages,
                     key=|m| m.id,
@@ -160,6 +162,17 @@ pub fn MessagesArea() -> View {
                     bind:value=message_text,
                 )
             }
+        }
+    }
+}
+
+#[component(inline_props)]
+fn WelcomeMessage(channel_name: String) -> View {
+    let msg = format!("Добро пожаловать на канал {channel_name}!");
+
+    view! {
+        div(class="welcome-message") {
+            p { (msg) }
         }
     }
 }
