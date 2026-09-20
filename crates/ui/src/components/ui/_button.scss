@@ -1,19 +1,118 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// ─── Primary submit button ────────────────────────────────────────────────────
 .submit-btn {
     width: 100%;
-    padding: 12px;
+    padding: $padding-btn;
     background: $color-primary;
     color: $color-text-white;
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: $radius-btn;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    @include focus-visible-ring($color-primary);
+
+    @include respond-to(sm) {
+        padding: 16px;
+        font-size: $font-size-base;
+    }
 
     &:hover {
         background: darken($color-primary, 8%);
+        box-shadow: $shadow-submit-hover;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+// ─── Ghost (outline) button ───────────────────────────────────────────────────
+.btn-ghost {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    color: $color-text-label;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: $transition-fast;
+    @include focus-visible-ring;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.15);
+        color: $color-text-white;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+// ─── Danger button ────────────────────────────────────────────────────────────
+.btn-danger {
+    padding: $padding-btn;
+    background: $color-danger;
+    color: $color-text-white;
+    border: none;
+    border-radius: $radius-btn;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    @include focus-visible-ring($color-danger);
+
+    &:hover {
+        background: darken($color-danger, 8%);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// ─── Social (OAuth) button ────────────────────────────────────────────────────
+.social-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: $radius-md;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    transition: background 0.2s, border-color 0.2s;
+    @include flex-center;
+    gap: 8px;
+    color: $color-text-label;
+    @include focus-visible-ring;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.15);
+        color: $color-text-white;
     }
 
     &:active {
@@ -21,45 +120,66 @@
     }
 }
 
-.social-btn {
-    flex: 1;
-    padding: 10px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background 0.2s, border-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: $color-text-label;
-
-    &:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.15);
-        color: $color-text-white;
-    }
-}
-
+// ─── Icon-only button ─────────────────────────────────────────────────────────
 .icon-btn {
     width: 36px;
     height: 36px;
     border: none;
-    border-radius: 8px;
+    border-radius: $radius-md;
     background: transparent;
     color: $color-text-muted;
-    font-size: 16px;
+    font-size: $font-size-base;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex-center;
+    flex-shrink: 0;
+    @include focus-visible-ring;
+
+    svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
 
     &:hover {
         background: rgba(255, 255, 255, 0.06);
-        color: $color-text-white;
+        color: $color-text-heading;
+    }
+
+    &:active {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    &.active {
+        color: $color-primary;
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+// ─── Card action button (inside server/join cards) ────────────────────────────
+.card-btn-primary {
+    width: 100%;
+    padding: 10px;
+    background: $color-primary;
+    color: $color-text-white;
+    border: none;
+    border-radius: $radius-btn;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    @include focus-visible-ring($color-primary);
+
+    &:hover {
+        background: darken($color-primary, 8%);
+        box-shadow: 0 4px 16px rgba(167, 139, 250, 0.4);
+    }
+
+    &:active {
+        transform: scale(0.98);
     }
 }

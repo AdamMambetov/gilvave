@@ -1,40 +1,43 @@
+@use '../common/variables' as *;
+@use '../common/mixins' as *;
+
+// ─── Tauri titlebar ───────────────────────────────────────────────────────────
 .app-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 30px;
-    background: #202225;
+    @include flex-between;
+    height: $header-height-app;
+    background: $color-bg-panel-darkest;
     padding-left: 8px;
     user-select: none;
     -webkit-user-select: none;
-    z-index: 1000;
+    z-index: $z-header;
+    border-bottom: 1px solid $color-border-panel;
 }
 
 .app-header-left {
-    display: flex;
-    align-items: center;
+    @include flex-center;
     gap: 10px;
     -webkit-app-region: no-drag;
 }
 
 .app-header-title {
-    font-size: 12px;
-    color: #b9bbbe;
+    font-size: $font-size-xxs;
+    color: $color-text-member;
     padding-left: 4px;
 }
 
+// ─── Screen / monitor select ──────────────────────────────────────────────────
 .screen-select {
     appearance: none;
     -webkit-appearance: none;
-    background: #36393f;
-    border: 1px solid #40444b;
-    border-radius: 4px;
-    color: #dcddde;
-    font-size: 11px;
+    background: $color-bg-panel;
+    border: 1px solid $color-bg-input-panel;
+    border-radius: $radius-sm;
+    color: $color-text-chat;
+    font-size: $font-size-xxs;
     padding: 2px 24px 2px 8px;
     cursor: pointer;
     outline: none;
@@ -44,55 +47,77 @@
     transition: border-color 0.15s;
 
     &:hover {
-        border-color: #72767d;
+        border-color: $color-text-muted;
     }
 
     &:focus {
-        border-color: #5865f2;
+        border-color: $color-primary;
     }
 
     option {
-        background: #2f3136;
-        color: #dcddde;
+        background: $color-bg-panel-dark;
+        color: $color-text-chat;
     }
 }
 
+// ─── Window controls (min / max / close) ─────────────────────────────────────
 .window-controls {
     display: flex;
-    gap: 4px;
+    gap: 0;
+    -webkit-app-region: no-drag;
+
+    @include respond-to(md) {
+        display: none; // hide window control buttons on mobile/browser
+    }
 }
 
 .window-btn {
-    width: 32px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 36px;
+    height: $header-height-app;
+    @include flex-center;
     background: transparent;
     border: none;
-    border-radius: 4px;
     cursor: pointer;
-    color: #b9bbbe;
-    transition: background 0.15s, color 0.15s;
+    color: $color-text-member;
+    -webkit-app-region: no-drag;
+    user-select: none;
+    outline: none;
+    transition: background 0.1s ease, color 0.1s ease;
 
     svg {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         stroke: currentColor;
-        stroke-width: 2;
+        stroke-width: 1.75;
         stroke-linecap: round;
         stroke-linejoin: round;
         fill: none;
+        display: block;
+        pointer-events: none; // ensure SVG children do not capture click or trigger drag
     }
 
     &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 0px;
+        background: rgba(255, 255, 255, 0.08);
+        color: $color-text-white;
+    }
+
+    &:active {
+        background: rgba(255, 255, 255, 0.16);
     }
 
     &.close:hover {
-        background: #e81123;
-        border-radius: 0px;
-        color: white;
+        background: $color-danger;
+        color: $color-text-white;
+    }
+
+    &.close:active {
+        background: darken($color-danger, 10%);
+        color: $color-text-white;
+    }
+}
+
+@include respond-to(md) {
+    .app-header {
+        display: none; // on mobile phones, hide the desktop titlebar entirely
     }
 }

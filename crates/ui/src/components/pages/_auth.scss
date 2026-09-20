@@ -1,27 +1,52 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// Auth pages need top padding to push below Tauri titlebar
+body:has(.container.active) {
+    padding-top: calc(#{$header-height-app} + 40px);
+    align-items: center; // center card on desktop/tablet
+
+    @include respond-to(md) {
+        padding-top: calc(#{$header-height-app} + 16px);
+    }
+
+    @include respond-to(sm) {
+        padding-top: $header-height-app;
+        align-items: stretch; // fill full width on mobile
+        justify-content: flex-start;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+}
+
+// ─── Form panel (login / register) ───────────────────────────────────────────
 .form-panel {
     padding: 28px 32px 24px;
     display: none;
-    animation: fadeIn 0.3s ease;
+    animation: slideInUp 0.3s ease;
 
     &.active {
         display: block;
     }
 
-    @media (max-width: $breakpoint-sm) {
-        padding: 24px 20px 20px;
+    @include respond-to(md) {
+        padding: 24px 24px 20px;
+    }
+
+    @include respond-to(sm) {
+        padding: 20px 16px 20px;
     }
 }
 
-h2 {
+.form-panel h2 {
     text-align: center;
     margin-bottom: 24px;
     color: $color-text-heading;
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
 
-    @media (max-width: $breakpoint-sm) {
-        font-size: 18px;
+    @include respond-to(sm) {
+        font-size: 20px;
+        margin-bottom: 20px;
     }
 }

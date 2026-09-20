@@ -1,17 +1,19 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// ─── Spinner overlay ──────────────────────────────────────────────────────────
 .spinner-overlay {
     position: fixed;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(15, 12, 41, 0.7);
+    @include flex-center;
+    background: rgba($color-bg-page, 0.7);
     backdrop-filter: blur(6px);
-    z-index: 1000;
+    -webkit-backdrop-filter: blur(6px);
+    z-index: $z-modal;
     animation: overlayFadeIn 0.25s ease;
 }
 
+// ─── Orbital spinner ─────────────────────────────────────────────────────────
 .spinner {
     position: relative;
     width: 80px;
@@ -21,7 +23,7 @@
 .spinner-ring {
     position: absolute;
     inset: 0;
-    border-radius: 50%;
+    border-radius: $radius-full;
     border: 3px solid transparent;
 
     &::before,
@@ -30,7 +32,7 @@
         position: absolute;
         width: 10px;
         height: 10px;
-        border-radius: 50%;
+        border-radius: $radius-full;
         background: $color-primary;
     }
 
@@ -106,7 +108,7 @@
     width: 12px;
     height: 12px;
     transform: translate(-50%, -50%);
-    border-radius: 50%;
+    border-radius: $radius-full;
     background: $color-primary;
     box-shadow:
         0 0 20px 4px rgba(167, 139, 250, 0.5),
@@ -114,28 +116,5 @@
     animation: corePulse 1.2s ease-in-out infinite;
 }
 
-@keyframes orbit {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-@keyframes orbitReverse {
-    from { transform: rotate(360deg); }
-    to { transform: rotate(0deg); }
-}
-
-@keyframes corePulse {
-    0%, 100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(1.4);
-        opacity: 0.7;
-    }
-}
-
-@keyframes overlayFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+// NOTE: @keyframes orbit, orbitReverse, corePulse, overlayFadeIn
+// are defined in common/_animations.scss — NOT here.

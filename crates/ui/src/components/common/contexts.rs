@@ -38,4 +38,33 @@ pub struct CreateServerContext {
     pub is_public: Signal<bool>,
     pub public_servers: Signal<Vec<Server>>,
     pub expanded_id: Signal<Option<ServerId>>,
+    pub from_dashboard: Signal<bool>,
 }
+
+#[derive(Clone)]
+pub struct UserProfileContext {
+    pub username: Signal<String>,
+    pub avatar: Signal<String>,
+    pub banner: Signal<String>,
+    pub bio: Signal<String>,
+    pub is_muted: Signal<bool>,
+    pub is_deafened: Signal<bool>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]
+pub enum HomeTab {
+    #[default]
+    Chats,
+    Dashboard,
+}
+
+#[derive(Clone)]
+pub struct UiModalContext {
+    pub is_server_settings_open: Signal<bool>,
+    pub is_create_channel_open: Signal<bool>,
+    pub create_channel_type: Signal<gilvave_core::dto::channel::ChannelType>,
+    pub is_profile_settings_open: Signal<bool>,
+    pub selected_dm_name: Signal<Option<String>>,
+    pub home_tab: Signal<HomeTab>,
+}
+

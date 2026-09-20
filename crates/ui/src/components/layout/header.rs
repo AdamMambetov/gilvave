@@ -1,19 +1,25 @@
-use strum::IntoEnumIterator;
-use sycamore::{futures::spawn_local_scoped, prelude::*, web::events::Event};
+use sycamore::{futures::spawn_local_scoped, prelude::*};
 use wasm_bindgen::JsCast;
-use web_sys::HtmlSelectElement;
 
-use crate::components::{
-    common::{ActiveScreen, ScreenWrapper},
-    ui::icons::{CloseIcon, MaximizeIcon, MinimizeIcon},
-};
+#[cfg(debug_assertions)]
+use strum::IntoEnumIterator;
+#[cfg(debug_assertions)]
+use sycamore::web::events::Event;
+#[cfg(debug_assertions)]
+use web_sys::HtmlSelectElement;
+#[cfg(debug_assertions)]
+use crate::components::common::{ActiveScreen, ScreenWrapper};
+
+use crate::components::ui::icons::{CloseIcon, MaximizeIcon, MinimizeIcon};
 
 #[component]
 pub fn AppHeader() -> View {
     let on_drag = move |e: web_sys::MouseEvent| {
         if let Some(target) = e.target() {
             if let Some(el) = target.dyn_ref::<web_sys::Element>() {
-                if el.tag_name() == "SELECT" || el.tag_name() == "BUTTON" {
+                if el.closest("button").ok().flatten().is_some()
+                    || el.closest("select").ok().flatten().is_some()
+                {
                     return;
                 }
             }

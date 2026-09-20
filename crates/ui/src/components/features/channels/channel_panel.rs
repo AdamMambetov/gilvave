@@ -5,16 +5,27 @@ use gilvave_core::dto::{
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
-    components::common::{ChannelContext, ServerContext},
+    components::common::{ChannelContext, ServerContext, UiModalContext},
     utils::invoke_command,
 };
 
-use super::channel_item::ChannelItem;
+use super::{channel_item::ChannelItem, user_status_bar::UserStatusBar};
 
 #[component(inline_props)]
 pub fn ChannelPanel() -> View {
     let context = use_context::<ChannelContext>();
     let server_context = use_context::<ServerContext>();
+    let modal_context = use_context::<UiModalContext>();
+
+    let on_add_text_channel = move |_| {
+        modal_context.create_channel_type.set(ChannelType::TEXT);
+        modal_context.is_create_channel_open.set(true);
+    };
+
+    let on_add_voice_channel = move |_| {
+        modal_context.create_channel_type.set(ChannelType::VOICE);
+        modal_context.is_create_channel_open.set(true);
+    };
 
     create_effect(move || {
         spawn_local_scoped(async move {
@@ -57,7 +68,14 @@ pub fn ChannelPanel() -> View {
     view! {
         div(class="channel-panel") {
             div(class="channel-list") {
-                div(class="channel-header") { "Текстовые" }
+                div(class="channel-header") {
+                    span { "Текстовые" }
+                    button(
+                        class="channel-add-btn",
+                        on:click=on_add_text_channel,
+                        title="Создать текстовый канал",
+                    ) { "+" }
+                }
                 Indexed(
                     list=context.text,
                     view=|channel| { view! {
@@ -67,12 +85,21 @@ pub fn ChannelPanel() -> View {
             }
 
             div(class="channel-list") {
-                div(class="channel-header") { "Голосовые" }
+                div(class="channel-header") {
+                    span { "Голосовые" }
+                    button(
+                        class="channel-add-btn",
+                        on:click=on_add_voice_channel,
+                        title="Создать голосовой канал",
+                    ) { "+" }
+                }
                 Indexed(
                     list=context.voice,
                     view=|channel| { view! { div(class="channel-item") { (channel.name) } } },
                 )
             }
+
+            UserStatusBar()
         }
     }
 }

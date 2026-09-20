@@ -1,95 +1,330 @@
 @use '../common/variables' as *;
-@use 'animations' as *;
+@use '../common/mixins' as *;
 
-.discord-container {
-    display: flex;
-    position: fixed;
-    top: 5%;
-    left: 3%;
-    right: 3%;
-    bottom: 3%;
-    background: #36393f;
-    border-radius: $radius-container;
-    overflow: hidden;
-    box-shadow: $shadow-container;
-    transition: all 0.3s ease;
-}
-
+// ─── Main Discord container (active home view) ───────────────────────────────
+.discord-container,
 .home-panel-container {
     display: none;
     position: fixed;
-    top: 5%;
-    left: 3%;
-    right: 3%;
-    bottom: 3%;
-    background: #36393f;
+    top: calc(#{$header-height-app} + 4px);
+    left: 2%;
+    right: 2%;
+    bottom: 2%;
+    background: $color-bg-panel;
     border-radius: $radius-container;
     overflow: hidden;
     box-shadow: $shadow-container;
     opacity: 0;
     transform: scale(0);
     pointer-events: none;
-    animation: homeExpand 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 
     &.active {
         display: flex;
+        flex-direction: row;
+        pointer-events: auto;
+        animation: homeExpand 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    // Tablet
+    @include respond-to(lg) {
+        top: $header-height-app;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    // Mobile (< 768px): full screen, servers stay on the left!
+    @include respond-to(md) {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 0;
+        box-shadow: none;
+
+        &.active {
+            flex-direction: row; // servers on left, channel content on right
+        }
     }
 }
 
-.discord-main {
-    flex: 1;
+// ─── Server sidebar: ALWAYS on the left on all devices ───────────────────────
+.discord-sidebar {
+    width: $sidebar-width-server;
+    background: $color-bg-panel-darkest;
     display: flex;
     flex-direction: column;
-    background: #202225;
-    min-width: 600px;
+    align-items: center;
+    padding: 16px 0;
+    gap: 12px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    @include scrollbar(4px, rgba(255, 255, 255, 0.1));
+
+    .separator {
+        width: 32px;
+        height: 2px;
+        background: $color-bg-panel;
+        margin: 4px 0;
+        flex-shrink: 0;
+    }
+
+    // Mobile: compact vertical sidebar on the left
+    @include respond-to(md) {
+        width: 60px;
+        padding: 12px 0;
+        gap: 8px;
+
+        .server-icon {
+            width: 42px;
+            height: 42px;
+        }
+
+        .separator {
+            width: 24px;
+            height: 2px;
+            margin: 2px 0;
+        }
+    }
 }
 
+// ─── Main flex area (channel + messages) ─────────────────────────────────────
+.discord-main {
+    flex: 1;
+    @include flex-col;
+    background: $color-bg-panel-darkest;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+// ─── Channel topbar ───────────────────────────────────────────────────────────
 .discord-header {
-    height: 60px;
-    background: #36393f;
+    height: $header-height-channel;
+    background: $color-bg-panel;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 1px 0 rgba(4, 4, 5, 0.2);
-}
+    padding: 0 16px;
+    box-shadow: 0 1px 0 $color-border-panel;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
 
-.search-bar {
-    display: flex;
-    align-items: center;
-    padding: 10px 16px;
-    background: #202225;
-    border-radius: 4px;
-    color: #b9bbbe;
-    font-size: 16px;
-    min-width: 200px;
-
-    span {
-        margin-right: 10px;
+    @include respond-to(md) {
+        height: 48px;
+        padding: 0 12px;
     }
 }
 
+// ─── Server info on the left side of topbar ──────────────────────────────────
+.header-server-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    flex: 1;
+
+    // Cover ambient banner effect
+    .header-server-cover {
+        position: absolute;
+        left: -16px;
+        top: -12px;
+        bottom: -12px;
+        width: 220px;
+        opacity: 0.16;
+        pointer-events: none;
+        mask-image: linear-gradient(to right, black 25%, transparent);
+        -webkit-mask-image: linear-gradient(to right, black 25%, transparent);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+    }
+
+    .header-server-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: $radius-md;
+        overflow: hidden;
+        background: linear-gradient(135deg, $color-primary, $color-primary-end);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        span {
+            font-size: 16px;
+            font-weight: 700;
+            color: $color-text-white;
+            line-height: 1;
+            user-select: none;
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
+        &.home {
+            background: $color-bg-input-panel;
+
+            span {
+                font-size: 16px;
+            }
+        }
+    }
+
+    .header-server-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+    }
+
+    .header-server-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: $color-text-heading;
+        letter-spacing: 0.01em;
+        @include truncate;
+    }
+
+    .header-server-members {
+        font-size: 11px;
+        color: $color-text-muted;
+    }
+
+    .header-settings-btn {
+        background: transparent;
+        border: none;
+        color: $color-text-muted;
+        font-size: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: $radius-sm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: background 0.15s, color 0.15s, transform 0.1s;
+
+        &:hover {
+            background: $color-bg-panel-hover;
+            color: $color-text-white;
+            transform: scale(1.1);
+        }
+    }
+}
+
+// ─── Header search bar: aligned to the right ─────────────────────────────────
+.search-bar {
+    @include flex-center;
+    padding: 6px 14px;
+    background: $color-bg-panel-darkest;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: $radius-sm;
+    color: $color-text-member;
+    font-size: $font-size-sm;
+    min-width: 140px;
+    cursor: pointer;
+    margin-left: auto;
+    flex-shrink: 0;
+    z-index: 2;
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+        background: darken($color-bg-panel-darkest, 3%);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    span {
+        opacity: 0.7;
+    }
+
+    @include respond-to(sm) {
+        display: none;
+    }
+}
+
+// ─── Content flex row ─────────────────────────────────────────────────────────
 .discord-content {
     flex: 1;
     display: flex;
     overflow: hidden;
-}
+    min-height: 0;
+    min-width: 0;
+    position: relative;
 
-@media (max-width: $breakpoint-sm) {
-    .discord-container {
-        flex-direction: column;
-        height: auto;
-        left: 3%;
-        right: 3%;
-        top: 6%;
-        bottom: 3%;
+    // Desktop: HomeNavPanel is 240px wide, HomeDashboard is flex: 1
+    .home-nav-panel {
+        width: 240px;
+        flex-shrink: 0;
     }
 
-    .discord-main {
-        min-height: 600px;
+    .home-dashboard {
+        flex: 1;
     }
 
-    .discord-content {
-        flex-direction: column;
+    // Mobile behavior:
+    // 1. ChannelPanel fills the remaining width next to the server sidebar
+    // 2. When a channel is opened, MessagesArea overlays full-screen with back button
+    // 3. In Home:
+    //    - show-chats: .home-nav-panel takes 100%, .home-dashboard is hidden
+    //    - show-dashboard: .home-dashboard takes 100%, .home-nav-panel is hidden
+    //    - dm-messages-area overlays full-screen when a DM is opened
+    @include respond-to(md) {
+        .channel-panel {
+            flex: 1;
+            width: 100%;
+        }
+
+        &.in-home.show-chats {
+            .home-nav-panel {
+                display: flex;
+                flex: 1;
+                width: 100%;
+            }
+
+            .home-dashboard {
+                display: none !important;
+            }
+        }
+
+        &.in-home.show-dashboard {
+            .home-nav-panel {
+                display: none !important;
+            }
+
+            .home-dashboard {
+                display: flex;
+                flex: 1;
+                width: 100%;
+            }
+        }
+
+        .messages-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            background: $color-bg-panel;
+        }
     }
 }

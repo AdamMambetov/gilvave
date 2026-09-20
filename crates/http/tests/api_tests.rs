@@ -164,7 +164,7 @@ fn test_server_create_info_no_icon() {
     };
     let json = serde_json::to_string(&info).unwrap();
     assert!(json.contains("Private Server"));
-    assert!(json.contains("null"));
+    assert!(json.contains("false"));
 }
 
 #[test]

@@ -1,41 +1,73 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// ─── Input group (label + field) ─────────────────────────────────────────────
 .input-group {
-    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    &:not(:last-child) {
+        margin-bottom: 16px;
+    }
 
     label {
         display: block;
-        margin-bottom: 6px;
         color: $color-text-label;
-        font-weight: 500;
-        font-size: 12px;
+        font-weight: $font-weight-medium;
+        font-size: $font-size-xs;
         text-transform: uppercase;
         letter-spacing: 0.03em;
     }
 
-    input {
-        width: 100%;
+    input,
+    textarea {
+        @include input-base;
         padding: 12px 14px;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        font-size: 14px;
-        color: $color-text-heading;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+
+        // Larger touch targets on mobile
+        @include respond-to(sm) {
+            padding: 14px 16px;
+            font-size: $font-size-base;
+        }
+    }
+
+    textarea {
+        resize: none !important;
+        min-height: 80px;
+        line-height: 1.5;
+        background: rgba(0, 0, 0, 0.25);
+        color: $color-text-white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: $radius-md;
         outline: none;
+        font-family: inherit;
 
         &:focus {
             border-color: $color-primary;
             box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
-        }
-
-        &::placeholder {
-            color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.35);
         }
     }
 
+    // Small variant
+    &--sm {
+        label {
+            font-size: $font-size-xxs;
+        }
+
+        input,
+        textarea {
+            padding: 8px 10px;
+            font-size: $font-size-xs;
+        }
+    }
+
+    // Error state
     &.error {
-        input {
+        input,
+        textarea {
             border-color: $color-error;
             box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
         }
@@ -44,32 +76,39 @@
             display: block;
         }
     }
-
-    .chat-input {
-        flex: 1;
-        padding: 12px 16px;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        color: $color-text-heading;
-        font-size: 14px;
-        outline: none;
-        transition: border-color 0.2s;
-
-        &:focus {
-            border-color: $color-primary;
-            box-shadow: none;
-        }
-
-        &::placeholder {
-            color: rgba(255, 255, 255, 0.2);
-        }
-    }
 }
 
 .error-message {
     color: $color-error;
-    font-size: 11px;
-    margin-top: 6px;
+    font-size: $font-size-xxs;
     display: none;
+}
+
+// ─── Chat input (standalone, inside .input-area) ─────────────────────────────
+// NOTE: intentionally NOT nested inside .input-group to avoid conflicts
+.chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    background: $color-bg-input-panel;
+    border: none;
+    border-radius: $radius-sm;
+    color: $color-text-chat;
+    font-size: $font-size-sm;
+    outline: none;
+    transition: background 0.2s;
+    min-width: 0; // fix flex shrink
+
+    &:focus {
+        background: lighten($color-bg-input-panel, 3%);
+    }
+
+    &::placeholder {
+        color: $color-text-muted;
+    }
+}
+
+// ─── Panel input (inside modals, forms within dark panels) ───────────────────
+.panel-input {
+    @include input-base;
+    padding: 12px 14px;
 }

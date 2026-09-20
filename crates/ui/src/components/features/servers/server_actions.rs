@@ -17,6 +17,24 @@ pub(super) fn select_server(server_id: ServerId) {
         return;
     }
 
+    if let Some(small) = context.list.with(|l| l.iter().find(|s| s.id == server_id).cloned()) {
+        let epoch = time::OffsetDateTime::from_unix_timestamp(0).unwrap();
+        let current_srv = gilvave_core::dto::server::Server {
+            id: small.id,
+            owner_id: gilvave_core::ids::UserId::default(),
+            name: small.name,
+            description: String::new(),
+            icon_url: small.icon_url,
+            cover: String::new(),
+            is_public: true,
+            members_count: 1,
+            created_at: epoch,
+        };
+        context.current.set(Some(current_srv));
+    }
+
+    context.members.set(vec![]);
+
     spawn_local_scoped(async move {
         let response = invoke_command(
             CommandArgs::GetServerById {
@@ -25,14 +43,12 @@ pub(super) fn select_server(server_id: ServerId) {
             .to_json(),
         )
         .await;
-        context.members.set(vec![]);
         if let CommandResult::Ok(CommandResponse::GetServerById(server)) = response {
             context.current.set(Some(server));
         }
     });
     spawn_local_scoped(async move {
         let response = invoke_command(CommandArgs::GetMembers { server_id }.to_json()).await;
-        context.members.set(vec![]);
         if let CommandResult::Ok(CommandResponse::GetMembers(members)) = response {
             context.members.set(members);
         }

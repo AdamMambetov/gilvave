@@ -1,5 +1,85 @@
+// ─── Box sizing ──────────────────────────────────────────────────────────────
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+// ─── Margins / paddings ───────────────────────────────────────────────────────
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+}
+
+// ─── Root font sizing ────────────────────────────────────────────────────────
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+// ─── Media elements ───────────────────────────────────────────────────────────
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+    display: block;
+    max-width: 100%;
+}
+
+// ─── Form elements inherit font ───────────────────────────────────────────────
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+}
+
+// ─── Remove default button styles ────────────────────────────────────────────
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+// ─── Remove list styles ───────────────────────────────────────────────────────
+ul,
+ol {
+    list-style: none;
+}
+
+// ─── Headings ─────────────────────────────────────────────────────────────────
+h1, h2, h3, h4, h5, h6 {
+    font-weight: inherit;
+    font-size: inherit;
+}
+
+// ─── Anchor ───────────────────────────────────────────────────────────────────
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+// ─── Prevent text selection on interactive icons ──────────────────────────────
+[role='button'],
+button {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+// ─── Textarea ────────────────────────────────────────────────────────────────
+textarea {
+    resize: none !important;
+}
+
+// ─── Remove search decoration ─────────────────────────────────────────────────
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button {
+    -webkit-appearance: none;
 }

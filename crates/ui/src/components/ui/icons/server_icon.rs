@@ -6,10 +6,12 @@ use crate::components::common::classes;
 pub fn ServerIcon(
     server_name: Signal<String>,
     icon_url: Signal<String>,
+    #[prop(default = false.into())] is_active: MaybeDyn<bool>,
     #[prop(attributes(html, div))] attributes: Attributes,
 ) -> View {
     let class = classes(vec![
         "server-icon".into(),
+        ("active", is_active).into(),
         ("new", { server_name.get_clone() == "+" }.into()).into(),
     ]);
 

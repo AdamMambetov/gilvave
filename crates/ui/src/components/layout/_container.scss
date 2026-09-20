@@ -1,10 +1,11 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// Auth flow container (login / register card)
 .container {
-    background: rgba(30, 30, 46, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    @include glass(20px, rgba(30, 30, 46, 0.95));
+    border-radius: $radius-xl;
+    box-shadow: $shadow-panel;
     width: 350px;
     margin-top: 12vh;
     overflow: hidden;
@@ -13,5 +14,27 @@
 
     &.active {
         display: block;
+    }
+
+    @include respond-to(md) {
+        width: 90%;
+        max-width: 400px;
+        margin-top: 4vh;
+    }
+
+    @include respond-to(sm) {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0;
+        border-radius: 0;
+        min-height: calc(100dvh - #{$header-height-app});
+        box-shadow: none;
+        border: none;
+        display: none; // still controlled by .active
+
+        &.active {
+            display: flex;
+            flex-direction: column;
+        }
     }
 }

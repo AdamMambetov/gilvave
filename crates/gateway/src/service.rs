@@ -14,7 +14,11 @@ use tokio_tungstenite::{
     tungstenite::{Message, client::IntoClientRequest},
 };
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use crate::handler::handle;
+
+static IS_LISTENING: AtomicBool = AtomicBool::new(false);
 
 pub struct WsService;
 
@@ -51,6 +55,22 @@ impl WsService {
         state: State<'_, AppState>,
         app_handle: AppHandle,
     ) -> Result<bool, ErrorInfo> {
+        if IS_LISTENING
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_err()
+        {
+            tracing::warn!("listen_web_socket is already running! Skipping duplicate call.");
+            return Ok(true);
+        }
+
+        struct ListeningGuard;
+        impl Drop for ListeningGuard {
+            fn drop(&mut self) {
+                IS_LISTENING.store(false, Ordering::SeqCst);
+            }
+        }
+        let _guard = ListeningGuard;
+
         loop {
             tracing::info!("listen_web_socket start");
 
@@ -119,6 +139,9 @@ impl WsService {
                             receive_task.abort();
                         },
                     }
+
+                    // Delay before reconnecting to prevent hammering the server in tight loops
+                    tokio::time::sleep(Duration::from_millis(1000)).await;
                 }
                 Err(e) => {
                     // TODO: подождать и сделать переподключение

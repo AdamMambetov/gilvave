@@ -1,0 +1,107 @@
+@use '../common/variables' as *;
+@use '../common/mixins' as *;
+
+// ─── CSS Tooltip ──────────────────────────────────────────────────────────────
+// Pure CSS, no JS required. Renders on right side by default (Discord-style).
+//
+// Usage:
+//   <button class="tooltip" data-tip="My Server">...</button>
+//   <button class="tooltip tooltip--bottom" data-tip="Settings">...</button>
+
+[data-tip] {
+    position: relative;
+
+    // The tooltip bubble
+    &::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: calc(100% + 12px);
+        top: 50%;
+        transform: translateY(-50%) scale(0.85);
+        background: $color-bg-panel-darkest;
+        color: $color-text-white;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-semibold;
+        white-space: nowrap;
+        padding: 6px 10px;
+        border-radius: $radius-md;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        z-index: $z-tooltip;
+    }
+
+    // Arrow
+    &::before {
+        content: '';
+        position: absolute;
+        left: calc(100% + 6px);
+        top: 50%;
+        transform: translateY(-50%);
+        border: 5px solid transparent;
+        border-right-color: $color-bg-panel-darkest;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        z-index: $z-tooltip;
+    }
+
+    &:hover::after,
+    &:hover::before {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+
+    // ── Bottom tooltip ──
+    &.tooltip--bottom {
+        &::after {
+            left: 50%;
+            top: calc(100% + 10px);
+            transform: translateX(-50%) scale(0.85);
+        }
+
+        &::before {
+            left: 50%;
+            top: calc(100% + 4px);
+            transform: translateX(-50%);
+            border-right-color: transparent;
+            border-bottom-color: $color-bg-panel-darkest;
+        }
+
+        &:hover::after {
+            transform: translateX(-50%) scale(1);
+        }
+
+        &:hover::before {
+            transform: translateX(-50%);
+        }
+    }
+
+    // ── Top tooltip ──
+    &.tooltip--top {
+        &::after {
+            left: 50%;
+            top: auto;
+            bottom: calc(100% + 10px);
+            transform: translateX(-50%) scale(0.85);
+        }
+
+        &::before {
+            left: 50%;
+            top: auto;
+            bottom: calc(100% + 4px);
+            transform: translateX(-50%);
+            border-right-color: transparent;
+            border-top-color: $color-bg-panel-darkest;
+        }
+
+        &:hover::after {
+            transform: translateX(-50%) scale(1);
+        }
+
+        &:hover::before {
+            transform: translateX(-50%);
+        }
+    }
+}

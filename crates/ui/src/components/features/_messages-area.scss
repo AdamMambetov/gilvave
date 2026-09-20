@@ -1,101 +1,397 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// ─── Messages area ────────────────────────────────────────────────────────────
 .messages-area {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #36393f;
+    @include flex-col;
+    background: $color-bg-panel;
     overflow: hidden;
+    min-height: 0;
+    min-width: 0;
 }
 
+// ─── Chat topbar with back button (mobile) and channel name ──────────────────
+.chat-header {
+    height: 48px;
+    background: $color-bg-panel;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+    gap: 12px;
+    z-index: 2;
+
+    .chat-back-btn {
+        display: none; // hidden on desktop/tablet by default
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: $color-text-heading;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: $radius-md;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        svg {
+            stroke: currentColor;
+            flex-shrink: 0;
+        }
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: $color-text-white;
+        }
+
+        &:active {
+            transform: scale(0.96);
+        }
+
+        // Displayed only on mobile (< 768px)
+        @include respond-to(md) {
+            display: flex;
+        }
+    }
+
+    .chat-header-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        color: $color-text-heading;
+
+        .channel-hash {
+            color: $color-text-muted;
+            font-size: 18px;
+            font-weight: 700;
+        }
+    }
+}
+
+// ─── Scrollable message list ──────────────────────────────────────────────────
 .messages-list {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 16px;
+    @include scrollbar(8px, $color-bg-panel-darkest);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
+// ─── Date divider between different days ─────────────────────────────────────
+.chat-date-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin: 18px 0 10px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    user-select: none;
+    pointer-events: none;
+    width: 100%;
+    box-sizing: border-box;
 
-    &::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: #202225;
-        border-radius: 4px;
-
-        &:hover {
-            background: #1a1b1e;
-        }
+    .date-badge {
+        position: absolute;
+        background: $color-bg-panel;
+        padding: 3px 14px;
+        border-radius: 12px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: $color-text-channel;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        z-index: 1;
+        transition: color 0.15s ease, background 0.15s ease;
     }
 }
 
+// ─── Individual messenger-style message ───────────────────────────────────────
 .message {
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    color: #dcddde;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: $radius-md;
+    transition: background 0.15s ease;
 
-    .message-header {
+    &:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    // ── Chained message (consecutive from same author) ──
+    &.chained {
+        padding-top: 1px;
+        padding-bottom: 1px;
+        margin-top: -2px; // pull closer together like Telegram
+    }
+
+    // ── User Avatar ──
+    .message-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, $color-primary, $color-primary-end);
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 5px;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+
+        span {
+            font-size: 15px;
+            font-weight: 700;
+            color: $color-text-white;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .message-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+    }
+
+    // Invisible spacer for chained messages without avatar
+    .message-avatar-spacer {
+        width: 38px;
+        flex-shrink: 0;
+    }
+
+    // ── Body (author + bubble) ──
+    .message-body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    // ── Header (author name + time) ──
+    .message-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
 
         .author {
             font-weight: 600;
-            color: #7289da;
+            color: $color-primary;
+            font-size: 14px;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+                color: lighten($color-primary, 8%);
+            }
         }
 
         .timestamp {
-            font-size: 12px;
-            color: #72767d;
+            font-size: 11px;
+            color: $color-text-muted;
+            user-select: none;
         }
     }
 
-    p {
-        margin: 0;
-        line-height: 1.5;
+    // ── Messenger bubble with outline ──
+    .message-bubble {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 4px 14px 14px 14px;
+        padding: 8px 14px;
+        display: inline-block;
+        max-width: 100%;
+        word-break: break-word;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: border-color 0.15s ease, background 0.15s ease;
+        position: relative;
+
+        .message:hover & {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.45;
+            color: $color-text-chat;
+            font-size: 14px;
+            white-space: pre-wrap;
+            display: inline;
+        }
+
+        .chained-time {
+            font-size: 10px;
+            color: $color-text-muted;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            user-select: none;
+        }
+
+        .message:hover & .chained-time {
+            opacity: 0.8;
+        }
+    }
+
+    // ── Telegram-style Corner Radii for chained message sequences ──
+    &.group-first:not(.group-last) .message-bubble {
+        border-radius: 4px 14px 14px 4px;
+    }
+
+    &.chained:not(.group-last) .message-bubble {
+        border-radius: 4px 14px 14px 4px;
+    }
+
+    &.chained.group-last .message-bubble {
+        border-radius: 4px 4px 14px 14px;
     }
 }
 
+// ─── Welcome placeholder ──────────────────────────────────────────────────────
 .welcome-message {
-    padding: 40px 20px;
+    padding: 36px 20px 20px;
     text-align: center;
-    color: #72767d;
+    color: $color-text-muted;
 
     p {
         margin: 0;
-        font-size: 18px;
+        font-size: $font-size-lg;
         font-style: italic;
+        color: $color-text-label;
+        max-width: 480px;
+        margin: 0 auto;
     }
 }
 
+// ─── Input area (bottom compose bar) ─────────────────────────────────────────
 .input-area {
     display: flex;
     align-items: center;
-    padding: 20px;
-    background: #36393f;
+    padding: 12px 16px 16px;
+    background: $color-bg-panel;
     flex-shrink: 0;
+    gap: 10px;
 
     .chat-input {
         flex: 1;
+        width: 100%;
         padding: 12px 16px;
-        background: #40444b;
-        border: none;
-        border-radius: 4px;
-        color: #dcddde;
-        font-size: 16px;
+        background: $color-bg-input-panel;
+        border: 1px solid transparent;
+        border-radius: $radius-md;
+        color: $color-text-chat;
+        font-size: $font-size-sm;
         outline: none;
-        transition: $transition-base;
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
 
         &:focus {
-            background: #42464d;
+            background: lighten($color-bg-input-panel, 4%);
+            border-color: rgba($color-primary, 0.4);
+            box-shadow: 0 0 0 2px rgba($color-primary, 0.15);
         }
 
         &::placeholder {
-            color: #72767d;
+            color: $color-text-muted;
+        }
+    }
+
+    .send-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: $radius-md;
+        background: linear-gradient(135deg, $color-primary, $color-primary-end);
+        color: $color-text-white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.15s ease;
+        box-shadow: 0 2px 8px rgba(167, 139, 250, 0.35);
+
+        svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            pointer-events: none;
+        }
+
+        &:hover {
+            filter: brightness(1.1);
+            transform: scale(1.04);
+            box-shadow: 0 4px 14px rgba(167, 139, 250, 0.5);
+        }
+
+        &:active {
+            transform: scale(0.94);
+        }
+    }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@include respond-to(md) {
+    .messages-list {
+        padding: 10px 10px;
+    }
+
+    .chat-date-divider {
+        margin: 14px 0 6px;
+
+        .date-badge {
+            font-size: 10.5px;
+            padding: 2px 10px;
+        }
+    }
+
+    .message {
+        padding: 4px 4px;
+        gap: 10px;
+
+        .message-avatar {
+            width: 34px;
+            height: 34px;
+
+            span {
+                font-size: 13px;
+            }
+        }
+
+        .message-bubble {
+            padding: 7px 12px;
+
+            p {
+                font-size: 13.5px;
+            }
+        }
+    }
+
+    .input-area {
+        padding: 8px 12px 12px;
+
+        .chat-input {
+            padding: 10px 14px;
+            font-size: 15px;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
         }
     }
 }

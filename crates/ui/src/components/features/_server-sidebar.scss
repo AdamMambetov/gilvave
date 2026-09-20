@@ -1,46 +1,194 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// ─── Server icon strip ────────────────────────────────────────────────────────
+// Base desktop styling; mobile responsive styling handled in _home-panel.scss
 .discord-sidebar {
-    width: 72px;
-    background: #2f3136;
+    width: $sidebar-width-server;
+    background: $color-bg-panel-darkest;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 0;
+    padding: 16px 0;
     gap: 12px;
 }
 
-.server-icon {
+// ─── Special Home / Profile Button ───────────────────────────────────────────
+.home-button-wrapper {
+    position: relative;
+    @include flex-center;
+    width: 100%;
+    margin-bottom: 2px;
+
+    &:hover {
+        .home-pill:not(.active) {
+            height: 20px;
+        }
+    }
+}
+
+.home-pill {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 0;
+    background: $color-text-white;
+    border-radius: 0 4px 4px 0;
+    transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+
+    &.active {
+        height: 38px;
+    }
+}
+
+.home-avatar-btn {
+    position: relative;
     width: 48px;
     height: 48px;
-    border-radius: 10px;
+    border-radius: $radius-lg;
+    background: linear-gradient(135deg, $color-primary, $color-primary-end);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: calc(#{$radius-lg} + 2px);
+        background: linear-gradient(135deg, rgba($color-primary, 0.9), rgba($color-primary-end, 0.9), rgba(167, 139, 250, 0.9));
+        opacity: 0;
+        z-index: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    &:hover {
+        transform: scale(1.04);
+        box-shadow: 0 0 0 3px rgba($color-primary, 0.6), 0 0 16px rgba($color-primary, 0.4);
+
+        &::before {
+            opacity: 1;
+        }
+
+        .home-badge {
+            transform: scale(1.15) rotate(-6deg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 10px rgba($color-primary, 0.6);
+        }
+    }
+
+    &.active {
+        box-shadow: 0 0 0 3px $color-primary, 0 0 20px rgba($color-primary, 0.5);
+
+        &::before {
+            opacity: 1;
+        }
+    }
+
+    .home-avatar-inner {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        border-radius: $radius-lg;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        span {
+            font-size: 20px;
+            font-weight: $font-weight-bold;
+            color: $color-text-white;
+        }
+    }
+
+    .home-badge {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: $color-bg-panel-darkest;
+        border: 2px solid $color-primary;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        line-height: 1;
+        z-index: 2;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+    }
+}
+
+
+// ─── Single server icon ───────────────────────────────────────────────────────
+.server-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: $radius-lg;
+    @include flex-center;
     cursor: pointer;
-    transition: $transition-base;
+    // No border-radius change on hover — stays square/rounded-rect
+    transition: box-shadow 0.2s ease, background 0.2s ease;
     position: relative;
     overflow: hidden;
-    
+    flex-shrink: 0;
+
     &:has(span) {
         background: linear-gradient(135deg, $color-primary, $color-primary-end);
     }
 
+    &:hover {
+        // Purple glow ring, no shape change
+        box-shadow: 0 0 0 3px $color-primary, 0 0 12px rgba($color-primary, 0.35);
+    }
+
+    &.active {
+        box-shadow: 0 0 0 3px $color-primary;
+    }
+
+    // "Add server" button — stays square, green highlight, black plus
     &.new {
-        background: #36393f;
-        color: black;
+        background: $color-bg-panel;
+        border-radius: $radius-lg; // same square shape as regular icons
+        border: none;
+        overflow: hidden;
+
+        span {
+            color: #000; // black plus icon
+        }
 
         &:hover {
-            background: #3ba55c;
-            color: white;
+            background: rgba($color-success, 0.2);
+            // Green glow ring
+            box-shadow: 0 0 0 3px $color-success, 0 0 12px rgba($color-success, 0.35);
         }
     }
-    
+
     span {
         font-size: 20px;
         font-weight: $font-weight-semibold;
         line-height: 1;
         user-select: none;
+        color: $color-text-white;
     }
 
     img {
@@ -52,28 +200,61 @@
     }
 }
 
-.separator {
-    width: 32px;
-    height: 2px;
-    background: #36393f;
-    margin: 4px 0;
+// Pill indicator and wrapper (active marker on left edge, like Discord)
+.server-icon-wrapper {
+    position: relative;
+    @include flex-center;
+    width: 100%;
+
+    &:hover {
+        .server-icon-pill:not(.active) {
+            height: 20px;
+        }
+    }
 }
 
-// ── Modal overlay ──
+.server-icon-pill {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 0;
+    border-radius: 0 4px 4px 0;
+    background: $color-text-white;
+    transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+
+    &.active {
+        height: 38px;
+    }
+}
+
+// Visual divider between server groups
+.server-separator {
+    width: 32px;
+    height: 2px;
+    background: $color-bg-panel;
+    border-radius: 1px;
+    margin: 4px 0;
+    flex-shrink: 0;
+}
+
+// ─── Modal overlay ────────────────────────────────────────────────────────────
 .server-modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
+    @include flex-center;
+    z-index: $z-modal;
     backdrop-filter: blur(4px);
-    animation: fadeIn 0.2s ease;
+    -webkit-backdrop-filter: blur(4px);
+    animation: overlayFadeIn 0.2s ease;
     overflow: hidden;
 
     &.hidden {
-        display: none;
+        display: none !important;
+        pointer-events: none !important;
     }
 
     &.large {
@@ -81,25 +262,27 @@
     }
 }
 
-// ── Base modal ──
+// ─── Base modal ───────────────────────────────────────────────────────────────
 .server-modal {
-    background: $color-bg-container;
-    border-radius: $radius-container;
-    padding: $padding-panel;
-    box-shadow: $shadow-container;
-    min-width: 420px;
-    max-width: 500px;
-    animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    @include modal-base(420px, 500px);
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .server-modal-header {
     text-align: center;
     margin-bottom: 32px;
+    position: relative;
 
     span {
         font-size: $font-size-xl;
         font-weight: $font-weight-semibold;
         color: $color-text-heading;
+    }
+
+    .modal-close-icon-btn {
+        position: absolute;
+        top: -4px;
+        right: 0;
     }
 }
 
@@ -107,22 +290,25 @@
     display: flex;
     gap: 20px;
     justify-content: center;
+
+    @include respond-to(sm) {
+        flex-direction: column;
+        align-items: center;
+    }
 }
 
-// ── Home cards ──
+// ─── Home cards (create / join) ───────────────────────────────────────────────
 .server-modal-card {
     width: 180px;
     height: 180px;
     border: 2px solid $color-border;
     border-radius: $radius-container;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    @include flex-col-center;
     gap: 16px;
     cursor: pointer;
-    transition: $transition-base;
+    transition: $transition-medium;
     background: $color-bg-input;
+    @include focus-visible-ring;
 
     &:hover {
         border-color: $color-primary;
@@ -134,16 +320,22 @@
     &:active {
         transform: translateY(-2px);
     }
+
+    @include respond-to(sm) {
+        width: 100%;
+        height: 120px;
+        flex-direction: row;
+        padding: 0 24px;
+    }
 }
 
 .server-modal-icon {
     width: 64px;
     height: 64px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: $transition-base;
+    border-radius: $radius-full;
+    @include flex-center;
+    transition: $transition-medium;
+    flex-shrink: 0;
 
     &.create {
         background: rgba($color-primary, 0.15);
@@ -175,14 +367,13 @@
     }
 }
 
-// ── Create form ──
+// ─── Create form ──────────────────────────────────────────────────────────────
 .server-modal.create-form {
-    animation: formSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: scaleInFast 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .create-form-body {
-    display: flex;
-    flex-direction: column;
+    @include flex-col;
     gap: 20px;
 
     .input-group {
@@ -190,44 +381,34 @@
             display: block;
             margin-bottom: 6px;
             color: $color-text-label;
-            font-weight: 500;
-            font-size: 12px;
+            font-weight: $font-weight-medium;
+            font-size: $font-size-xxs;
             text-transform: uppercase;
             letter-spacing: 0.03em;
             text-align: left;
         }
 
-        input {
-            width: 100%;
+        input,
+        textarea {
+            @include input-base;
             padding: 12px 14px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            font-size: 14px;
-            color: $color-text-heading;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
             box-sizing: border-box;
+        }
 
-            &:focus {
-                border-color: $color-primary;
-                box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
-            }
-
-            &::placeholder {
-                color: rgba(255, 255, 255, 0.2);
-            }
+        textarea {
+            resize: none !important;
+            min-height: 70px;
+            line-height: 1.5;
         }
     }
 }
 
 .create-form-options {
-    display: flex;
-    flex-direction: column;
+    @include flex-col;
     gap: 6px;
     padding: 12px 14px;
     background: rgba(0, 0, 0, 0.15);
-    border-radius: 8px;
+    border-radius: $radius-md;
     border: 1px solid rgba(255, 255, 255, 0.06);
 
     .checkbox {
@@ -236,8 +417,8 @@
         gap: 10px;
         cursor: pointer;
         color: $color-text-heading;
-        font-size: 14px;
-        font-weight: 500;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
 
         input {
             width: 18px;
@@ -248,21 +429,20 @@
     }
 
     .checkbox-hint {
-        font-size: $font-size-xs;
+        font-size: $font-size-xxs;
         color: $color-text-muted;
         margin-left: 28px;
     }
 }
 
-// ── Animated tabs ──
+// ─── Animated channel-type tabs ───────────────────────────────────────────────
 .create-form-tabs {
-    display: flex;
-    flex-direction: column;
+    @include flex-col;
     align-items: center;
     gap: 10px;
 
     .checkbox-hint {
-        font-size: $font-size-xs;
+        font-size: $font-size-xxs;
         color: $color-text-muted;
         text-align: center;
     }
@@ -272,7 +452,7 @@
     position: relative;
     width: 100%;
     background: rgba(0, 0, 0, 0.25);
-    border-radius: 60px;
+    border-radius: $radius-full;
     padding: 6px;
     box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
 }
@@ -280,7 +460,7 @@
 .toggle-tabs {
     display: flex;
     position: relative;
-    border-radius: 60px;
+    border-radius: $radius-full;
     z-index: 2;
 }
 
@@ -288,7 +468,7 @@
     flex: 1;
     padding: 14px 18px;
     text-align: center;
-    font-weight: 700;
+    font-weight: $font-weight-bold;
     font-size: 15px;
     border-radius: 40px;
     cursor: pointer;
@@ -300,6 +480,7 @@
     z-index: 3;
     background: transparent;
     white-space: nowrap;
+    @include focus-visible-ring;
 
     &.active {
         color: $color-text-white;
@@ -312,19 +493,19 @@
     left: 6px;
     height: calc(100% - 12px);
     width: calc(50% - 6px);
-    border-radius: 60px;
+    border-radius: $radius-full;
     transition: all 0.45s cubic-bezier(0.34, 1.2, 0.64, 1);
     z-index: 1;
     pointer-events: none;
-    background: #7c3aed;
+    background: $color-primary-dark;
     box-shadow:
         0 0 30px rgba(124, 58, 237, 0.5),
         0 0 60px rgba(124, 58, 237, 0.2),
         inset 0 1px 1px rgba(255, 255, 255, 0.15);
 
     &.public {
-        left: calc(50% + 0px);
-        background: #2563eb;
+        left: calc(50%);
+        background: $color-primary-blue;
         box-shadow:
             0 0 30px rgba(37, 99, 235, 0.6),
             0 0 70px rgba(37, 99, 235, 0.25),
@@ -335,7 +516,7 @@
         content: '';
         position: absolute;
         inset: -3px;
-        border-radius: 60px;
+        border-radius: $radius-full;
         background: inherit;
         filter: blur(20px);
         opacity: 0.5;
@@ -362,6 +543,7 @@
         font-weight: $font-weight-semibold;
         cursor: pointer;
         transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+        @include focus-visible-ring($color-primary);
 
         &:hover {
             background: darken($color-primary, 8%);
@@ -374,19 +556,23 @@
     }
 }
 
-// ── Join modal ──
+// ─── Join modal ───────────────────────────────────────────────────────────────
 .server-modal.join-modal {
     min-width: 420px;
     max-width: 520px;
     max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    animation: joinSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    @include flex-col;
+    animation: scaleInBounce 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    box-sizing: border-box;
 
     .server-modal-header {
         margin-bottom: 16px;
+    }
+
+    @include respond-to(md) {
+        min-width: unset;
+        width: 95vw;
+        max-height: 85vh;
     }
 }
 
@@ -394,25 +580,8 @@
     margin-top: 16px;
 
     input {
-        width: 100%;
+        @include input-base;
         padding: 12px 16px;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        font-size: 14px;
-        color: $color-text-heading;
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-
-        &:focus {
-            border-color: $color-primary;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
-        }
-
-        &::placeholder {
-            color: rgba(255, 255, 255, 0.2);
-        }
     }
 }
 
@@ -421,26 +590,11 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 200px;
-
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: $color-border;
-        border-radius: 3px;
-    }
+    @include scrollbar(6px, $color-border);
 }
 
 .join-modal-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    @include flex-col-center;
     gap: 16px;
     padding: 48px 0;
     color: $color-text-dim;
@@ -455,16 +609,15 @@
 }
 
 .join-modal-grid {
-    display: flex;
-    flex-direction: column;
+    @include flex-col;
     gap: 10px;
     padding: 4px 0;
 }
 
-// ── Server browser card ──
+// ─── Server browser card ──────────────────────────────────────────────────────
 .server-browser-card {
     position: relative;
-    border-radius: 12px;
+    border-radius: $radius-lg;
     overflow: hidden;
     cursor: pointer;
     transition: box-shadow 0.25s ease, max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -522,7 +675,6 @@
     }
 }
 
-// ── Collapsed overlay ──
 .card-collapsed-overlay {
     position: absolute;
     bottom: 0;
@@ -542,10 +694,8 @@
 .card-icon-bottom {
     width: 36px;
     height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: $radius-lg;
+    @include flex-center;
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     overflow: hidden;
@@ -553,7 +703,7 @@
     &:has(span) {
         background: linear-gradient(135deg, $color-primary, $color-primary-end);
     }
-    
+
     span {
         font-size: 15px;
         font-weight: $font-weight-semibold;
@@ -580,27 +730,21 @@
     font-size: $font-size-sm;
     font-weight: $font-weight-semibold;
     color: $color-text-white;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    @include truncate;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .card-desc-short {
     font-size: $font-size-xs;
     color: rgba(255, 255, 255, 0.6);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    @include truncate;
     margin-top: 2px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-// ── Expanded body ──
 .card-expanded-body {
     padding: 0 16px 12px;
-    display: flex;
-    flex-direction: column;
+    @include flex-col;
     align-items: center;
     text-align: center;
 
@@ -610,24 +754,23 @@
 }
 
 .card-icon-centered {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: -24px;
+    width: 72px;
+    height: 72px;
+    border-radius: $radius-lg;
+    @include flex-center;
+    margin-top: -36px; // half of height to overlap cover
     position: relative;
     z-index: 2;
-    box-shadow: 0 4px 16px rgba(167, 139, 250, 0.4);
+    box-shadow: 0 4px 20px rgba(167, 139, 250, 0.5);
     overflow: hidden;
+    border: 3px solid $color-bg-container;
 
     &:has(span) {
         background: linear-gradient(135deg, $color-primary, $color-primary-end);
     }
 
     span {
-        font-size: 20px;
+        font-size: 28px;
         font-weight: $font-weight-semibold;
         color: $color-text-white;
         line-height: 1;
@@ -659,8 +802,7 @@
 }
 
 .card-members {
-    display: flex;
-    align-items: center;
+    @include flex-center;
     gap: 6px;
     margin-top: 8px;
     font-size: $font-size-xs;
@@ -679,16 +821,19 @@
 }
 
 .card-join-btn {
+    display: block;
     width: 100%;
-    padding: 10px;
+    padding: 10px 16px;
     background: $color-primary;
     color: $color-text-white;
     border: none;
     border-radius: $radius-btn;
-    font-size: 13px;
+    font-size: $font-size-xs;
     font-weight: $font-weight-semibold;
     cursor: pointer;
+    text-align: center;
     transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    @include focus-visible-ring($color-primary);
 
     &:hover {
         background: darken($color-primary, 8%);
@@ -708,102 +853,8 @@
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+// .back-btn uses .btn-ghost from _button.scss — no extra styles needed here
+// Kept as alias for backwards compatibility:
 .back-btn {
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid $color-border;
-    border-radius: 8px;
-    color: $color-text-label;
-    font-size: 13px;
-    cursor: pointer;
-    transition: $transition-fast;
-
-    &:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.15);
-        color: $color-text-white;
-    }
-}
-
-// ── Animations ──
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-@keyframes formSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95) translateX(20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateX(0);
-    }
-}
-
-@keyframes joinSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.85) translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-@keyframes cardFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-// ── Responsive ──
-@media (max-width: $breakpoint-sm) {
-    .discord-sidebar {
-        width: 100%;
-        height: 72px;
-        flex-direction: row;
-        justify-content: center;
-        padding: 10px 0;
-    }
-
-    .server-modal {
-        min-width: unset;
-        width: 90%;
-        padding: $padding-panel-sm;
-    }
-
-    .server-modal-body {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .server-modal-card {
-        width: 100%;
-        height: 120px;
-    }
-
-    .server-modal.join-modal {
-        min-width: unset;
-        width: 95%;
-        max-height: 85vh;
-    }
+    @extend .btn-ghost !optional;
 }

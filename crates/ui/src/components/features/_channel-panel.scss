@@ -1,60 +1,261 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
+// ─── Channel panel (left sidebar) ────────────────────────────────────────────
 .channel-panel {
-    background: #2f3136;
-    padding: 10px 0;
+    width: $sidebar-width-channel;
+    background: $color-bg-panel-dark;
+    @include flex-col;
+    flex-shrink: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    @include scrollbar(4px, rgba(255, 255, 255, 0.1));
 
-    .channel-list {
-        padding: 10px 0;
-        width: 240px;
+    @include respond-to(lg) {
+        width: 200px;
+    }
+}
 
-        .channel-header {
-            padding: 10px 20px;
-            color: #8e9297;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 0.02em;
+// ─── Channel list ─────────────────────────────────────────────────────────────
+.channel-list {
+    padding: 8px 0;
+    flex: 1;
+}
+
+// ─── Category header ──────────────────────────────────────────────────────────
+.channel-header {
+    @include flex-between;
+    padding: 14px 16px 6px;
+    @include panel-section-header;
+    cursor: default;
+    user-select: none;
+    letter-spacing: 0.04em;
+
+    .channel-add-btn {
+        background: transparent;
+        border: none;
+        color: $color-text-muted;
+        font-size: 18px;
+        font-weight: $font-weight-bold;
+        line-height: 1;
+        cursor: pointer;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: $radius-sm;
+        transition: color 0.15s, background 0.15s, transform 0.1s;
+
+        &:hover {
+            color: $color-text-white;
+            background: rgba(255, 255, 255, 0.12);
+            transform: scale(1.1);
+        }
+    }
+}
+
+// ─── Channel item ─────────────────────────────────────────────────────────────
+.channel-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    margin: 2px 8px;
+    border-radius: $radius-sm;
+    color: $color-text-channel;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    min-width: 0;
+    user-select: none;
+    @include truncate;
+
+    &::before {
+        content: '#';
+        margin-right: 8px;
+        color: $color-text-muted;
+        font-weight: $font-weight-bold;
+        font-size: $font-size-base;
+    }
+
+    &:hover {
+        background: $color-bg-panel-hover;
+        color: $color-text-heading;
+
+        &::before {
+            color: $color-text-label;
+        }
+    }
+
+    &.active {
+        background: $color-bg-panel-active;
+        color: $color-text-white;
+
+        &::before {
+            color: $color-text-white;
+        }
+    }
+}
+
+// ─── Panel footer (user controls) ────────────────────────────────────────────
+.channel-panel-footer {
+    height: 54px;
+    background: darken($color-bg-panel-dark, 4%);
+    @include flex-between;
+    padding: 0 10px;
+    flex-shrink: 0;
+    border-top: 1px solid $color-border-panel;
+
+    .footer-user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+        cursor: pointer;
+        border-radius: $radius-sm;
+        padding: 4px;
+        transition: background 0.15s;
+
+        &:hover {
+            background: $color-bg-panel-hover;
+        }
+    }
+
+    .footer-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
         }
 
-        .channel-item {
-            padding: 10px 20px;
-            color: #8e9297;
-            cursor: pointer;
-            transition: $transition-base;
+        &.placeholder {
+            background: linear-gradient(135deg, $color-primary, $color-primary-end);
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            border-radius: 50%;
 
-            &.active {
-                background: #36393f;
-                color: #dcddde;
+            span {
+                font-size: $font-size-sm;
+                font-weight: $font-weight-bold;
+                color: $color-text-white;
             }
+        }
 
-            &:hover {
-                background: #36393f;
-                color: #dcddde;
-            }
+        .status-dot {
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid darken($color-bg-panel-dark, 4%);
+
+            &.online { background: $color-status-online; }
+            &.idle { background: $color-status-idle; }
+            &.dnd { background: $color-status-dnd; }
+            &.offline { background: $color-status-offline; }
+        }
+    }
+
+    .footer-user-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .footer-username {
+        font-size: $font-size-xs;
+        font-weight: $font-weight-semibold;
+        color: $color-text-heading;
+        @include truncate;
+    }
+
+    .footer-discriminator {
+        font-size: $font-size-xxs;
+        color: $color-text-muted;
+        @include truncate;
+    }
+
+    .footer-controls {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    .footer-btn {
+        background: transparent;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: $radius-sm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 15px;
+        color: $color-text-channel;
+        transition: background 0.15s, color 0.15s, transform 0.1s;
+
+        &:hover {
+            background: $color-bg-panel-hover;
+            color: $color-text-white;
+            transform: scale(1.08);
+        }
+
+        &.muted, &.deafened {
+            background: rgba($color-danger, 0.15);
+            color: $color-danger;
         }
     }
 }
 
-@media (max-width: $breakpoint-sm) {
-    .channel-panel {
-        width: 100%;
-        height: 100%;
-        padding: 0 20px;
-        flex-direction: row;
-    }
+// ─── No channel selected placeholder ──────────────────────────────────────────
+.no-channel-selected {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $color-bg-panel;
+    padding: 24px;
+    text-align: center;
 
-    .channel-list {
-        width: 100%;
-        height: 72px;
+    .no-channel-content {
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
         align-items: center;
+        gap: 12px;
     }
 
-    .channel-header {
-        display: none;
+    .no-channel-icon {
+        font-size: 48px;
+        color: $color-primary;
+        opacity: 0.7;
+    }
+
+    h3 {
+        font-size: $font-size-lg;
+        color: $color-text-heading;
+        font-weight: $font-weight-semibold;
+    }
+
+    p {
+        font-size: $font-size-sm;
+        color: $color-text-muted;
+        line-height: 1.5;
     }
 }
+

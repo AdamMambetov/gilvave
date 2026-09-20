@@ -13,6 +13,7 @@ pub struct RegisterRequest {
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
+    #[serde(default)]
     pub device_info: serde_json::Value,
 }
 

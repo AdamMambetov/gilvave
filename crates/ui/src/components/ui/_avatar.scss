@@ -1,0 +1,102 @@
+@use '../common/variables' as *;
+@use '../common/mixins' as *;
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+// Usage:
+//   <div class="avatar">
+//     <img src="..." alt="...">
+//     <!-- OR fallback initials: -->
+//     <span>AB</span>
+//   </div>
+//   <div class="avatar avatar--md avatar--online"> ... </div>
+
+.avatar {
+    @include avatar(36px, 50%);
+    background: linear-gradient(135deg, $color-primary, $color-primary-end);
+    @include flex-center;
+    flex-shrink: 0;
+
+    // Fallback initials
+    span {
+        font-size: $font-size-xs;
+        font-weight: $font-weight-semibold;
+        color: $color-text-white;
+        line-height: 1;
+        user-select: none;
+    }
+
+    // ── Size modifiers ──
+    &--xs {
+        width: 24px;
+        height: 24px;
+
+        span { font-size: 9px; }
+    }
+
+    &--sm {
+        width: 32px;
+        height: 32px;
+
+        span { font-size: $font-size-xxs; }
+    }
+
+    &--md {
+        width: 48px;
+        height: 48px;
+
+        span { font-size: $font-size-sm; }
+    }
+
+    &--lg {
+        width: 64px;
+        height: 64px;
+
+        span { font-size: $font-size-lg; }
+    }
+
+    &--square {
+        border-radius: $radius-lg;
+    }
+
+    &--server {
+        border-radius: $radius-lg;
+        width: 48px;
+        height: 48px;
+
+        span {
+            font-size: 20px;
+            font-weight: $font-weight-semibold;
+        }
+    }
+}
+
+// ─── Avatar with status indicator ────────────────────────────────────────────
+.avatar-wrapper {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+
+    .avatar-status {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 12px;
+        height: 12px;
+        border-radius: $radius-full;
+        border: 2px solid $color-bg-panel-dark;
+
+        &--online  { background: $color-status-online; }
+        &--idle    { background: $color-status-idle; }
+        &--dnd     { background: $color-status-dnd; }
+        &--offline { background: $color-status-offline; }
+    }
+
+    // Larger status dot for bigger avatars
+    &--md .avatar-status,
+    &--lg .avatar-status {
+        width: 14px;
+        height: 14px;
+        bottom: -1px;
+        right: -1px;
+    }
+}

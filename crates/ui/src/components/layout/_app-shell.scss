@@ -1,0 +1,248 @@
+@use '../common/variables' as *;
+@use '../common/mixins' as *;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// App Shell — the main Discord-like layout wrapper
+//
+// Structure:
+//   .app-shell
+//     ├── .sidebar-servers      (72px fixed vertical strip)
+//     ├── .sidebar-channels     (240px, channel list)
+//     ├── .main-content         (flex:1, chat area)
+//     │     ├── .channel-header (60px topbar)
+//     │     └── <slot>          (messages, voice, etc.)
+//     └── .panel-members        (240px, right panel, optional)
+//
+// Responsive behaviour:
+//   Desktop  (≥1024px): all panels visible
+//   Tablet   (768–1023px): .panel-members hidden, toggle via .members-open
+//   Mobile   (<768px): sidebar-servers → bottom nav bar
+//                      sidebar-channels → slide-in drawer
+// ─────────────────────────────────────────────────────────────────────────────
+
+.app-shell {
+    display: flex;
+    position: fixed;
+    // Offset Tauri titlebar; falls back to 5% on web
+    top: calc(#{$header-height-app} + 4px);
+    left: 3%;
+    right: 3%;
+    bottom: 3%;
+    background: $color-bg-panel;
+    border-radius: $radius-container;
+    overflow: hidden;
+    box-shadow: $shadow-container;
+    animation: homeExpand 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+    // Tablet: tighter margins
+    @include respond-to(lg) {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: $header-height-app;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    // Mobile: leave room for bottom nav
+    @include respond-to(md) {
+        flex-direction: column;
+        top: $header-height-app;
+        padding-bottom: 60px; // bottom nav height
+    }
+}
+
+// ── Server sidebar ────────────────────────────────────────────────────────────
+.sidebar-servers {
+    width: $sidebar-width-server;
+    background: $color-bg-panel-darkest;
+    @include flex-col;
+    align-items: center;
+    padding: 12px 0;
+    gap: 8px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    @include scrollbar(4px, rgba(255,255,255,0.1));
+
+    @include respond-to(md) {
+        // Bottom navigation bar on mobile
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 60px;
+        flex-direction: row;
+        justify-content: center;
+        padding: 0 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        z-index: $z-sticky;
+        border-top: 1px solid $color-border-panel;
+    }
+}
+
+// ── Channel sidebar ───────────────────────────────────────────────────────────
+.sidebar-channels {
+    width: $sidebar-width-channel;
+    background: $color-bg-panel-dark;
+    @include flex-col;
+    flex-shrink: 0;
+    overflow-y: auto;
+    @include scrollbar(4px, rgba(255,255,255,0.1));
+
+    @include respond-to(lg) {
+        width: 200px;
+    }
+
+    @include respond-to(md) {
+        // Slide-in drawer on mobile
+        position: fixed;
+        left: 0;
+        top: $header-height-app;
+        bottom: 60px; // above bottom nav
+        width: min(280px, 80vw);
+        z-index: $z-drawer;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+
+        .channels-open & {
+            transform: translateX(0);
+        }
+    }
+}
+
+// Drawer backdrop (mobile only)
+.sidebar-channels-backdrop {
+    display: none;
+
+    @include respond-to(md) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: calc(#{$z-drawer} - 1);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+
+        .channels-open & {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+}
+
+// ── Main content area ─────────────────────────────────────────────────────────
+.main-content {
+    flex: 1;
+    @include flex-col;
+    background: $color-bg-panel-darkest;
+    min-width: 0; // fix flex min-width overflow (replaces broken min-width: 600px)
+    overflow: hidden;
+}
+
+// ── Channel / page header ─────────────────────────────────────────────────────
+.channel-header {
+    height: $header-height-channel;
+    background: $color-bg-panel;
+    @include flex-between;
+    padding: 0 20px;
+    box-shadow: 0 1px 0 $color-border-panel;
+    flex-shrink: 0;
+    z-index: $z-sticky;
+
+    .channel-header-left {
+        @include flex-center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .channel-header-right {
+        @include flex-center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .channel-name {
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $color-text-heading;
+        @include truncate;
+    }
+
+    .channel-topic {
+        font-size: $font-size-xs;
+        color: $color-text-muted;
+        @include truncate;
+        padding-left: 12px;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        margin-left: 4px;
+
+        @include respond-to(sm) {
+            display: none;
+        }
+    }
+
+    .channel-icon {
+        color: $color-text-channel;
+        font-size: $font-size-lg;
+        flex-shrink: 0;
+    }
+}
+
+// ── Members panel ─────────────────────────────────────────────────────────────
+.panel-members {
+    width: $panel-width-members;
+    background: $color-bg-panel-dark;
+    @include flex-col;
+    flex-shrink: 0;
+    overflow-y: auto;
+    @include scrollbar(4px, rgba(255,255,255,0.1));
+    transition: width 0.3s ease;
+
+    // Tablet: hidden by default, reveal via toggle
+    @include respond-to(lg) {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: $z-dropdown;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+
+        .members-open & {
+            transform: translateX(0);
+        }
+    }
+
+    // Mobile: completely hidden (use modal/sheet instead)
+    @include respond-to(md) {
+        display: none;
+    }
+}
+
+// ── Search bar (inside channel header) ───────────────────────────────────────
+.header-search {
+    @include flex-center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: $color-bg-panel-darkest;
+    border-radius: $radius-sm;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    min-width: 140px;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+        background: darken($color-bg-panel-darkest, 3%);
+    }
+
+    @include respond-to(sm) {
+        display: none;
+    }
+}

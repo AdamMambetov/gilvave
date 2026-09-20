@@ -1,10 +1,11 @@
 @use '../common/variables' as *;
+@use '../common/mixins' as *;
 
 .social-buttons {
     display: flex;
     gap: 10px;
 
-    @media (max-width: $breakpoint-sm) {
+    @include respond-to(sm) {
         flex-direction: column;
     }
 }
