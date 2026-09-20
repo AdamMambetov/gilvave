@@ -8,7 +8,7 @@
     align-items: center;
     height: 30px;
     background: #202225;
-    padding: 0 8px;
+    padding-left: 8px;
     user-select: none;
     -webkit-user-select: none;
     z-index: 1000;
@@ -59,28 +59,40 @@
 
 .window-controls {
     display: flex;
-    gap: 0;
+    gap: 4px;
 }
 
 .window-btn {
-    width: 30px;
-    height: 30px;
-    border: none;
-    background: transparent;
-    color: #b9bbbe;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #b9bbbe;
+    transition: background 0.15s, color 0.15s;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
 
     &:hover {
         background: rgba(255, 255, 255, 0.1);
+        border-radius: 0px;
     }
 
     &.close:hover {
         background: #e81123;
+        border-radius: 0px;
         color: white;
     }
 }

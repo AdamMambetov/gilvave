@@ -3,7 +3,10 @@ use sycamore::{futures::spawn_local_scoped, prelude::*, web::events::Event};
 use wasm_bindgen::JsCast;
 use web_sys::HtmlSelectElement;
 
-use crate::components::common::{ActiveScreen, ScreenWrapper};
+use crate::components::{
+    common::{ActiveScreen, ScreenWrapper},
+    ui::icons::{CloseIcon, MaximizeIcon, MinimizeIcon},
+};
 
 #[component]
 pub fn AppHeader() -> View {
@@ -31,9 +34,9 @@ pub fn AppHeader() -> View {
             }
 
             div(class="window-controls") {
-                button(class="window-btn", on:click=move |_| invoke_window("window_minimize")) { "─" }
-                button(class="window-btn", on:click=move |_| invoke_window("window_toggle_maximize")) { "□" }
-                button(class="window-btn close", on:click=move |_| invoke_window("window_close")) { "✕" }
+                MinimizeIcon(on:click=move |_| invoke_window("window_minimize"))
+                MaximizeIcon(on:click=move |_| invoke_window("window_toggle_maximize"))
+                CloseIcon(on:click=move |_| invoke_window("window_close"))
             }
         }
     }
