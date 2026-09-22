@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs>
+    <!-- форма пухлой искры, центр в (0,0) -->
+    <path id="spark" d="M-8 -42 Q0 -58 8 -42
+                        C13 -31 24 -14 36 -8 Q52 0 36 8
+                        C24 14 13 31 8 42 Q0 58 -8 42
+                        C-13 31 -24 14 -36 8 Q-52 0 -36 -8
+                        C-24 -14 -13 -31 -8 -42 Z"/>
+
+    <linearGradient id="gTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFDC68"/>
+      <stop offset="1" stop-color="#F7A24E"/>
+    </linearGradient>
+    <linearGradient id="gBig" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD75E"/>
+      <stop offset=".45" stop-color="#FBA94E"/>
+      <stop offset="1" stop-color="#F16A50"/>
+    </linearGradient>
+    <linearGradient id="gBot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F89A50"/>
+      <stop offset="1" stop-color="#EF6158"/>
+    </linearGradient>
+
+    <!-- тёплая кромка изнутри: светятся кончики -->
+    <radialGradient id="rim" cx=".5" cy=".5" r=".52">
+      <stop offset="0" stop-color="#FFC98C" stop-opacity="0"/>
+      <stop offset=".72" stop-color="#FFC98C" stop-opacity="0"/>
+      <stop offset="1" stop-color="#FFAE72" stop-opacity=".4"/>
+    </radialGradient>
+    <!-- мягкий блик -->
+    <radialGradient id="hl" cx=".5" cy=".32" r=".75">
+      <stop offset="0" stop-color="#FFFDF2" stop-opacity=".55"/>
+      <stop offset=".65" stop-color="#FFFDF2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- средняя звезда -->
+  <g transform="translate(38 30) scale(.30) rotate(-15)">
+    <use href="#spark" fill="url(#gTop)"/>
+    <use href="#spark" fill="url(#rim)"/>
+    <use href="#spark" fill="url(#hl)"/>
+  </g>
+
+  <!-- маленькая звезда -->
+  <g transform="translate(30 92) scale(.29) rotate(9)">
+    <use href="#spark" fill="url(#gBot)"/>
+    <use href="#spark" fill="url(#rim)"/>
+    <use href="#spark" fill="url(#hl)"/>
+  </g>
+
+  <!-- большая звезда -->
+  <g transform="translate(72 66) scale(.82)">
+    <use href="#spark" fill="url(#gBig)"/>
+    <use href="#spark" fill="url(#rim)"/>
+    <use href="#spark" fill="url(#hl)"/>
+  </g>
+</svg>

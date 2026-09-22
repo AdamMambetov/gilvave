@@ -209,7 +209,7 @@
 
     // ── Messenger bubble with outline ──
     .message-bubble {
-        background: rgba(0, 0, 0, 0.2);
+        background: $color-bg-message;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 4px 14px 14px 14px;
         padding: 8px 14px;
@@ -225,12 +225,14 @@
         }
 
         p {
+            position: relative;
             margin: 0;
             line-height: 1.45;
             color: $color-text-chat;
             font-size: 14px;
             white-space: pre-wrap;
             display: inline;
+            z-index: 0;
         }
 
         .chained-time {

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="i-bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#141a2e"/>
+      <stop offset=".6" stop-color="#0a0e1a"/>
+      <stop offset="1" stop-color="#04060c"/>
+    </radialGradient>
+    <linearGradient id="i-wave" gradientUnits="userSpaceOnUse" x1="-150" y1="-150" x2="150" y2="150">
+      <stop offset="0" stop-color="#3FE9FF"/>
+      <stop offset=".4" stop-color="#5E7BFF"/>
+      <stop offset=".7" stop-color="#9A5CF6"/>
+      <stop offset="1" stop-color="#FF5FA8"/>
+    </linearGradient>
+    <linearGradient id="i-warm" gradientUnits="userSpaceOnUse" x1="-72" y1="0" x2="148" y2="0">
+      <stop offset="0" stop-color="#FF4F8F"/>
+      <stop offset=".55" stop-color="#FF7A4D"/>
+      <stop offset="1" stop-color="#FFC24F"/>
+    </linearGradient>
+    <filter id="i-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="12" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="i-soft" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="36"/>
+    </filter>
+    <filter id="i-spark" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#i-bg)"/>
+
+  <g fill="#cfe2ff">
+    <circle cx="128" cy="106" r="2" opacity=".35"/>
+    <circle cx="212" cy="72" r="1.6" opacity=".3"/>
+    <circle cx="330" cy="90" r="2" opacity=".4"/>
+    <circle cx="410" cy="140" r="1.7" opacity=".3"/>
+  </g>
+
+  <g transform="translate(256,254) scale(0.88)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="0" cy="10" r="150" fill="#3B82F6" opacity=".14" filter="url(#i-soft)"/>
+    <circle cx="40" cy="30" r="110" fill="#EC4899" opacity=".12" filter="url(#i-soft)"/>
+
+    <path d="M -18,103 A 105 105 0 0 1 -103,18" stroke="#5E7BFF" stroke-width="12" opacity=".38"/>
+
+    <path d="M 86,-123 A 150 150 0 1 0 148,24" stroke="url(#i-wave)" stroke-width="30" filter="url(#i-glow)"/>
+
+    <path d="M 148,24 L 98,24 L 50,-59 L 10,-11 L -18,-41 L -56,24 L -72,24"
+          stroke="url(#i-warm)" stroke-width="26"/>
+
+    <circle cx="50" cy="-59" r="26" fill="#FFB65A" opacity=".55" filter="url(#i-spark)"/>
+    <circle cx="50" cy="-59" r="6" fill="#FFF7E8"/>
+    <circle cx="86" cy="-123" r="16" fill="#35E6FF" opacity=".5" filter="url(#i-spark)"/>
+    <circle cx="86" cy="-123" r="4.5" fill="#EAFDFF"/>
+  </g>
+</svg>

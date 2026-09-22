@@ -101,7 +101,11 @@ fn dashboard_main_view(
                     p { "Ваше уютное пространство для текстовых, голосовых и видеочатов без ограничений." }
                 }
                 div(class="hero-decoration") {
-                    span { "✨" }
+                    object(
+                        data="/public/stars.svg",
+                        r#type="image/svg+xml",
+                        width="80", height="80"
+                    )
                 }
             }
 
@@ -184,11 +188,7 @@ fn dashboard_main_view(
     }
 }
 
-fn dm_chat_view(
-    dm_name: String,
-    modal_context: UiModalContext,
-    dm_input: Signal<String>,
-) -> View {
+fn dm_chat_view(dm_name: String, modal_context: UiModalContext, dm_input: Signal<String>) -> View {
     let dm_title = dm_name.clone();
     let dm_initial = dm_name
         .chars()
