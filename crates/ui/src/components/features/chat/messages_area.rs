@@ -76,19 +76,30 @@ pub fn MessagesArea() -> View {
     let on_submit = move |event: SubmitEvent| {
         event.prevent_default();
 
-        let msg = message_text.get_clone().trim().to_string();
+        let msg = message_text.get_clone();
         let channel = channel_context.current.get_clone();
-        if msg.is_empty() || channel.is_none() {
+        if channel.is_none() {
             return;
         }
 
+        let sanitized = match gilvave_core::validation::validate_message(&msg) {
+            Ok(s) => s,
+            Err(e) => {
+                web_sys::console::warn_1(&format!("[MESSAGES_AREA] on_submit ignored: {e}").into());
+                return;
+            }
+        };
+
         spawn_local_scoped(async move {
+            let channel_id = channel.unwrap().id;
             let args = CommandArgs::MessageCreate {
-                channel_id: channel.unwrap().id,
-                content: msg,
+                channel_id,
+                content: sanitized,
             }
             .to_json();
-            invoke_command(args).await;
+            web_sys::console::log_1(&format!("[MESSAGES_AREA] invoking MessageCreate for {channel_id}").into());
+            let res = invoke_command(args).await;
+            web_sys::console::log_1(&format!("[MESSAGES_AREA] MessageCreate res: {res:?}").into());
         });
         message_text.set(String::new());
     };
@@ -149,8 +160,19 @@ pub fn MessagesArea() -> View {
     });
 
     spawn_local_scoped(async move {
-        let mut events = listen::<MessageView>("message_new").await.unwrap();
+        web_sys::console::log_1(&"[MESSAGES_AREA] listening for message_new...".into());
+        let mut events = match listen::<MessageView>("message_new").await {
+            Ok(s) => {
+                web_sys::console::log_1(&"[MESSAGES_AREA] successfully obtained message_new stream".into());
+                s
+            }
+            Err(e) => {
+                web_sys::console::error_1(&format!("[MESSAGES_AREA] failed to listen message_new: {e:?}").into());
+                return;
+            }
+        };
         while let Some(event) = events.next().await {
+            web_sys::console::log_1(&format!("[MESSAGES_AREA] received message_new event: {:?}", event.payload).into());
             let el = container.get().unchecked_into::<HtmlElement>();
             let old_scroll_top = el.scroll_top();
             let old_scroll_height = el.scroll_height();
@@ -173,10 +195,19 @@ pub fn MessagesArea() -> View {
         }
     });
     spawn_local_scoped(async move {
-        let mut events = listen::<Vec<MessageView>>("channel_history_before")
-            .await
-            .unwrap();
+        web_sys::console::log_1(&"[MESSAGES_AREA] listening for channel_history_before...".into());
+        let mut events = match listen::<Vec<MessageView>>("channel_history_before").await {
+            Ok(s) => {
+                web_sys::console::log_1(&"[MESSAGES_AREA] successfully obtained channel_history_before stream".into());
+                s
+            }
+            Err(e) => {
+                web_sys::console::error_1(&format!("[MESSAGES_AREA] failed to listen channel_history_before: {e:?}").into());
+                return;
+            }
+        };
         while let Some(event) = events.next().await {
+            web_sys::console::log_1(&format!("[MESSAGES_AREA] received channel_history_before with {} items", event.payload.len()).into());
             let el = container.get().unchecked_into::<HtmlElement>();
             let old_scroll_top = el.scroll_top();
             let old_scroll_height = el.scroll_height();

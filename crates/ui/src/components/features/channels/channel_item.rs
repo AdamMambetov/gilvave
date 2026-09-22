@@ -41,13 +41,16 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
                 invoke_command(args).await;
             }
 
+            web_sys::console::log_1(&format!("[CHANNEL_ITEM] clicked channel: {channel_item_id}").into());
             let args = CommandArgs::JoinChannel {
                 channel_id: channel_item_id,
             }
             .to_json();
             let res = invoke_command(args).await;
+            web_sys::console::log_1(&format!("[CHANNEL_ITEM] JoinChannel res: {res:?}").into());
             if let CommandResult::Ok(CommandResponse::JoinChannel) = res {
                 context.current.set(Some(channel_item));
+                web_sys::console::log_1(&format!("[CHANNEL_ITEM] context.current updated to Some({channel_item_id})").into());
             } else if let CommandResult::Error(err) = res {
                 console_error!("join channel error: {err:#?}");
             }

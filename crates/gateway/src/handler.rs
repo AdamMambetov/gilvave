@@ -4,6 +4,10 @@ use tauri::{AppHandle, Emitter};
 pub async fn handle(app_handle: AppHandle, text: String) {
     if let Ok(msg) = serde_json::from_str::<ServerRecieve>(&text) {
         match msg {
+            ServerRecieve::HeartbeatAck => {}
+            ServerRecieve::Error { message } => {
+                tracing::error!("Server error: {message}");
+            }
             ServerRecieve::Hello => {
                 tracing::info!("Hello")
             }

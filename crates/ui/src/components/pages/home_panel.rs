@@ -98,17 +98,18 @@ pub fn HomePanel() -> View {
     });
 
     let handle_home_click = move |_| {
-        spawn_local_scoped(async {
-            let context = use_context::<ChannelContext>();
-            if let Some(channel) = context.current.get_clone() {
+        let ch_context = use_context::<ChannelContext>();
+        let active_channel = ch_context.current.get_clone();
+        ch_context.current.set(None);
+        if let Some(channel) = active_channel {
+            spawn_local_scoped(async move {
                 let args = CommandArgs::LeftChannel {
                     channel_id: channel.id,
                 }
                 .to_json();
-                context.current.set(None);
                 invoke_command(args).await;
-            }
-        });
+            });
+        }
         let context = use_context::<ServerContext>();
         context.current.set(None);
         let m_ctx = use_context::<UiModalContext>();

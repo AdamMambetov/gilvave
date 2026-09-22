@@ -1,9 +1,9 @@
 @use 'variables' as *;
 
-// ─── Respond-to: media query helper ──────────────────────────────────────────
-// Usage: @include respond-to(sm) { ... }  → max-width: 480px
-//        @include respond-to(md) { ... }  → max-width: 768px
-//        @include respond-to(lg) { ... }  → max-width: 1024px
+// ─── Respond-to: вспомогательный миксин медиа-запросов ───────────────────────
+// Использование: @include respond-to(sm) { ... }  → max-width: 480px
+//                @include respond-to(md) { ... }  → max-width: 768px
+//                @include respond-to(lg) { ... }  → max-width: 1024px
 @mixin respond-to($bp) {
     @if $bp == sm {
         @media (max-width: #{$breakpoint-sm}) { @content; }
@@ -12,11 +12,11 @@
     } @else if $bp == lg {
         @media (max-width: #{$breakpoint-lg}) { @content; }
     } @else {
-        @warn "Unknown breakpoint: #{$bp}. Use sm, md or lg.";
+        @warn "Неизвестный breakpoint: #{$bp}. Используйте sm, md или lg.";
     }
 }
 
-// ─── Flex helpers ─────────────────────────────────────────────────────────────
+// ─── Вспомогательные миксины Flex ─────────────────────────────────────────────
 @mixin flex-center {
     display: flex;
     align-items: center;
@@ -41,12 +41,13 @@
     justify-content: center;
 }
 
-// ─── Typography helpers ───────────────────────────────────────────────────────
+// ─── Вспомогательные миксины типографики ──────────────────────────────────────
 @mixin truncate($max-width: 100%) {
     max-width: $max-width;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    contain: paint;
 }
 
 @mixin panel-section-header {
@@ -57,8 +58,8 @@
     letter-spacing: 0.02em;
 }
 
-// ─── Scrollbar ────────────────────────────────────────────────────────────────
-// Usage: @include scrollbar(6px, $color-border)
+// ─── Полоса прокрутки (Scrollbar) ─────────────────────────────────────────────
+// Использование: @include scrollbar(6px, $color-border)
 @mixin scrollbar($width: 8px, $thumb-color: $color-bg-panel-darkest, $track-color: transparent) {
     &::-webkit-scrollbar {
         width: $width;
@@ -82,14 +83,14 @@
     scrollbar-color: $thumb-color $track-color;
 }
 
-// ─── Glassmorphism ────────────────────────────────────────────────────────────
+// ─── Эффект матового стекла (Glassmorphism) ───────────────────────────────────
 @mixin glass($blur: 20px, $bg: rgba(30, 30, 46, 0.95)) {
     background: $bg;
     backdrop-filter: blur($blur);
     -webkit-backdrop-filter: blur($blur);
 }
 
-// ─── Avatar ───────────────────────────────────────────────────────────────────
+// ─── Аватар ───────────────────────────────────────────────────────────────────
 @mixin avatar($size: 36px, $radius: 50%) {
     width: $size;
     height: $size;
@@ -107,7 +108,7 @@
     }
 }
 
-// ─── Status dot ───────────────────────────────────────────────────────────────
+// ─── Индикатор статуса ────────────────────────────────────────────────────────
 @mixin status-dot($color: $color-status-online, $size: 10px) {
     width: $size;
     height: $size;
@@ -117,8 +118,8 @@
     flex-shrink: 0;
 }
 
-// ─── Interactive list item ────────────────────────────────────────────────────
-// Hover/active states for sidebar channel/member items
+// ─── Интерактивный элемент списка ─────────────────────────────────────────────
+// Состояния наведения и нажатия для каналов/участников в боковой панели
 @mixin interactive-item($radius: $radius-sm) {
     border-radius: $radius;
     cursor: pointer;
@@ -134,7 +135,7 @@
     }
 }
 
-// ─── Input base ───────────────────────────────────────────────────────────────
+// ─── Базовые стили поля ввода ─────────────────────────────────────────────────
 @mixin input-base {
     width: 100%;
     background: rgba(0, 0, 0, 0.2);
@@ -156,7 +157,7 @@
     }
 }
 
-// ─── Modal base ───────────────────────────────────────────────────────────────
+// ─── Базовые стили модального окна ────────────────────────────────────────────
 @mixin modal-base($min-width: 420px, $max-width: 500px) {
     background: $color-bg-container;
     border-radius: $radius-container;
@@ -178,7 +179,7 @@
     }
 }
 
-// ─── Focus visible (accessibility) ───────────────────────────────────────────
+// ─── Кольцо фокуса (доступность) ──────────────────────────────────────────────
 @mixin focus-visible-ring($color: $color-primary) {
     &:focus {
         outline: none;
@@ -190,7 +191,7 @@
     }
 }
 
-// ─── Gradient text ────────────────────────────────────────────────────────────
+// ─── Градиентный текст ────────────────────────────────────────────────────────
 @mixin gradient-text($from: $color-primary, $to: $color-primary-end) {
     background: linear-gradient(135deg, $from, $to);
     -webkit-background-clip: text;
@@ -198,7 +199,7 @@
     background-clip: text;
 }
 
-// ─── Visually hidden (a11y) ───────────────────────────────────────────────────
+// ─── Визуально скрытый элемент (доступность / a11y) ───────────────────────────
 @mixin visually-hidden {
     position: absolute;
     width: 1px;

@@ -293,6 +293,21 @@
             width: 100%;
         }
 
+        .no-channel-selected {
+            display: none !important;
+        }
+
+        &.in-server {
+            .channel-panel {
+                flex: 1;
+                width: 100%;
+            }
+
+            .no-channel-selected {
+                display: none !important;
+            }
+        }
+
         &.in-home.show-chats {
             .home-nav-panel {
                 display: flex;

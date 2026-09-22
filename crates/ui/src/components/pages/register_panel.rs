@@ -31,7 +31,7 @@ pub struct RegisterFormProps {
 
 #[derive(Debug, Validate, Deserialize)]
 struct RegisterData {
-    #[validate(length(min = 2, max = 50))]
+    #[validate(length(min = 2, max = 32))]
     name: String,
     #[validate(email)]
     email: String,
@@ -76,6 +76,11 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
 
         match data.validate() {
             Ok(_) => {
+                if gilvave_core::validation::validate_username(&data.name).is_err() {
+                    form_map.values_mut().for_each(|signal| signal.set(false));
+                    name_error.set(true);
+                    return;
+                }
                 form_map.values_mut().for_each(|signal| signal.set(false));
 
                 spawn_local_scoped(async move {
@@ -125,7 +130,7 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                     bind:value=name,
                     label="Имя пользователя",
                     is_error=name_error.into(),
-                    error_message="Введите имя (минимум 2 символа)",
+                    error_message="Имя от 2 до 32 символов (без Zalgo/спецсимволов)",
                 )
 
                 InputGroup(

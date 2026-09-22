@@ -6,7 +6,9 @@ use crate::{dto::message::MessageView, ids::ChannelId};
 #[serde(tag = "op", content = "d")]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ServerRecieve {
+    HeartbeatAck,
     Hello,
+    Error { message: String },
     JoinSuccess,
     MessageNew(MessageView),
     ChannelHistoryBefore(Vec<MessageView>),

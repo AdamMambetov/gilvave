@@ -8,7 +8,7 @@ use gilvave_core::{
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
-    components::common::{CreateServerContext, ServerContext, classes},
+    components::common::{ChannelContext, CreateServerContext, ServerContext, classes},
     utils::invoke_command,
 };
 
@@ -64,6 +64,9 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
                     })
                 });
                 context.current.set(Some(server_cc.clone()));
+                let ch_context = use_context::<ChannelContext>();
+                ch_context.current.set(None);
+                ch_context.messages.set(vec![]);
                 let context = use_context::<CreateServerContext>();
                 context.is_modal_open.set(false);
             }

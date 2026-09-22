@@ -11,7 +11,7 @@ use crate::{
     ids::{ChannelId, ServerId},
 };
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CommandArgs {
     Register {
         request: RegisterRequest,
@@ -66,7 +66,7 @@ impl CommandArgs {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CommandResponse {
     Register,
     Login(AuthTokensResponse),
@@ -86,7 +86,7 @@ pub enum CommandResponse {
     ChannelHistoryAfter,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CommandResult {
     Ok(CommandResponse),
     Error(ErrorInfo),

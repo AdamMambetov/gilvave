@@ -19,32 +19,43 @@
       window.__TAURI_INTERNALS__ = {
         transformCallback: function (callback, once) {
           const id = callbackId++;
+          console.log('[POLYFILL transformCallback]', id, { once });
           callbacks.set(id, (data) => {
+            console.log('[POLYFILL invoke callback]', id, data);
             if (once) callbacks.delete(id);
             callback(data);
           });
           return id;
         },
         invoke: async function (cmd, args = {}) {
+          console.log('[POLYFILL invoke]', cmd, args);
           if (cmd === 'plugin:event|listen') {
             const { event, handler } = args;
             if (!eventListeners.has(event)) eventListeners.set(event, new Set());
             eventListeners.get(event).add(handler);
+            console.log('[POLYFILL listen registered]', event, handler, 'total:', eventListeners.get(event).size);
             return handler;
           }
           if (cmd === 'plugin:event|unlisten') {
             const { event, eventId } = args;
             if (eventListeners.has(event)) eventListeners.get(event).delete(eventId);
             callbacks.delete(eventId);
+            console.log('[POLYFILL unlisten]', event, eventId);
             return;
           }
-          if (cmd === 'plugin:event|emit') {
+          if (cmd === 'plugin:event|emit' || cmd === 'plugin:event|emit_to') {
             const { event, payload } = args;
             const listeners = eventListeners.get(event);
+            console.log('[POLYFILL emit]', event, payload, 'listener count:', listeners ? listeners.size : 0);
             if (listeners) {
               for (const handlerId of listeners) {
                 const cb = callbacks.get(handlerId);
-                if (cb) cb({ event, id: handlerId, payload });
+                if (cb) {
+                  console.log('[POLYFILL dispatching to handler]', handlerId);
+                  cb({ event, id: handlerId, payload });
+                } else {
+                  console.warn('[POLYFILL handler not found in callbacks]', handlerId);
+                }
               }
             }
             return;

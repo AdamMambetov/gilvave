@@ -7,15 +7,23 @@ use gilvave_core::{
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
-use crate::{components::common::ServerContext, utils::invoke_command};
+use crate::{
+    components::common::{ChannelContext, ServerContext},
+    utils::invoke_command,
+};
 
 pub(super) fn select_server(server_id: ServerId) {
     let context = use_context::<ServerContext>();
+    let ch_ctx = use_context::<ChannelContext>();
     if let Some(server) = context.current.get_clone()
         && server.id == server_id
     {
+        ch_ctx.current.set(None);
         return;
     }
+
+    ch_ctx.current.set(None);
+    ch_ctx.messages.set(vec![]);
 
     if let Some(small) = context.list.with(|l| l.iter().find(|s| s.id == server_id).cloned()) {
         let epoch = time::OffsetDateTime::from_unix_timestamp(0).unwrap();

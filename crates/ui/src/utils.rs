@@ -235,5 +235,32 @@ mod tests {
         let parsed: CommandArgs = serde_json::from_value(json["command"].clone()).unwrap();
         assert!(matches!(parsed, CommandArgs::GetProfile));
     }
+
+    #[test]
+    fn test_event_message_view_deserialization() {
+        use gilvave_core::dto::message::MessageView;
+        use gilvave_core::ids::{ChannelId, MessageId, UserId};
+
+        let view = MessageView {
+            id: MessageId::default(),
+            channel_id: ChannelId::default(),
+            author_id: Some(UserId::default()),
+            author_name: "test_user".to_string(),
+            content: "hello world".to_string(),
+            created_at: OffsetDateTime::now_utc(),
+        };
+        let payload_json = serde_json::to_value(&view).unwrap();
+        let event_json = serde_json::json!({
+            "event": "message_new",
+            "id": 1,
+            "payload": payload_json
+        });
+        let raw_str = serde_json::to_string(&event_json).unwrap();
+        let deserialized: tauri_sys::event::Event<MessageView> =
+            serde_json::from_str(&raw_str).unwrap();
+        assert_eq!(deserialized.event, "message_new");
+        assert_eq!(deserialized.id, 1);
+        assert_eq!(deserialized.payload, view);
+    }
 }
 
