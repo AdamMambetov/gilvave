@@ -1,13 +1,16 @@
 use gilvave_core::{
     dto::{
         channel::{ChannelType, ChannelView},
-        server::{MemberView, ServerCreateInfo, ServerSmallPart},
+        command::{CommandArgs, CommandResponse, CommandResult},
+        message::MessageView,
+        server::{MemberView, Server, ServerCreateInfo, ServerSmallPart},
         user::{AuthTokensResponse, LoginRequest, RegisterRequest, UpdateTokensRequest, UserView},
     },
-    error::ErrorInfo,
-    ids::{ChannelId, ServerId},
+    error::{ErrorInfo, ErrorMessage},
+    ids::{ChannelId, MessageId, ServerId, UserId},
     settings::DeviceInfo,
 };
+use time::OffsetDateTime;
 use uuid::Uuid;
 
 const TEST_UUID: &str = "550e8400-e29b-41d4-a716-446655440000";
@@ -350,3 +353,89 @@ fn test_channel_view_positions() {
         assert_eq!(ch.position, pos);
     }
 }
+
+#[test]
+fn test_error_message_deserialize() {
+    let json = r#"{"error":"invalid token provided"}"#;
+    let err_msg: ErrorMessage = serde_json::from_str(json).unwrap();
+    assert_eq!(err_msg.error, "invalid token provided");
+}
+
+#[test]
+fn test_server_full_serialization() {
+    let s_id = ServerId(test_uuid());
+    let o_id = UserId(test_uuid_2());
+    let now = OffsetDateTime::now_utc();
+    let server = Server {
+        id: s_id,
+        name: "Full Server Test".to_string(),
+        owner_id: o_id,
+        description: "Test description".to_string(),
+        icon_url: "https://cdn.example.com/srv.png".to_string(),
+        cover: "https://cdn.example.com/cover.png".to_string(),
+        is_public: false,
+        members_count: 5,
+        created_at: now,
+    };
+    let json = serde_json::to_string(&server).unwrap();
+    let parsed: Server = serde_json::from_str(&json).unwrap();
+    assert_eq!(server.id, parsed.id);
+    assert_eq!(server.name, parsed.name);
+    assert_eq!(server.owner_id, parsed.owner_id);
+    assert_eq!(server.is_public, parsed.is_public);
+}
+
+#[test]
+fn test_message_view_serialization() {
+    let m_id = MessageId(test_uuid());
+    let c_id = ChannelId(test_uuid_2());
+    let u_id = UserId(test_uuid());
+    let now = OffsetDateTime::now_utc();
+
+    let msg = MessageView {
+        id: m_id,
+        channel_id: c_id,
+        author_id: Some(u_id),
+        author_name: "author1".to_string(),
+        content: "Hello from test".to_string(),
+        created_at: now,
+    };
+
+    let json = serde_json::to_string(&msg).unwrap();
+    let parsed: MessageView = serde_json::from_str(&json).unwrap();
+    assert_eq!(parsed.id, msg.id);
+    assert_eq!(parsed.channel_id, msg.channel_id);
+    assert_eq!(parsed.author_name, "author1");
+    assert_eq!(parsed.content, "Hello from test");
+}
+
+#[test]
+fn test_http_command_args_to_json() {
+    let s_id = ServerId(test_uuid());
+    let cmd = CommandArgs::GetMembers { server_id: s_id };
+    let json_val = cmd.to_json();
+    assert!(json_val.get("command").is_some());
+
+    let parsed: CommandArgs = serde_json::from_value(json_val["command"].clone()).unwrap();
+    match parsed {
+        CommandArgs::GetMembers { server_id } => assert_eq!(server_id, s_id),
+        _ => panic!("Expected GetMembers"),
+    }
+}
+
+#[test]
+fn test_command_result_states() {
+    let ok = CommandResult::Ok(CommandResponse::GetProfile(UserView {
+        id: UserId(test_uuid()),
+        username: "user".to_string(),
+        email: "user@mail.com".to_string(),
+        is_active: true,
+        avatar: "".to_string(),
+    }));
+    assert!(ok.is_ok());
+
+    let err = CommandResult::Error(ErrorInfo(401, "unauthorized".to_string()));
+    assert!(!err.is_ok());
+}
+
+

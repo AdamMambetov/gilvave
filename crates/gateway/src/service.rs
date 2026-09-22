@@ -151,6 +151,7 @@ impl WsService {
                 }
             };
         }
+        #[allow(unreachable_code)]
         Ok(true)
     }
 

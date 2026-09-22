@@ -10,6 +10,53 @@
   <title>Tauri + Sycamore App</title>
   <link data-trunk rel="scss" href="./src/components/main.scss" />
   <link data-trunk rel="copy-dir" href="public" />
+  <script>
+    if (!window.__TAURI_INTERNALS__) {
+      let callbackId = 1;
+      const callbacks = new Map();
+      const eventListeners = new Map();
+
+      window.__TAURI_INTERNALS__ = {
+        transformCallback: function (callback, once) {
+          const id = callbackId++;
+          callbacks.set(id, (data) => {
+            if (once) callbacks.delete(id);
+            callback(data);
+          });
+          return id;
+        },
+        invoke: async function (cmd, args = {}) {
+          if (cmd === 'plugin:event|listen') {
+            const { event, handler } = args;
+            if (!eventListeners.has(event)) eventListeners.set(event, new Set());
+            eventListeners.get(event).add(handler);
+            return handler;
+          }
+          if (cmd === 'plugin:event|unlisten') {
+            const { event, eventId } = args;
+            if (eventListeners.has(event)) eventListeners.get(event).delete(eventId);
+            callbacks.delete(eventId);
+            return;
+          }
+          if (cmd === 'plugin:event|emit') {
+            const { event, payload } = args;
+            const listeners = eventListeners.get(event);
+            if (listeners) {
+              for (const handlerId of listeners) {
+                const cb = callbacks.get(handlerId);
+                if (cb) cb({ event, id: handlerId, payload });
+              }
+            }
+            return;
+          }
+          if (cmd.startsWith('window_')) {
+            return null;
+          }
+          return null;
+        }
+      };
+    }
+  </script>
 </head>
 
 <body></body>

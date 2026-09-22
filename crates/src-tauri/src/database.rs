@@ -61,3 +61,55 @@ pub fn get_all(db: &Connection) -> Result<Vec<String>, rusqlite::Error> {
 
     Ok(items)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_migrations_create_schema() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        MIGRATIONS.to_latest(&mut conn).unwrap();
+
+        let tables: Vec<String> = conn
+            .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .map(|r| r.unwrap())
+            .collect();
+
+        assert!(tables.contains(&"servers".to_string()));
+        assert!(tables.contains(&"channels".to_string()));
+        assert!(tables.contains(&"messages".to_string()));
+
+        conn.execute(
+            "INSERT INTO servers (id, name, owner_id, icon_url, is_public) VALUES (?1, ?2, ?3, ?4, ?5)",
+            ("srv-1", "Test Server", "usr-1", "https://icon.png", 1),
+        ).unwrap();
+
+        let srv_name: String = conn
+            .query_row("SELECT name FROM servers WHERE id = 'srv-1'", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(srv_name, "Test Server");
+    }
+
+    #[test]
+    fn test_items_helpers() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute("CREATE TABLE items (title TEXT NOT NULL)", ())
+            .unwrap();
+
+        add_item("First item", &conn).unwrap();
+        add_item("Second item", &conn).unwrap();
+
+        let items = get_all(&conn).unwrap();
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0], "First item");
+        assert_eq!(items[1], "Second item");
+    }
+}
+
+

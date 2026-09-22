@@ -1,5 +1,7 @@
 mod app;
 mod components;
+pub mod gateway;
+pub mod http;
 pub mod utils;
 
 use app::App;

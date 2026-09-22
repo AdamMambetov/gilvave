@@ -25,6 +25,8 @@ serde_json.workspace = true
 serde.workspace = true
 strum.workspace = true
 futures-util.workspace = true
+futures-channel = "0.3"
+tracing.workspace = true
 time.workspace = true
 web-sys.workspace = true
 
