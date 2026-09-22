@@ -28,7 +28,7 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 rusqlite.workspace = true
 rusqlite_migration = { version = "2.6", features = ["from-directory"] }
-include_dir = "0.7"   # транзитивно тянется rusqlite_migration, но указывать явно надёжнее
+include_dir = "0.7"
 
 gilvave-core = { path = "../core" }
 gilvave-http = { path = "../http" }

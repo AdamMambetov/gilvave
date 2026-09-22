@@ -4,35 +4,41 @@ resolver = "3"
 
 [workspace.package]
 version = "0.1.0"
-rust-version = "1.96"
-description = "A Tauri App"
-authors = ["you"]
+rust-version = "1.98"
+description = "Gilvave is a cross-platform, open-source chat application built with Rust and Tauri."
+authors = ["KIM", "Adam"]
 edition = "2024"
 
 [workspace.dependencies]
-tauri = { version = "2.11.5", features = [] }
+tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
-tauri-plugin-http = { version = "2.5.8", features = ["json"] }
+tauri-plugin-http = { version = "2", features = ["json"] }
 tauri-plugin-websocket = "2"
-serde = { version = "1.0.229", features = ["derive"] }
-serde_json = "1.0.151"
-futures-util = "0.3.34"
-tokio-tungstenite = "0.30.0"
-tokio = "1.53.1"
-keyring = { version = "3.6.3", features = [
-    "windows-native",
-    "linux-native",
-    "tokio",
-] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures-util = "0.3"
+tokio-tungstenite = "0.30"
+tokio = "1"
+keyring = { version = "4", features = ["linux-keyutils-keyring-store"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 strum = { version = "0.28.0", features = ["derive"] }
-time = { version = "0.3.55", features = ["serde", "formatting", "parsing", "wasm-bindgen"] }
+time = { version = "0.3.55", features = [
+    "serde",
+    "formatting",
+    "parsing",
+    "wasm-bindgen",
+] }
 rusqlite = { version = "0.40.2", features = ["bundled"] }
-web-sys = { version = "0.3.99", features = [
+web-sys = { version = "0.3", features = [
     "HtmlSelectElement",
     "Element",
     "HtmlElement",
     "Navigator",
     "Window",
+    "RequestInit",
+    "Request",
+    "Response",
+    "AbortController",
+    "ReadableStream",
 ] }

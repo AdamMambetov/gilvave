@@ -225,14 +225,12 @@
         }
 
         p {
-            position: relative;
             margin: 0;
             line-height: 1.45;
             color: $color-text-chat;
             font-size: 14px;
             white-space: pre-wrap;
             display: inline;
-            z-index: 0;
         }
 
         .chained-time {
