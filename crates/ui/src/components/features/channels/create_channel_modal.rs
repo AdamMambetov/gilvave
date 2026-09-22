@@ -4,7 +4,7 @@ use gilvave_core::{
 };
 use sycamore::prelude::*;
 
-use crate::components::common::{ChannelContext, UiModalContext, classes};
+use crate::components::common::{ChannelContext, UiModalContext};
 
 #[component]
 pub fn CreateChannelModal() -> View {
@@ -15,7 +15,6 @@ pub fn CreateChannelModal() -> View {
 
     let close = move |_| {
         modal_context.is_create_channel_open.set(false);
-        channel_name.set(String::new());
     };
 
     let handle_create = move |_| {
@@ -44,7 +43,26 @@ pub fn CreateChannelModal() -> View {
         }
 
         modal_context.is_create_channel_open.set(false);
-        channel_name.set(String::new());
+    };
+
+    let is_text_type = create_memo(move || modal_context.create_channel_type.get() == ChannelType::TEXT);
+    let is_voice_type = create_memo(move || modal_context.create_channel_type.get() == ChannelType::VOICE);
+    let prefix_char = create_memo(move || if is_text_type.get() { "#" } else { "🔊" });
+
+    let text_option_class = move || {
+        if is_text_type.get() {
+            "type-option active"
+        } else {
+            "type-option"
+        }
+    };
+
+    let voice_option_class = move || {
+        if is_voice_type.get() {
+            "type-option active"
+        } else {
+            "type-option"
+        }
     };
 
     view! {
@@ -65,10 +83,7 @@ pub fn CreateChannelModal() -> View {
                     div(class="channel-type-selector") {
                         label(class="type-label") { "ТИП КАНАЛА" }
                         div(
-                            class=classes(vec![
-                                "type-option".into(),
-                                ("active", { modal_context.create_channel_type.get() == ChannelType::TEXT }.into()).into(),
-                            ]),
+                            class=text_option_class,
                             on:click=move |_| modal_context.create_channel_type.set(ChannelType::TEXT),
                         ) {
                             span(class="type-icon") { "#" }
@@ -79,10 +94,7 @@ pub fn CreateChannelModal() -> View {
                         }
 
                         div(
-                            class=classes(vec![
-                                "type-option".into(),
-                                ("active", { modal_context.create_channel_type.get() == ChannelType::VOICE }.into()).into(),
-                            ]),
+                            class=voice_option_class,
                             on:click=move |_| modal_context.create_channel_type.set(ChannelType::VOICE),
                         ) {
                             span(class="type-icon") { "🔊" }
@@ -97,7 +109,7 @@ pub fn CreateChannelModal() -> View {
                         label { "НАЗВАНИЕ КАНАЛА" }
                         div(class="channel-name-input-wrapper") {
                             span(class="channel-prefix") {
-                                (if modal_context.create_channel_type.get() == ChannelType::TEXT { "#" } else { "🔊" })
+                                (prefix_char.get())
                             }
                             input(
                                 r#type="text",

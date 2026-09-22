@@ -195,6 +195,9 @@ crates/ui/src/
    - IDs are UUIDs (v4 for `ServerId`/`ChannelId`, v7 for `UserId`/`MessageId`). Use `uuid::Uuid` comparisons.
    - `Cargo.lock` is gitignored (intentional workspace configuration).
    - `BASE_HTTP_URL` / `BASE_WS_URL` are hardcoded in `core/src/settings.rs`.
+9. **Disposed Signal Access Panic in WASM**:
+   - In Sycamore 0.9, setting a parent signal (such as `modal_context.is_open.set(false)`) that unmounts a component immediately runs the reactive graph and destroys the component's reactive scope and all local child signals.
+   - **NEVER** call `.set()`, `.update()`, or `.replace()` on a component's local signal *after* triggering its parent unmount action. Accessing a disposed signal panics in Sycamore (`panic!("{}", self.get_disposed_panic_message())`), crashing the entire WASM runtime and making the UI completely unresponsive to clicks.
 
 ---
 
