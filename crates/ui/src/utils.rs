@@ -13,8 +13,10 @@ pub async fn invoke_command(args: Value) -> CommandResult {
     handle_command_web(args).await
 }
 
-#[cfg(target_os = "unknown")]
+// #[cfg(target_os = "unknown")]
+#[rustfmt::skip]
 async fn handle_command_web(args: Value) -> CommandResult {
+    use crate::{gateway::service::WsService, http::api::Api};
     use gilvave_core::{
         dto::{
             command::{CommandArgs, CommandResponse},
@@ -45,19 +47,17 @@ async fn handle_command_web(args: Value) -> CommandResult {
         },
     };
 
-    let client = &crate::http::api::Client;
-
     macro_rules! dispatch {
         ($api_call:expr, $ok_mapper:expr) => {
             match $api_call.await {
-                Ok(val) => $ok_mapper(val),
+                Ok(val) => CommandResult::Ok($ok_mapper(val)),
                 Err(e) => {
                     tracing::info!("{e:?}");
                     if e.0 == 401 {
-                        let update_res = crate::http::api::Api::update_tokens(client).await;
+                        let update_res = Api::update_tokens().await;
                         if update_res.is_ok() {
                             match $api_call.await {
-                                Ok(val2) => $ok_mapper(val2),
+                                Ok(val2) => CommandResult::Ok($ok_mapper(val2)),
                                 Err(e2) => CommandResult::Error(e2),
                             }
                         } else {
@@ -72,131 +72,88 @@ async fn handle_command_web(args: Value) -> CommandResult {
     }
 
     match command {
-        CommandArgs::Register { request } => {
-            dispatch!(
-                crate::http::api::Api::register(client, request.clone()),
-                |_| CommandResult::Ok(CommandResponse::Register)
-            )
-        }
-        CommandArgs::Login { request } => {
-            dispatch!(
-                crate::http::api::Api::login(client, request.clone()),
-                |r: AuthTokensResponse| {
-                    set_access_token(&r.access_token);
-                    set_refresh_token(&r.refresh_token);
-                    CommandResult::Ok(CommandResponse::Login(r))
-                }
-            )
-        }
-        CommandArgs::GetProfile => {
-            dispatch!(
-                crate::http::api::Api::get_profile(client),
-                |p| CommandResult::Ok(CommandResponse::GetProfile(p))
-            )
-        }
-        CommandArgs::GetMembers { server_id } => {
-            dispatch!(
-                crate::http::api::Api::get_members(client, server_id),
-                |m| CommandResult::Ok(CommandResponse::GetMembers(m))
-            )
-        }
-        CommandArgs::GetServerChannels { server_id } => {
-            dispatch!(
-                crate::http::api::Api::get_server_channels(client, server_id),
-                |c| CommandResult::Ok(CommandResponse::GetServerChannels(c))
-            )
-        }
-        CommandArgs::GetServerById { server_id } => {
-            dispatch!(
-                crate::http::api::Api::get_server_by_id(client, server_id),
-                |s| CommandResult::Ok(CommandResponse::GetServerById(s))
-            )
-        }
-        CommandArgs::GetUserServers => {
-            dispatch!(
-                crate::http::api::Api::get_user_servers(client),
-                |s| CommandResult::Ok(CommandResponse::GetUserServers(s))
-            )
-        }
-        CommandArgs::GetPublicServers { page } => {
-            dispatch!(
-                crate::http::api::Api::get_public_servers(client, page),
-                |s| CommandResult::Ok(CommandResponse::GetPublicServers(s))
-            )
-        }
-        CommandArgs::CreateServer { server_info } => {
-            dispatch!(
-                crate::http::api::Api::create_server(client, server_info.clone()),
-                |s| CommandResult::Ok(CommandResponse::CreateServer(s))
-            )
-        }
-        CommandArgs::JoinPublicServer { server_id } => {
-            dispatch!(
-                crate::http::api::Api::join_public_server(client, server_id),
-                |_| CommandResult::Ok(CommandResponse::JoinPublicServer)
-            )
-        }
-        CommandArgs::ListenWebSocket => {
-            match crate::gateway::service::WsService::listen_web_socket().await {
-                Ok(r) => CommandResult::Ok(CommandResponse::ListenWebSocket(r)),
-                Err(e) => CommandResult::Error(e),
+        // ========================= Http Handlers ========================= //
+        CommandArgs::Register { request } => dispatch!(
+            Api::register(request.clone()), 
+            |_| CommandResponse::Register
+        ),
+        CommandArgs::Login { request } => dispatch!(
+            Api::login(request.clone()), 
+            |r: AuthTokensResponse| {
+                set_access_token(&r.access_token);
+                set_refresh_token(&r.refresh_token);
+                CommandResponse::Login(r)
             }
-        }
-        CommandArgs::JoinChannel { channel_id } => {
-            match crate::gateway::service::WsService::join_channel(channel_id).await {
-                Ok(_) => CommandResult::Ok(CommandResponse::JoinChannel),
-                Err(e) => CommandResult::Error(e),
-            }
-        }
-        CommandArgs::LeftChannel { channel_id } => {
-            match crate::gateway::service::WsService::left_channel(channel_id).await {
-                Ok(_) => CommandResult::Ok(CommandResponse::LeftChannel),
-                Err(e) => CommandResult::Error(e),
-            }
-        }
+        ),
+        CommandArgs::GetProfile => dispatch!(
+            Api::get_profile(), 
+            |p| CommandResponse::GetProfile(p)
+        ),
+        CommandArgs::GetMembers { server_id } => dispatch!(
+            Api::get_members(server_id), 
+            |m| CommandResponse::GetMembers(m)
+        ),
+        CommandArgs::GetServerChannels { server_id } => dispatch!(
+            Api::get_server_channels(server_id), 
+            |c| CommandResponse::GetServerChannels(c)
+        ),
+        CommandArgs::GetServerById { server_id } => dispatch!(
+            Api::get_server_by_id(server_id), 
+            |s| CommandResponse::GetServerById(s)
+        ),
+        CommandArgs::GetUserServers => dispatch!(
+            Api::get_user_servers(), 
+            |s| CommandResponse::GetUserServers(s)
+        ),
+        CommandArgs::GetPublicServers { page } => dispatch!(
+            Api::get_public_servers(page), 
+            |s| CommandResponse::GetPublicServers(s)
+        ),
+        CommandArgs::CreateServer { server_info } => dispatch!(
+            Api::create_server(server_info.clone()), 
+            |s| CommandResponse::CreateServer(s)
+        ),
+        CommandArgs::JoinPublicServer { server_id } => dispatch!(
+            Api::join_public_server(server_id),
+            |_| CommandResponse::JoinPublicServer
+        ),
+
+        // ========================= Gateway Handlers ========================= //
+        CommandArgs::ListenWebSocket => dispatch!(
+            WsService::listen_web_socket(), 
+            |r| CommandResponse::ListenWebSocket(r)
+        ),
+        CommandArgs::JoinChannel { channel_id } => dispatch!(
+            WsService::join_channel(channel_id),
+            |_| CommandResponse::JoinChannel
+        ),
+        CommandArgs::LeftChannel { channel_id } => dispatch!(
+            WsService::left_channel(channel_id),
+            |_| CommandResponse::LeftChannel
+        ),
         CommandArgs::MessageCreate {
             channel_id,
             content,
-        } => {
-            match crate::gateway::service::WsService::message_create(
-                channel_id,
-                content.clone(),
-            )
-            .await
-            {
-                Ok(_) => CommandResult::Ok(CommandResponse::MessageCreate),
-                Err(e) => CommandResult::Error(e),
-            }
-        }
+        } => dispatch!(
+            WsService::message_create(channel_id, content.clone()),
+            |_| CommandResponse::MessageCreate
+        ),
         CommandArgs::ChannelHistoryBefore {
             channel_id,
             timestamp,
-        } => {
-            match crate::gateway::service::WsService::channel_history_before(
-                channel_id, timestamp,
-            )
-            .await
-            {
-                Ok(_) => CommandResult::Ok(CommandResponse::ChannelHistoryBefore),
-                Err(e) => CommandResult::Error(e),
-            }
-        }
+        } => dispatch!(
+            WsService::channel_history_before(channel_id, timestamp),
+            |_| CommandResponse::ChannelHistoryBefore
+        ),
         CommandArgs::ChannelHistoryAfter {
             channel_id,
             timestamp,
-        } => {
-            match crate::gateway::service::WsService::channel_history_after(
-                channel_id, timestamp,
-            )
-            .await
-            {
-                Ok(_) => CommandResult::Ok(CommandResponse::ChannelHistoryAfter),
-                Err(e) => CommandResult::Error(e),
-            }
-        }
+        } => dispatch!(
+            WsService::channel_history_after(channel_id, timestamp),
+            |_| CommandResponse::ChannelHistoryAfter
+        ),
     }
 }
-
 
 pub fn get_local_offset() -> time::UtcOffset {
     #[cfg(target_arch = "wasm32")]
@@ -263,4 +220,3 @@ mod tests {
         assert_eq!(deserialized.payload, view);
     }
 }
-

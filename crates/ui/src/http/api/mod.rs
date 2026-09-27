@@ -1,15 +1,13 @@
 use futures_util::AsyncReadExt;
-use gilvave_core::error::{ErrorInfo, ErrorMessage};
 use serde::de::DeserializeOwned;
 use wasm_bindgen::JsCast;
 use wasm_streams::ReadableStream;
 
+use gilvave_core::error::{ErrorInfo, ErrorMessage};
+
 pub mod channel;
 pub mod server;
 pub mod user;
-
-#[derive(Clone, Default)]
-pub struct Client;
 
 pub struct Api;
 

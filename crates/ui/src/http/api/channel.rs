@@ -2,13 +2,10 @@ use gilvave_core::{
     dto::channel::ChannelView, error::ErrorInfo, ids::ServerId, settings::BASE_HTTP_URL,
 };
 
-use crate::http::api::{Api, Client};
+use crate::http::api::Api;
 
 impl Api {
-    pub async fn get_server_channels(
-        _client: &Client,
-        server_id: ServerId,
-    ) -> Result<Vec<ChannelView>, ErrorInfo> {
+    pub async fn get_server_channels(server_id: ServerId) -> Result<Vec<ChannelView>, ErrorInfo> {
         let res = Api::request_raw(
             "GET",
             &format!(

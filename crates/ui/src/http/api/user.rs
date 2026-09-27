@@ -5,13 +5,10 @@ use gilvave_core::{
     settings::BASE_HTTP_URL,
 };
 
-use crate::http::api::{Api, Client};
+use crate::http::api::Api;
 
 impl Api {
-    pub async fn register(
-        _client: &Client,
-        register_request: RegisterRequest,
-    ) -> Result<(), ErrorInfo> {
+    pub async fn register(register_request: RegisterRequest) -> Result<(), ErrorInfo> {
         let body =
             serde_json::to_string(&register_request).map_err(|e| ErrorInfo(1, e.to_string()))?;
         let res = Api::request_raw(
@@ -24,10 +21,7 @@ impl Api {
         Api::response_to_empty(res).await
     }
 
-    pub async fn login(
-        _client: &Client,
-        request: LoginRequest,
-    ) -> Result<AuthTokensResponse, ErrorInfo> {
+    pub async fn login(request: LoginRequest) -> Result<AuthTokensResponse, ErrorInfo> {
         let body = serde_json::to_string(&request).map_err(|e| ErrorInfo(1, e.to_string()))?;
         let res = Api::request_raw(
             "POST",
@@ -39,7 +33,7 @@ impl Api {
         Api::response_to::<AuthTokensResponse>(res).await
     }
 
-    pub async fn update_tokens(_client: &Client) -> Result<(), ErrorInfo> {
+    pub async fn update_tokens() -> Result<(), ErrorInfo> {
         tracing::info!("update_tokens!");
         let json = UpdateTokensRequest {
             refresh_token: get_refresh_token(),
@@ -64,7 +58,7 @@ impl Api {
         }
     }
 
-    pub async fn get_profile(_client: &Client) -> Result<UserView, ErrorInfo> {
+    pub async fn get_profile() -> Result<UserView, ErrorInfo> {
         let token = get_access_token();
         let res = Api::request_raw(
             "GET",

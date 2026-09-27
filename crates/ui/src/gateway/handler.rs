@@ -1,7 +1,6 @@
 use gilvave_core::dto::ws::ServerRecieve;
 
 pub async fn handle(text: String) {
-    web_sys::console::log_1(&format!("[WS RECV HANDLER] text: {text}").into());
     match serde_json::from_str::<ServerRecieve>(&text) {
         Ok(msg) => match msg {
             ServerRecieve::HeartbeatAck => {
@@ -38,7 +37,7 @@ pub async fn handle(text: String) {
             }
         },
         Err(e) => {
-            web_sys::console::error_1(&format!("[WS RECV HANDLER] parse ServerRecieve error: {e}, text: {text}").into());
+            web_sys::console::error_1(&format!("[WS] parse ServerRecieve error: {e}, text: {text}").into());
         }
     }
 }
