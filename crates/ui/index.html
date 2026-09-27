@@ -17,6 +17,7 @@
       const eventListeners = new Map();
 
       window.__TAURI_INTERNALS__ = {
+        __IS_POLYFILL__: true,
         transformCallback: function (callback, once) {
           const id = callbackId++;
           console.log('[POLYFILL transformCallback]', id, { once });

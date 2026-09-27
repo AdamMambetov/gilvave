@@ -13,17 +13,16 @@ pub async fn invoke_command(args: Value) -> CommandResult {
     handle_command_web(args).await
 }
 
-// #[cfg(target_os = "unknown")]
+#[cfg(target_os = "unknown")]
 #[rustfmt::skip]
 async fn handle_command_web(args: Value) -> CommandResult {
-    use crate::{gateway::service::WsService, http::api::Api};
+    use crate::security::{
+        get_access_token, get_refresh_token, set_access_token, set_refresh_token,
+    };
     use gilvave_core::{
-        dto::{
-            command::{CommandArgs, CommandResponse},
-            user::AuthTokensResponse,
-        },
+        dto::command::{CommandArgs, CommandResponse},
         error::ErrorInfo,
-        security::{set_access_token, set_refresh_token},
+        settings::collect_device_info,
     };
 
     let command: CommandArgs = match args.get("command") {
@@ -47,111 +46,30 @@ async fn handle_command_web(args: Value) -> CommandResult {
         },
     };
 
-    macro_rules! dispatch {
-        ($api_call:expr, $ok_mapper:expr) => {
-            match $api_call.await {
-                Ok(val) => CommandResult::Ok($ok_mapper(val)),
-                Err(e) => {
-                    tracing::info!("{e:?}");
-                    if e.0 == 401 {
-                        let update_res = Api::update_tokens().await;
-                        if update_res.is_ok() {
-                            match $api_call.await {
-                                Ok(val2) => CommandResult::Ok($ok_mapper(val2)),
-                                Err(e2) => CommandResult::Error(e2),
-                            }
-                        } else {
-                            CommandResult::Error(e)
-                        }
-                    } else {
-                        CommandResult::Error(e)
-                    }
-                }
-            }
-        };
-    }
-
     match command {
-        // ========================= Http Handlers ========================= //
-        CommandArgs::Register { request } => dispatch!(
-            Api::register(request.clone()), 
-            |_| CommandResponse::Register
-        ),
-        CommandArgs::Login { request } => dispatch!(
-            Api::login(request.clone()), 
-            |r: AuthTokensResponse| {
-                set_access_token(&r.access_token);
-                set_refresh_token(&r.refresh_token);
-                CommandResponse::Login(r)
-            }
-        ),
-        CommandArgs::GetProfile => dispatch!(
-            Api::get_profile(), 
-            |p| CommandResponse::GetProfile(p)
-        ),
-        CommandArgs::GetMembers { server_id } => dispatch!(
-            Api::get_members(server_id), 
-            |m| CommandResponse::GetMembers(m)
-        ),
-        CommandArgs::GetServerChannels { server_id } => dispatch!(
-            Api::get_server_channels(server_id), 
-            |c| CommandResponse::GetServerChannels(c)
-        ),
-        CommandArgs::GetServerById { server_id } => dispatch!(
-            Api::get_server_by_id(server_id), 
-            |s| CommandResponse::GetServerById(s)
-        ),
-        CommandArgs::GetUserServers => dispatch!(
-            Api::get_user_servers(), 
-            |s| CommandResponse::GetUserServers(s)
-        ),
-        CommandArgs::GetPublicServers { page } => dispatch!(
-            Api::get_public_servers(page), 
-            |s| CommandResponse::GetPublicServers(s)
-        ),
-        CommandArgs::CreateServer { server_info } => dispatch!(
-            Api::create_server(server_info.clone()), 
-            |s| CommandResponse::CreateServer(s)
-        ),
-        CommandArgs::JoinPublicServer { server_id } => dispatch!(
-            Api::join_public_server(server_id),
-            |_| CommandResponse::JoinPublicServer
-        ),
-
-        // ========================= Gateway Handlers ========================= //
-        CommandArgs::ListenWebSocket => dispatch!(
-            WsService::listen_web_socket(), 
-            |r| CommandResponse::ListenWebSocket(r)
-        ),
-        CommandArgs::JoinChannel { channel_id } => dispatch!(
-            WsService::join_channel(channel_id),
-            |_| CommandResponse::JoinChannel
-        ),
-        CommandArgs::LeftChannel { channel_id } => dispatch!(
-            WsService::left_channel(channel_id),
-            |_| CommandResponse::LeftChannel
-        ),
-        CommandArgs::MessageCreate {
-            channel_id,
-            content,
-        } => dispatch!(
-            WsService::message_create(channel_id, content.clone()),
-            |_| CommandResponse::MessageCreate
-        ),
-        CommandArgs::ChannelHistoryBefore {
-            channel_id,
-            timestamp,
-        } => dispatch!(
-            WsService::channel_history_before(channel_id, timestamp),
-            |_| CommandResponse::ChannelHistoryBefore
-        ),
-        CommandArgs::ChannelHistoryAfter {
-            channel_id,
-            timestamp,
-        } => dispatch!(
-            WsService::channel_history_after(channel_id, timestamp),
-            |_| CommandResponse::ChannelHistoryAfter
-        ),
+        CommandArgs::GetAccessToken => {
+            CommandResult::Ok(CommandResponse::GetAccessToken(get_access_token()))
+        }
+        CommandArgs::GetRefreshToken => {
+            CommandResult::Ok(CommandResponse::GetRefreshToken(get_refresh_token()))
+        }
+        CommandArgs::SetAccessToken { token } => {
+            set_access_token(&token);
+            CommandResult::Ok(CommandResponse::SetAccessToken)
+        }
+        CommandArgs::SetRefreshToken { token } => {
+            set_refresh_token(&token);
+            CommandResult::Ok(CommandResponse::SetRefreshToken)
+        }
+        CommandArgs::GetDeviceInfo => {
+            CommandResult::Ok(CommandResponse::GetDeviceInfo(collect_device_info()))
+        }
+        CommandArgs::WindowMinimize => CommandResult::Ok(CommandResponse::WindowMinimize),
+        CommandArgs::WindowToggleMaximize => {
+            CommandResult::Ok(CommandResponse::WindowToggleMaximize)
+        }
+        CommandArgs::WindowClose => CommandResult::Ok(CommandResponse::WindowClose),
+        CommandArgs::WindowStartDragging => CommandResult::Ok(CommandResponse::WindowStartDragging),
     }
 }
 
@@ -186,11 +104,11 @@ mod tests {
 
     #[test]
     fn test_command_args_json_roundtrip() {
-        let cmd = CommandArgs::GetProfile;
+        let cmd = CommandArgs::GetAccessToken;
         let json = cmd.to_json();
         assert!(json.get("command").is_some());
         let parsed: CommandArgs = serde_json::from_value(json["command"].clone()).unwrap();
-        assert!(matches!(parsed, CommandArgs::GetProfile));
+        assert!(matches!(parsed, CommandArgs::GetAccessToken));
     }
 
     #[test]

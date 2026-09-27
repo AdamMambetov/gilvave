@@ -1,15 +1,12 @@
 use gilvave_core::{
-    dto::{
-        command::{CommandArgs, CommandResponse, CommandResult},
-        server::{Server, ServerSmallPart},
-    },
+    dto::server::{Server, ServerSmallPart},
     ids::ServerId,
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
     components::common::{ChannelContext, CreateServerContext, ServerContext, classes},
-    utils::invoke_command,
+    http::api::Api,
 };
 
 pub(super) fn card_icon(icon_url: String, first_char: String) -> View {
@@ -49,12 +46,7 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
     let join_server = move |_| {
         let server_cc = server_c.clone();
         spawn_local_scoped(async move {
-            let args = CommandArgs::JoinPublicServer {
-                server_id: server_c.id,
-            }
-            .to_json();
-            let res = invoke_command(args).await;
-            if let CommandResult::Ok(CommandResponse::JoinPublicServer) = res {
+            if Api::join_public_server(server_c.id).await.is_ok() {
                 let context = use_context::<ServerContext>();
                 context.list.update(|list| {
                     list.push(ServerSmallPart {

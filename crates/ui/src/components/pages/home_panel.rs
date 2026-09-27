@@ -1,6 +1,5 @@
 use gilvave_core::dto::{
     channel::ChannelView,
-    command::{CommandArgs, CommandResponse, CommandResult},
     message::MessageView,
     server::{MemberView, Server, ServerSmallPart},
 };
@@ -21,7 +20,8 @@ use crate::{
             servers::{server_settings_modal::ServerSettingsModal, server_sidebar::ServerSidebar},
         },
     },
-    utils::invoke_command,
+    gateway::service::WsService,
+    http::api::Api,
 };
 
 #[component]
@@ -70,9 +70,7 @@ pub fn HomePanel() -> View {
         if screen_wrapper.is_home() {
             let u_prof = u_prof_for_effect.clone();
             spawn_local_scoped(async move {
-                let args = CommandArgs::GetProfile.to_json();
-                let res = invoke_command(args).await;
-                if let CommandResult::Ok(CommandResponse::GetProfile(user)) = res {
+                if let Ok(user) = Api::get_profile().await {
                     u_prof.username.set(user.username);
                     u_prof.avatar.set(user.avatar);
                 }
@@ -81,18 +79,12 @@ pub fn HomePanel() -> View {
             if !ws_started.get() {
                 ws_started.set(true);
                 spawn_local_scoped(async move {
-                    invoke_command(CommandArgs::ListenWebSocket.to_json()).await;
+                    let _ = WsService::listen_web_socket().await;
                 });
             }
             spawn_local_scoped(async move {
-                let res = invoke_command(CommandArgs::GetUserServers.to_json()).await;
-                server_context.list.set(
-                    if let CommandResult::Ok(CommandResponse::GetUserServers(servers)) = res {
-                        servers
-                    } else {
-                        vec![]
-                    },
-                );
+                let servers = Api::get_user_servers().await.unwrap_or_default();
+                server_context.list.set(servers);
             });
         }
     });
@@ -103,11 +95,7 @@ pub fn HomePanel() -> View {
         ch_context.current.set(None);
         if let Some(channel) = active_channel {
             spawn_local_scoped(async move {
-                let args = CommandArgs::LeftChannel {
-                    channel_id: channel.id,
-                }
-                .to_json();
-                invoke_command(args).await;
+                let _ = WsService::left_channel(channel.id).await;
             });
         }
         let context = use_context::<ServerContext>();

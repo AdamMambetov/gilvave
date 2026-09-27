@@ -1,5 +1,5 @@
 use include_dir::{Dir, include_dir};
-use rusqlite::{Connection, named_params};
+use rusqlite::Connection;
 use rusqlite_migration::Migrations;
 use std::{fs, sync::LazyLock};
 use tauri::{AppHandle, Manager};
@@ -42,26 +42,6 @@ pub fn initialize_database(app_handle: &AppHandle) -> BoxResult<Connection> {
     Ok(conn)
 }
 
-pub fn add_item(title: &str, db: &Connection) -> Result<(), rusqlite::Error> {
-    let mut statement = db.prepare("INSERT INTO items (title) VALUES (@title)")?;
-    statement.execute(named_params! { "@title": title })?;
-
-    Ok(())
-}
-
-pub fn get_all(db: &Connection) -> Result<Vec<String>, rusqlite::Error> {
-    let mut statement = db.prepare("SELECT * FROM items")?;
-    let mut rows = statement.query([])?;
-    let mut items = Vec::new();
-    while let Some(row) = rows.next()? {
-        let title: String = row.get("title")?;
-
-        items.push(title);
-    }
-
-    Ok(items)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -94,21 +74,6 @@ mod tests {
             })
             .unwrap();
         assert_eq!(srv_name, "Test Server");
-    }
-
-    #[test]
-    fn test_items_helpers() {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute("CREATE TABLE items (title TEXT NOT NULL)", ())
-            .unwrap();
-
-        add_item("First item", &conn).unwrap();
-        add_item("Second item", &conn).unwrap();
-
-        let items = get_all(&conn).unwrap();
-        assert_eq!(items.len(), 2);
-        assert_eq!(items[0], "First item");
-        assert_eq!(items[1], "Second item");
     }
 }
 

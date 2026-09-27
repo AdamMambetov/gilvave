@@ -15,15 +15,10 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri.workspace = true
 tauri-plugin-opener.workspace = true
-tauri-plugin-http.workspace = true
-tauri-plugin-websocket.workspace = true
 tauri-plugin-tracing = "0.3.4"
 serde.workspace = true
 serde_json.workspace = true
-futures-util.workspace = true
-tokio-tungstenite.workspace = true
 tokio.workspace = true
-keyring.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 rusqlite.workspace = true
@@ -31,6 +26,3 @@ rusqlite_migration = { version = "2.6", features = ["from-directory"] }
 include_dir = "0.7"
 
 gilvave-core = { path = "../core" }
-gilvave-http = { path = "../http" }
-gilvave-gateway = { path = "../gateway" }
-gilvave-state = { path = "../state" }

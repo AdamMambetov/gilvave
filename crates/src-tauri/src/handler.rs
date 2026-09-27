@@ -1,136 +1,64 @@
 use gilvave_core::{
     dto::command::{CommandArgs, CommandResponse, CommandResult},
-    error::ErrorInfo,
-    security::{set_access_token, set_refresh_token},
+    security::{get_access_token, get_refresh_token, set_access_token, set_refresh_token},
+    settings::collect_device_info,
 };
-use gilvave_gateway::service::WsService;
-use gilvave_http::api::Api;
-use gilvave_state::AppState;
-use tauri::{AppHandle, Manager, State, WebviewWindow, async_runtime::block_on};
-
-macro_rules! dispatch {
-    // $api_call:expr схватит функцию до первой запятой
-    // $ok_mapper:expr схватит лямбду, которая упаковывает ответ
-    ($command:expr, $client:expr, $( $variant:pat => $api_call:expr, $ok_mapper:expr ),+ $(,)?) => {
-        match $command {
-            $(
-                $variant => $api_call.await
-                    .map_or_else(|e: ErrorInfo| {
-                        tracing::info!("{e:?}");
-                        if e.0 == 401 {
-                            _ = block_on(Api::update_tokens($client));
-                            return block_on($api_call).map_or_else(
-                                |e2: ErrorInfo| { CommandResult::Error(e2) },
-                                $ok_mapper,
-                            )
-                        }
-                        CommandResult::Error(e)
-                    }, $ok_mapper)
-            ),+
-        }
-    };
-}
-
-#[tauri::command]
-pub async fn handle_command(
-    app_handle: AppHandle,
-    state: State<'_, AppState>,
-    command: CommandArgs,
-) -> Result<CommandResult, ()> {
-    let client = &state.http_client;
-
-    Ok(dispatch! { command, client,
-        CommandArgs::Register { request } =>
-            Api::register(client, request.clone()),
-            |_| CommandResult::Ok(CommandResponse::Register),
-        CommandArgs::Login { request } =>
-            Api::login(client, request.clone()),
-            |r| {
-                set_access_token(&r.access_token);
-                set_refresh_token(&r.refresh_token);
-                CommandResult::Ok(CommandResponse::Login(r))
-            },
-        CommandArgs::GetProfile =>
-            Api::get_profile(client),
-            |p| CommandResult::Ok(CommandResponse::GetProfile(p)),
-        CommandArgs::GetMembers { server_id } =>
-            Api::get_members(client, server_id),
-            |m| CommandResult::Ok(CommandResponse::GetMembers(m)),
-        CommandArgs::GetServerChannels { server_id } =>
-            Api::get_server_channels(client, server_id),
-            |c| CommandResult::Ok(CommandResponse::GetServerChannels(c)),
-        CommandArgs::GetServerById { server_id } =>
-            Api::get_server_by_id(client, server_id),
-            |s| CommandResult::Ok(CommandResponse::GetServerById(s)),
-        CommandArgs::GetUserServers =>
-            Api::get_user_servers(client),
-            |s| CommandResult::Ok(CommandResponse::GetUserServers(s)),
-        CommandArgs::GetPublicServers { page } =>
-            Api::get_public_servers(client, page),
-            |s| CommandResult::Ok(CommandResponse::GetPublicServers(s)),
-        CommandArgs::CreateServer { server_info } =>
-            Api::create_server(client, server_info.clone()),
-            |s| CommandResult::Ok(CommandResponse::CreateServer(s)),
-        CommandArgs::JoinPublicServer { server_id } =>
-            Api::join_public_server(client, server_id),
-            |_| CommandResult::Ok(CommandResponse::JoinPublicServer),
-        CommandArgs::ListenWebSocket =>
-            WsService::listen_web_socket(state.clone(), app_handle.clone()),
-            |r| CommandResult::Ok(CommandResponse::ListenWebSocket(r)),
-        CommandArgs::JoinChannel { channel_id } =>
-            WsService::join_channel(state.sender.clone(), channel_id),
-            |_| CommandResult::Ok(CommandResponse::JoinChannel),
-        CommandArgs::LeftChannel { channel_id } =>
-            WsService::left_channel(state.sender.clone(), channel_id),
-            |_| CommandResult::Ok(CommandResponse::LeftChannel),
-        CommandArgs::MessageCreate { channel_id, content } =>
-            WsService::message_create(state.sender.clone(), channel_id, content.clone()),
-            |_| CommandResult::Ok(CommandResponse::MessageCreate),
-        CommandArgs::ChannelHistoryBefore { channel_id, timestamp } =>
-            WsService::channel_history_before(state.sender.clone(), channel_id, timestamp),
-            |_| CommandResult::Ok(CommandResponse::ChannelHistoryBefore),
-        CommandArgs::ChannelHistoryAfter { channel_id, timestamp } =>
-            WsService::channel_history_after(state.sender.clone(), channel_id, timestamp),
-            |_| CommandResult::Ok(CommandResponse::ChannelHistoryAfter),
-    })
-}
+use tauri::{AppHandle, Manager, WebviewWindow};
 
 fn get_main_window(app_handle: &AppHandle) -> Option<WebviewWindow> {
     app_handle.get_webview_window("main")
 }
 
 #[tauri::command]
-pub async fn window_minimize(app_handle: AppHandle) -> Result<(), ()> {
-    if let Some(window) = get_main_window(&app_handle) {
-        let _ = window.minimize();
-    }
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn window_toggle_maximize(app_handle: AppHandle) -> Result<(), ()> {
-    if let Some(window) = get_main_window(&app_handle) {
-        if window.is_maximized().unwrap_or(false) {
-            let _ = window.unmaximize();
-        } else {
-            let _ = window.maximize();
+pub async fn handle_command(
+    app_handle: AppHandle,
+    command: CommandArgs,
+) -> Result<CommandResult, ()> {
+    Ok(match command {
+        CommandArgs::GetAccessToken => {
+            CommandResult::Ok(CommandResponse::GetAccessToken(get_access_token()))
         }
-    }
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn window_close(app_handle: AppHandle) -> Result<(), ()> {
-    if let Some(window) = get_main_window(&app_handle) {
-        let _ = window.close();
-    }
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn window_start_dragging(app_handle: AppHandle) -> Result<(), ()> {
-    if let Some(window) = get_main_window(&app_handle) {
-        let _ = window.start_dragging();
-    }
-    Ok(())
+        CommandArgs::GetRefreshToken => {
+            CommandResult::Ok(CommandResponse::GetRefreshToken(get_refresh_token()))
+        }
+        CommandArgs::SetAccessToken { token } => {
+            set_access_token(&token);
+            CommandResult::Ok(CommandResponse::SetAccessToken)
+        }
+        CommandArgs::SetRefreshToken { token } => {
+            set_refresh_token(&token);
+            CommandResult::Ok(CommandResponse::SetRefreshToken)
+        }
+        CommandArgs::GetDeviceInfo => {
+            CommandResult::Ok(CommandResponse::GetDeviceInfo(collect_device_info()))
+        }
+        CommandArgs::WindowMinimize => {
+            if let Some(window) = get_main_window(&app_handle) {
+                let _ = window.minimize();
+            }
+            CommandResult::Ok(CommandResponse::WindowMinimize)
+        }
+        CommandArgs::WindowToggleMaximize => {
+            if let Some(window) = get_main_window(&app_handle) {
+                if window.is_maximized().unwrap_or(false) {
+                    let _ = window.unmaximize();
+                } else {
+                    let _ = window.maximize();
+                }
+            }
+            CommandResult::Ok(CommandResponse::WindowToggleMaximize)
+        }
+        CommandArgs::WindowClose => {
+            if let Some(window) = get_main_window(&app_handle) {
+                let _ = window.close();
+            }
+            CommandResult::Ok(CommandResponse::WindowClose)
+        }
+        CommandArgs::WindowStartDragging => {
+            if let Some(window) = get_main_window(&app_handle) {
+                let _ = window.start_dragging();
+            }
+            CommandResult::Ok(CommandResponse::WindowStartDragging)
+        }
+    })
 }

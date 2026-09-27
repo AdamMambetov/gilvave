@@ -1,22 +1,22 @@
 # AGENTS.md — Gilvave
 
-Tauri 2 + Sycamore (WASM) chat application. Rust workspace with 6 crates.
+Tauri 2 + Sycamore (WASM) chat application. Rust workspace with 3 crates.
 
 ## Architecture
 
 ```
 crates/
-  core/      — DTOs, error types, ID generation (UUID v4/v7), security (keyring), settings
-  gateway/   — WebSocket service (tokio-tungstenite), message handling, auto-reconnect
-  http/      — HTTP API client (reqwest via tauri-plugin-http)
-  state/     — AppState: shared WebSocket sender + HTTP client
-  ui/        — Sycamore WASM frontend (Trunk build, port 1420)
-  src-tauri/ — Tauri backend entry point, command dispatch handler, local SQLite db
+  core/      — DTOs, error types, ID generation (UUID v4/v7), validation, desktop security (keyring), settings
+  ui/        — Sycamore WASM frontend (Trunk build, port 1420), direct HTTP/WS client, web security (cookies)
+  src-tauri/ — Tauri backend entry point, platform command handler (`handle_command`), local SQLite db
 ```
 
-**Data flow**: UI (WASM) → `invoke("handle_command")` → `handler::handle_command` → `dispatch!` macro → `http`/`gateway` services → response back to UI.
+**Data flow (HTTP & WebSocket)**: UI components (`crates/ui`) call `Api::*` (`crates/ui/src/http/api/`) and `WsService::*` (`crates/ui/src/gateway/`) directly in WASM without routing network requests through Tauri IPC. `Api::request_raw` uses `RequestCredentials::Include` and automatically retries on `401` by calling `Api::update_tokens` (`POST /users/refresh`).
 
-**Command system**: All frontend commands pass through `CommandArgs` enum (`core/src/dto/command.rs`) → `handler::handle_command` → `dispatch!` macro. The macro auto-retries on 401 by calling `Api::update_tokens`.
+**Command system (`invoke_command`)**: Only platform-dependent operations where Web and Desktop behavior differs (`GetAccessToken`, `GetRefreshToken`, `SetAccessToken`, `SetRefreshToken`, `GetDeviceInfo`, `WindowMinimize`, `WindowToggleMaximize`, `WindowClose`, `WindowStartDragging`, and future native features like system audio capture) pass through `CommandArgs` (`core/src/dto/command.rs`) → `invoke_command` (`ui/src/utils.rs`):
+- **Desktop (`#[cfg(not(target_os = "unknown"))]`)**: `invoke_command` calls Tauri `handle_command` (`src-tauri/src/handler.rs`), accessing OS `keyring`, native `sysinfo` (`client: "desktop"`), and native window controls.
+- **Web (`#[cfg(target_os = "unknown")]`)**: `invoke_command` calls `handle_command_web` (`ui/src/utils.rs`), accessing browser cookies (`ui/src/security.rs`) and `woothee` user-agent parsing (`client: "web"`).
+- **Token storage split**: On Desktop, the server returns tokens in the JSON body (`AuthTokensResponse`) and the client stores them in the OS `keyring` via `invoke_command`. On Web, the server sets `HttpOnly` cookies via `Set-Cookie` (sent automatically with `RequestCredentials::Include`), with `ui/src/security.rs` providing cookie access when needed.
 
 ---
 
@@ -40,8 +40,7 @@ cargo build
 cargo check --package gilvave-ui --target wasm32-unknown-unknown
 
 # Run tests
-cargo test --package gilvave-http        # HTTP crate tests (DTO serialize/deserialize)
-cargo test --package gilvave-core        # Core crate tests
+cargo test --package gilvave-core        # Core & DTO tests
 cargo test --workspace                   # All workspace tests
 
 # Lint
@@ -52,8 +51,8 @@ cargo clippy --workspace
 
 ## Crate dependency order
 
-`core` → `state` → `gateway` / `http` → `src-tauri` (bottom-up; `core` has no internal deps).
-`ui` depends only on `core` (shared DTOs) and communicates with `src-tauri` exclusively via Tauri IPC invokes & event listeners.
+`core` → `ui` / `src-tauri` (`core` has no internal deps).
+`ui` and `src-tauri` both depend on `core` (shared DTOs, IDs, validation, settings) and communicate exclusively via `invoke_command` (`utils.rs`) & event listeners.
 
 ---
 
@@ -67,7 +66,11 @@ Sycamore 0.9 + Trunk single-page WASM application styled with modular SCSS.
 crates/ui/src/
   app.rs                    — Root App component, session check, view switching
   main.rs                   — WASM entry point (mounts to DOM, console error hook)
-  utils.rs                  — Tauri IPC invoke helper, browser local timezone conversion
+  security.rs               — Browser cookie helpers (get/set access & refresh tokens)
+  utils.rs                  — Unified invoke_command (Tauri IPC vs Web), local timezone conversion
+  http/                     — Direct WASM HTTP client (web-sys fetch, auto-401 refresh)
+    api/                    — Domain endpoints (user, server, channel)
+  gateway/                  — Direct WASM WebSocket client (ws_stream_wasm) & event dispatcher
   components/
     common/                 — Shared reactive contexts, mixins, variables, animations, reset
       contexts.rs           — ScreenWrapper, UserProfileContext, ServerContext, ChannelContext,
@@ -198,14 +201,20 @@ crates/ui/src/
 9. **Disposed Signal Access Panic in WASM**:
    - In Sycamore 0.9, setting a parent signal (such as `modal_context.is_open.set(false)`) that unmounts a component immediately runs the reactive graph and destroys the component's reactive scope and all local child signals.
    - **NEVER** call `.set()`, `.update()`, or `.replace()` on a component's local signal *after* triggering its parent unmount action. Accessing a disposed signal panics in Sycamore (`panic!("{}", self.get_disposed_panic_message())`), crashing the entire WASM runtime and making the UI completely unresponsive to clicks.
+10. **Strict `invoke_command` Usage & Direct HTTP/WS Calls**:
+   - **NEVER** call bare `tauri_sys::core::invoke` anywhere outside `crates/ui/src/utils.rs`. All communication with Tauri (`src-tauri`) must go through `invoke_command(CommandArgs::*.to_json())`.
+   - Use `invoke_command` **ONLY** where behavior differs between Web and Desktop (token storage in keyring vs cookies, `GetDeviceInfo`, window controls, future system audio/noise suppression).
+   - Call HTTP (`Api::*`) and WebSocket (`WsService::*`) methods directly inside UI components — do not route network requests through `invoke_command`.
+11. **`collect_device_info()` in WASM vs Desktop**:
+   - Because `crates/ui` is always compiled to `wasm32-unknown-unknown`, calling `gilvave_core::settings::collect_device_info()` directly inside UI components will **always** hit `#[cfg(target_arch = "wasm32")]` and report `client: "web"`, even when running inside the Tauri Desktop app.
+   - Always retrieve `DeviceInfo` via `invoke_command(CommandArgs::GetDeviceInfo.to_json()).await` so Desktop fetches `collect_desktop()` (`client: "desktop"`) from `src-tauri` and Web fetches `collect_web()` (`client: "web"`).
 
 ---
 
 ## Testing & Quality Assurance
 
-- **Unit tests**: Inline `#[cfg(test)]` modules.
-- **Integration tests**: In `crates/<name>/tests/` (e.g., `crates/http/tests/api_tests.rs`).
-- Dev-dependencies `uuid` and `time` in `http/Cargo.toml` enable mock DTO test construction without server connectivity.
+- **Unit tests**: Inline `#[cfg(test)]` modules (e.g. `crates/core/src/validation.rs`, `crates/src-tauri/src/database.rs`, `crates/ui/src/utils.rs`).
+- **Integration & DTO tests**: In `crates/core/tests/` (`core_tests.rs`, `dto_tests.rs`).
 - Verify workspace integrity before pushing:
   ```bash
   cargo check --package gilvave-ui --target wasm32-unknown-unknown
@@ -217,7 +226,7 @@ crates/ui/src/
 
 ## Conventions
 
-- Edition 2024, rust-version 1.96, resolver 3.
+- Edition 2024, rust-version 1.98, resolver 3.
 - Workspace dependencies declared in root `Cargo.toml`; crates reference via `.workspace = true`.
 - Internal crates use `path = "../<name>"` dependencies.
 - Standard Rust formatting (`cargo fmt`).

@@ -1,15 +1,12 @@
 use gilvave_core::{
-    dto::{
-        command::{CommandArgs, CommandResponse, CommandResult},
-        server::{ServerCreateInfo, ServerSmallPart},
-    },
+    dto::server::{ServerCreateInfo, ServerSmallPart},
     ids::ServerId,
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
     components::common::{ChannelContext, ServerContext},
-    utils::invoke_command,
+    http::api::Api,
 };
 
 pub(super) fn select_server(server_id: ServerId) {
@@ -44,20 +41,12 @@ pub(super) fn select_server(server_id: ServerId) {
     context.members.set(vec![]);
 
     spawn_local_scoped(async move {
-        let response = invoke_command(
-            CommandArgs::GetServerById {
-                server_id: server_id.clone(),
-            }
-            .to_json(),
-        )
-        .await;
-        if let CommandResult::Ok(CommandResponse::GetServerById(server)) = response {
+        if let Ok(server) = Api::get_server_by_id(server_id).await {
             context.current.set(Some(server));
         }
     });
     spawn_local_scoped(async move {
-        let response = invoke_command(CommandArgs::GetMembers { server_id }.to_json()).await;
-        if let CommandResult::Ok(CommandResponse::GetMembers(members)) = response {
+        if let Ok(members) = Api::get_members(server_id).await {
             context.members.set(members);
         }
     });
@@ -68,8 +57,7 @@ pub(super) fn create_server(
     server_info: ServerCreateInfo,
 ) {
     spawn_local_scoped(async move {
-        let response = invoke_command(CommandArgs::CreateServer { server_info }.to_json()).await;
-        if let CommandResult::Ok(CommandResponse::CreateServer(server)) = response {
+        if let Ok(server) = Api::create_server(server_info).await {
             server_list.update(|list| {
                 list.push(ServerSmallPart {
                     id: server.id,

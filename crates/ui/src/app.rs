@@ -1,4 +1,3 @@
-use gilvave_core::dto::command::CommandArgs;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
@@ -8,7 +7,7 @@ use crate::{
         pages::home_panel::HomePanel,
         templates::auth_form::AuthForm,
     },
-    utils::invoke_command,
+    http::api::Api,
 };
 
 #[component]
@@ -17,8 +16,7 @@ pub fn App() -> View {
     provide_context(screen_wrapper);
 
     spawn_local_scoped(async move {
-        let res = invoke_command(CommandArgs::GetProfile.to_json()).await;
-        if res.is_ok() {
+        if Api::get_profile().await.is_ok() {
             screen_wrapper.set(ActiveScreen::Home);
         }
     });

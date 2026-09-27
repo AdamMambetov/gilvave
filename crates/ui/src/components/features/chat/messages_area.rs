@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use gilvave_core::dto::{command::CommandArgs, message::MessageView};
+use gilvave_core::dto::message::MessageView;
 use sycamore::{futures::spawn_local_scoped, prelude::*, web::queue_microtask};
 use tauri_sys::event::listen;
 use wasm_bindgen::JsCast;
@@ -8,7 +8,8 @@ use web_sys::{Event, HtmlElement, SubmitEvent};
 use super::message_item::MessageItem;
 use crate::{
     components::common::{ChannelContext, ServerContext, UserProfileContext},
-    utils::{get_local_offset, invoke_command, to_local_datetime},
+    gateway::service::WsService,
+    utils::{get_local_offset, to_local_datetime},
 };
 
 #[derive(Clone, PartialEq)]
@@ -92,13 +93,8 @@ pub fn MessagesArea() -> View {
 
         spawn_local_scoped(async move {
             let channel_id = channel.unwrap().id;
-            let args = CommandArgs::MessageCreate {
-                channel_id,
-                content: sanitized,
-            }
-            .to_json();
             web_sys::console::log_1(&format!("[MESSAGES_AREA] invoking MessageCreate for {channel_id}").into());
-            let res = invoke_command(args).await;
+            let res = WsService::message_create(channel_id, sanitized).await;
             web_sys::console::log_1(&format!("[MESSAGES_AREA] MessageCreate res: {res:?}").into());
         });
         message_text.set(String::new());
@@ -122,34 +118,32 @@ pub fn MessagesArea() -> View {
             console_log!("top message");
             spawn_local_scoped(async move {
                 let context = use_context::<ChannelContext>();
-                let args = CommandArgs::ChannelHistoryBefore {
-                    channel_id: context.current.get_clone().unwrap().id,
-                    timestamp: channel_context
+                let _ = WsService::channel_history_before(
+                    context.current.get_clone().unwrap().id,
+                    channel_context
                         .messages
                         .get_clone()
                         .first()
                         .unwrap()
                         .created_at,
-                }
-                .to_json();
-                invoke_command(args).await;
+                )
+                .await;
             });
         }
         if is_bottom {
             console_log!("bottom message");
             spawn_local_scoped(async move {
                 let context = use_context::<ChannelContext>();
-                let args = CommandArgs::ChannelHistoryAfter {
-                    channel_id: context.current.get_clone().unwrap().id,
-                    timestamp: channel_context
+                let _ = WsService::channel_history_after(
+                    context.current.get_clone().unwrap().id,
+                    channel_context
                         .messages
                         .get_clone()
                         .last()
                         .unwrap()
                         .created_at,
-                }
-                .to_json();
-                invoke_command(args).await;
+                )
+                .await;
             });
         }
     };

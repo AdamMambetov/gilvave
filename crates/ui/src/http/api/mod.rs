@@ -3,7 +3,12 @@ use serde::de::DeserializeOwned;
 use wasm_bindgen::JsCast;
 use wasm_streams::ReadableStream;
 
-use gilvave_core::error::{ErrorInfo, ErrorMessage};
+use gilvave_core::{
+    dto::command::{CommandArgs, CommandResponse, CommandResult},
+    error::{ErrorInfo, ErrorMessage},
+};
+
+use crate::utils::invoke_command;
 
 pub mod channel;
 pub mod server;
@@ -12,7 +17,7 @@ pub mod user;
 pub struct Api;
 
 impl Api {
-    pub async fn request_raw(
+    async fn send_once(
         method: &str,
         url: &str,
         body: Option<String>,
@@ -22,6 +27,7 @@ impl Api {
             web_sys::window().ok_or_else(|| ErrorInfo(1, "No window available".to_string()))?;
         let opts = web_sys::RequestInit::new();
         opts.set_method(method);
+        opts.set_credentials(web_sys::RequestCredentials::Include);
 
         let headers = web_sys::Headers::new().map_err(|e| ErrorInfo(1, format!("{e:?}")))?;
         headers
@@ -32,12 +38,12 @@ impl Api {
                 .set("Content-Type", "application/json")
                 .map_err(|e| ErrorInfo(1, format!("{e:?}")))?;
         }
-        if let Some(token) = auth_token {
-            if !token.is_empty() {
-                headers
-                    .set("Authorization", &format!("Bearer {token}"))
-                    .map_err(|e| ErrorInfo(1, format!("{e:?}")))?;
-            }
+        if let Some(token) = auth_token
+            && !token.is_empty()
+        {
+            headers
+                .set("Authorization", &format!("Bearer {token}"))
+                .map_err(|e| ErrorInfo(1, format!("{e:?}")))?;
         }
         opts.set_headers(&headers);
 
@@ -57,6 +63,26 @@ impl Api {
             .dyn_into()
             .map_err(|e| ErrorInfo(1, format!("Invalid response: {e:?}")))?;
 
+        Ok(response)
+    }
+
+    pub async fn request_raw(
+        method: &str,
+        url: &str,
+        body: Option<String>,
+        auth_token: Option<&str>,
+    ) -> Result<web_sys::Response, ErrorInfo> {
+        let response = Self::send_once(method, url, body.clone(), auth_token).await?;
+        if response.status() == 401
+            && auth_token.is_some()
+            && Box::pin(Self::update_tokens()).await.is_ok()
+        {
+            let new_token = match invoke_command(CommandArgs::GetAccessToken.to_json()).await {
+                CommandResult::Ok(CommandResponse::GetAccessToken(t)) => t,
+                _ => String::new(),
+            };
+            return Self::send_once(method, url, body, Some(&new_token)).await;
+        }
         Ok(response)
     }
 
@@ -102,7 +128,7 @@ impl Api {
         }
     }
 
-    async fn response_to_error(response: web_sys::Response) -> ErrorInfo {
+    pub(crate) async fn response_to_error(response: web_sys::Response) -> ErrorInfo {
         let status = response.status();
         let text = Self::response_to_text(response).await.unwrap_or_default();
         if let Ok(err_msg) = serde_json::from_str::<ErrorMessage>(&text) {

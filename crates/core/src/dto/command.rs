@@ -1,63 +1,19 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-use crate::{
-    dto::{
-        channel::ChannelView,
-        server::{MemberView, Server, ServerCreateInfo, ServerSmallPart},
-        user::{AuthTokensResponse, LoginRequest, RegisterRequest, UserView},
-    },
-    error::ErrorInfo,
-    ids::{ChannelId, ServerId},
-};
+use crate::{error::ErrorInfo, settings::DeviceInfo};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CommandArgs {
-    Register {
-        request: RegisterRequest,
-    },
-    Login {
-        request: LoginRequest,
-    },
-    GetProfile,
-    GetMembers {
-        server_id: ServerId,
-    },
-    GetServerChannels {
-        server_id: ServerId,
-    },
-    GetServerById {
-        server_id: ServerId,
-    },
-    GetUserServers,
-    GetPublicServers {
-        page: u32,
-    },
-    CreateServer {
-        server_info: ServerCreateInfo,
-    },
-    JoinPublicServer {
-        server_id: ServerId,
-    },
-    ListenWebSocket,
-    JoinChannel {
-        channel_id: ChannelId,
-    },
-    LeftChannel {
-        channel_id: ChannelId,
-    },
-    MessageCreate {
-        channel_id: ChannelId,
-        content: String,
-    },
-    ChannelHistoryBefore {
-        channel_id: ChannelId,
-        timestamp: time::OffsetDateTime,
-    },
-    ChannelHistoryAfter {
-        channel_id: ChannelId,
-        timestamp: time::OffsetDateTime,
-    },
+    GetAccessToken,
+    GetRefreshToken,
+    SetAccessToken { token: String },
+    SetRefreshToken { token: String },
+    GetDeviceInfo,
+    WindowMinimize,
+    WindowToggleMaximize,
+    WindowClose,
+    WindowStartDragging,
 }
 
 impl CommandArgs {
@@ -68,22 +24,15 @@ impl CommandArgs {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CommandResponse {
-    Register,
-    Login(AuthTokensResponse),
-    GetProfile(UserView),
-    GetMembers(Vec<MemberView>),
-    GetServerChannels(Vec<ChannelView>),
-    GetServerById(Server),
-    GetUserServers(Vec<ServerSmallPart>),
-    GetPublicServers((Vec<Server>, bool)),
-    CreateServer(Server),
-    JoinPublicServer,
-    ListenWebSocket(bool),
-    JoinChannel,
-    LeftChannel,
-    MessageCreate,
-    ChannelHistoryBefore,
-    ChannelHistoryAfter,
+    GetAccessToken(String),
+    GetRefreshToken(String),
+    SetAccessToken,
+    SetRefreshToken,
+    GetDeviceInfo(DeviceInfo),
+    WindowMinimize,
+    WindowToggleMaximize,
+    WindowClose,
+    WindowStartDragging,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -1,3 +1,4 @@
+use gilvave_core::dto::command::CommandArgs;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 use wasm_bindgen::JsCast;
 
@@ -10,21 +11,22 @@ use web_sys::HtmlSelectElement;
 #[cfg(debug_assertions)]
 use crate::components::common::{ActiveScreen, ScreenWrapper};
 
-use crate::components::ui::icons::{CloseIcon, MaximizeIcon, MinimizeIcon};
+use crate::{
+    components::ui::icons::{CloseIcon, MaximizeIcon, MinimizeIcon},
+    utils::invoke_command,
+};
 
 #[component]
 pub fn AppHeader() -> View {
     let on_drag = move |e: web_sys::MouseEvent| {
-        if let Some(target) = e.target() {
-            if let Some(el) = target.dyn_ref::<web_sys::Element>() {
-                if el.closest("button").ok().flatten().is_some()
-                    || el.closest("select").ok().flatten().is_some()
-                {
-                    return;
-                }
-            }
+        if let Some(target) = e.target()
+            && let Some(el) = target.dyn_ref::<web_sys::Element>()
+            && (el.closest("button").ok().flatten().is_some()
+                || el.closest("select").ok().flatten().is_some())
+        {
+            return;
         }
-        invoke_window("window_start_dragging");
+        invoke_window(CommandArgs::WindowStartDragging);
     };
 
     let app_name = create_signal(String::default());
@@ -40,9 +42,9 @@ pub fn AppHeader() -> View {
             }
 
             div(class="window-controls") {
-                MinimizeIcon(on:click=move |_| invoke_window("window_minimize"))
-                MaximizeIcon(on:click=move |_| invoke_window("window_toggle_maximize"))
-                CloseIcon(on:click=move |_| invoke_window("window_close"))
+                MinimizeIcon(on:click=move |_| invoke_window(CommandArgs::WindowMinimize))
+                MaximizeIcon(on:click=move |_| invoke_window(CommandArgs::WindowToggleMaximize))
+                CloseIcon(on:click=move |_| invoke_window(CommandArgs::WindowClose))
             }
         }
     }
@@ -95,8 +97,8 @@ fn ScreenSelect() -> View {
     }
 }
 
-fn invoke_window(command: &'static str) {
+fn invoke_window(command: CommandArgs) {
     spawn_local_scoped(async move {
-        tauri_sys::core::invoke::<serde_json::Value>(command, &serde_json::json!({})).await;
+        invoke_command(command.to_json()).await;
     });
 }

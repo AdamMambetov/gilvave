@@ -3,7 +3,7 @@ pub const BASE_WS_URL: &str = "ws://kim.netbird.cloud:3100/ws";
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct DeviceInfo {
     pub platform: Option<String>,
     pub os_version: Option<String>,
@@ -29,7 +29,7 @@ impl DeviceInfo {
     }
 }
 
-#[cfg(not(target_os = "android"))]
+#[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
 pub fn collect_desktop() -> DeviceInfo {
     use sysinfo::System;
 

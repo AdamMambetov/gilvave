@@ -411,31 +411,24 @@ fn test_message_view_serialization() {
 
 #[test]
 fn test_http_command_args_to_json() {
-    let s_id = ServerId(test_uuid());
-    let cmd = CommandArgs::GetMembers { server_id: s_id };
+    let cmd = CommandArgs::SetAccessToken {
+        token: "token_val".to_string(),
+    };
     let json_val = cmd.to_json();
     assert!(json_val.get("command").is_some());
 
     let parsed: CommandArgs = serde_json::from_value(json_val["command"].clone()).unwrap();
     match parsed {
-        CommandArgs::GetMembers { server_id } => assert_eq!(server_id, s_id),
-        _ => panic!("Expected GetMembers"),
+        CommandArgs::SetAccessToken { token } => assert_eq!(token, "token_val"),
+        _ => panic!("Expected SetAccessToken"),
     }
 }
 
 #[test]
 fn test_command_result_states() {
-    let ok = CommandResult::Ok(CommandResponse::GetProfile(UserView {
-        id: UserId(test_uuid()),
-        username: "user".to_string(),
-        email: "user@mail.com".to_string(),
-        is_active: true,
-        avatar: "".to_string(),
-    }));
+    let ok = CommandResult::Ok(CommandResponse::GetAccessToken("token".to_string()));
     assert!(ok.is_ok());
 
     let err = CommandResult::Error(ErrorInfo(401, "unauthorized".to_string()));
     assert!(!err.is_ok());
 }
-
-

@@ -1,12 +1,9 @@
-use gilvave_core::dto::{
-    channel::ChannelView,
-    command::{CommandArgs, CommandResponse, CommandResult},
-};
+use gilvave_core::dto::channel::ChannelView;
 use sycamore::{futures::spawn_local_scoped, prelude::*, web::console_error};
 
 use crate::{
     components::common::{ChannelContext, classes},
-    utils::invoke_command,
+    gateway::service::WsService,
 };
 
 #[component(inline_props)]
@@ -32,35 +29,29 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
                     return;
                 }
 
-                let args = CommandArgs::LeftChannel {
-                    channel_id: channel.id,
-                }
-                .to_json();
                 context.current.set(None);
                 context.messages.set(vec![]);
-                invoke_command(args).await;
+                let _ = WsService::left_channel(channel.id).await;
             }
 
             web_sys::console::log_1(&format!("[CHANNEL_ITEM] clicked channel: {channel_item_id}").into());
-            let args = CommandArgs::JoinChannel {
-                channel_id: channel_item_id,
-            }
-            .to_json();
-            let res = invoke_command(args).await;
+            let res = WsService::join_channel(channel_item_id).await;
             web_sys::console::log_1(&format!("[CHANNEL_ITEM] JoinChannel res: {res:?}").into());
-            if let CommandResult::Ok(CommandResponse::JoinChannel) = res {
-                context.current.set(Some(channel_item));
-                web_sys::console::log_1(&format!("[CHANNEL_ITEM] context.current updated to Some({channel_item_id})").into());
-            } else if let CommandResult::Error(err) = res {
-                console_error!("join channel error: {err:#?}");
+            match res {
+                Ok(()) => {
+                    context.current.set(Some(channel_item));
+                    web_sys::console::log_1(&format!("[CHANNEL_ITEM] context.current updated to Some({channel_item_id})").into());
+                }
+                Err(err) => {
+                    console_error!("join channel error: {err:#?}");
+                }
             }
 
-            let args = CommandArgs::ChannelHistoryBefore {
-                channel_id: channel_item_id,
-                timestamp: time::OffsetDateTime::now_utc(),
-            }
-            .to_json();
-            invoke_command(args).await;
+            let _ = WsService::channel_history_before(
+                channel_item_id,
+                time::OffsetDateTime::now_utc(),
+            )
+            .await;
         });
     };
 

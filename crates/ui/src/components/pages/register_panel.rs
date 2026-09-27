@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 
-use gilvave_core::dto::{
-    command::{CommandArgs, CommandResult},
-    user::RegisterRequest,
-};
+use gilvave_core::dto::user::RegisterRequest;
 use serde::Deserialize;
 use sycamore::{
     futures::spawn_local_scoped,
@@ -21,7 +18,7 @@ use crate::{
             submit_button::SubmitButton,
         },
     },
-    utils::invoke_command,
+    http::api::Api,
 };
 
 #[derive(Props)]
@@ -85,22 +82,19 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
 
                 spawn_local_scoped(async move {
                     loading.set(true);
-                    let args = CommandArgs::Register {
-                        request: RegisterRequest {
-                            username: data.name.to_string(),
-                            email: data.email.to_string(),
-                            password: data.password.to_string(),
-                        },
-                    }
-                    .to_json();
-                    let res = invoke_command(args).await;
+                    let res = Api::register(RegisterRequest {
+                        username: data.name.to_string(),
+                        email: data.email.to_string(),
+                        password: data.password.to_string(),
+                    })
+                    .await;
                     loading.set(false);
                     match res {
-                        CommandResult::Ok(_) => {
+                        Ok(_) => {
                             console_log!("Register Success");
                             use_context::<ScreenWrapper>().set(ActiveScreen::Login);
                         }
-                        CommandResult::Error(err) => {
+                        Err(err) => {
                             console_error!("{err:#?}");
                         }
                     }

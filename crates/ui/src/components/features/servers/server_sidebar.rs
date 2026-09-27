@@ -1,8 +1,5 @@
 use gilvave_core::{
-    dto::{
-        command::{CommandArgs, CommandResponse, CommandResult},
-        server::{Server, ServerCreateInfo},
-    },
+    dto::server::{Server, ServerCreateInfo},
     ids::{ServerId, UserId},
 };
 use sycamore::{futures::spawn_local_scoped, prelude::*};
@@ -11,7 +8,7 @@ use crate::components::{
     common::{CreateServerContext, ModalView, ServerContext},
     ui::icons::ServerIcon,
 };
-use crate::{components::common::classes, utils::invoke_command};
+use crate::{components::common::classes, http::api::Api};
 
 use super::{
     join_server_modal::JoinServerModal,
@@ -83,12 +80,10 @@ pub fn open_join_modal(context: CreateServerContext) {
     context.public_servers.set(hardcoded);
     let ctx = context.clone();
     spawn_local_scoped(async move {
-        let args = CommandArgs::GetPublicServers { page: 1 }.to_json();
-        let res = invoke_command(args).await;
-        if let CommandResult::Ok(CommandResponse::GetPublicServers((servers, _has_more))) = res {
-            if !servers.is_empty() {
-                ctx.public_servers.set(servers);
-            }
+        if let Ok((servers, _has_more)) = Api::get_public_servers(1).await
+            && !servers.is_empty()
+        {
+            ctx.public_servers.set(servers);
         }
     });
 }
@@ -144,16 +139,7 @@ pub fn ServerSidebar() -> View {
             name: name,
             is_public: context.is_public.get(),
         };
-        spawn_local_scoped(async move {
-            let args = CommandArgs::CreateServer {
-                server_info: info.clone(),
-            }
-            .to_json();
-            let res = invoke_command(args).await;
-            if let CommandResult::Ok(CommandResponse::CreateServer(_server)) = res {
-                create_server(server_context.list, info);
-            }
-        });
+        create_server(server_context.list, info);
         context.is_modal_open.set(false);
         context.modal_view.set(ModalView::Home);
         context.server_name.set(String::new());

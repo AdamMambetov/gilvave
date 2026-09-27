@@ -8,8 +8,6 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "http:default",
-    "websocket:default",
     "tracing:default"
   ]
 }

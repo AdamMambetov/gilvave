@@ -1,12 +1,10 @@
-use gilvave_core::dto::{
-    channel::ChannelType,
-    command::{CommandArgs, CommandResponse, CommandResult},
-};
+use gilvave_core::dto::channel::ChannelType;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
 
 use crate::{
     components::common::{ChannelContext, ServerContext, UiModalContext},
-    utils::invoke_command,
+    gateway::service::WsService,
+    http::api::Api,
 };
 
 use super::{channel_item::ChannelItem, user_status_bar::UserStatusBar};
@@ -30,26 +28,18 @@ pub fn ChannelPanel() -> View {
     create_effect(move || {
         spawn_local_scoped(async move {
             if let Some(channel) = context.current.get_clone() {
-                let args = CommandArgs::LeftChannel {
-                    channel_id: channel.id,
-                }
-                .to_json();
                 context.current.set(None);
-                invoke_command(args).await;
+                let _ = WsService::left_channel(channel.id).await;
             }
         });
 
         if let Some(server) = server_context.current.get_clone() {
             spawn_local_scoped(async move {
-                let args = CommandArgs::GetServerChannels {
-                    server_id: server.id.clone(),
-                }
-                .to_json();
-                let res = invoke_command(args).await;
+                let res = Api::get_server_channels(server.id).await;
 
                 context.text.set(vec![]);
                 context.voice.set(vec![]);
-                if let CommandResult::Ok(CommandResponse::GetServerChannels(channels)) = res {
+                if let Ok(channels) = res {
                     for channel in channels {
                         match channel.r#type {
                             ChannelType::TEXT => context.text.update(|list| list.push(channel)),

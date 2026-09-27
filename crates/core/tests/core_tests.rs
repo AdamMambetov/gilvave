@@ -3,7 +3,6 @@ use gilvave_core::{
         command::{CommandArgs, CommandResponse, CommandResult},
         message::MessageView,
         server::Server,
-        user::RegisterRequest,
         ws::{ServerRecieve, ServerSend},
     },
     error::{ErrorInfo, ErrorMessage},
@@ -77,54 +76,37 @@ fn test_device_info_json() {
 
 #[test]
 fn test_command_args_to_json_and_deserialize() {
-    let reg_cmd = CommandArgs::Register {
-        request: RegisterRequest {
-            username: "tester".to_string(),
-            email: "tester@example.com".to_string(),
-            password: "password".to_string(),
-        },
+    let set_cmd = CommandArgs::SetAccessToken {
+        token: "test_token_123".to_string(),
     };
-    let json_val = reg_cmd.to_json();
+    let json_val = set_cmd.to_json();
     assert!(json_val.get("command").is_some());
 
     let parsed: CommandArgs = serde_json::from_value(json_val["command"].clone()).unwrap();
     match parsed {
-        CommandArgs::Register { request } => {
-            assert_eq!(request.username, "tester");
+        CommandArgs::SetAccessToken { token } => {
+            assert_eq!(token, "test_token_123");
         }
-        _ => panic!("Expected Register variant"),
+        _ => panic!("Expected SetAccessToken variant"),
     }
 }
 
 #[test]
 fn test_all_command_args_variants_to_json() {
-    let s_id = ServerId::default();
-    let c_id = ChannelId::default();
-    let now = OffsetDateTime::now_utc();
-
     let commands = vec![
-        CommandArgs::GetProfile,
-        CommandArgs::GetUserServers,
-        CommandArgs::ListenWebSocket,
-        CommandArgs::GetPublicServers { page: 1 },
-        CommandArgs::GetMembers { server_id: s_id },
-        CommandArgs::GetServerChannels { server_id: s_id },
-        CommandArgs::GetServerById { server_id: s_id },
-        CommandArgs::JoinPublicServer { server_id: s_id },
-        CommandArgs::JoinChannel { channel_id: c_id },
-        CommandArgs::LeftChannel { channel_id: c_id },
-        CommandArgs::MessageCreate {
-            channel_id: c_id,
-            content: "hello".to_string(),
+        CommandArgs::GetAccessToken,
+        CommandArgs::GetRefreshToken,
+        CommandArgs::SetAccessToken {
+            token: "acc".to_string(),
         },
-        CommandArgs::ChannelHistoryBefore {
-            channel_id: c_id,
-            timestamp: now,
+        CommandArgs::SetRefreshToken {
+            token: "ref".to_string(),
         },
-        CommandArgs::ChannelHistoryAfter {
-            channel_id: c_id,
-            timestamp: now,
-        },
+        CommandArgs::GetDeviceInfo,
+        CommandArgs::WindowMinimize,
+        CommandArgs::WindowToggleMaximize,
+        CommandArgs::WindowClose,
+        CommandArgs::WindowStartDragging,
     ];
 
     for cmd in commands {
@@ -136,7 +118,7 @@ fn test_all_command_args_variants_to_json() {
 
 #[test]
 fn test_command_result_is_ok() {
-    let ok_res = CommandResult::Ok(CommandResponse::Register);
+    let ok_res = CommandResult::Ok(CommandResponse::SetAccessToken);
     assert!(ok_res.is_ok());
 
     let err_res = CommandResult::Error(ErrorInfo(400, "bad".to_string()));

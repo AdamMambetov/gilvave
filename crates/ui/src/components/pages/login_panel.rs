@@ -1,6 +1,5 @@
-use gilvave_core::dto::command::{CommandArgs, CommandResult};
+use gilvave_core::dto::command::{CommandArgs, CommandResponse, CommandResult};
 use gilvave_core::dto::user::LoginRequest;
-use gilvave_core::settings::collect_device_info;
 use sycamore::web::console_error;
 use sycamore::web::events::SubmitEvent;
 use sycamore::{futures::spawn_local_scoped, prelude::*};
@@ -11,6 +10,7 @@ use crate::components::ui::divider::Divider;
 use crate::components::ui::input_group::InputGroup;
 use crate::components::ui::spinner::Spinner;
 use crate::components::ui::submit_button::SubmitButton;
+use crate::http::api::Api;
 use crate::utils::invoke_command;
 
 #[derive(Props)]
@@ -55,22 +55,23 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
 
             spawn_local_scoped(async move {
                 loading.set(true);
-                let args = CommandArgs::Login {
-                    request: LoginRequest {
-                        email: email.to_string(),
-                        password: password.to_string(),
-                        device_info: collect_device_info().to_json(),
-                    },
-                }
-                .to_json();
-                let res = invoke_command(args).await;
+                let device_info = match invoke_command(CommandArgs::GetDeviceInfo.to_json()).await {
+                    CommandResult::Ok(CommandResponse::GetDeviceInfo(info)) => info.to_json(),
+                    _ => serde_json::Value::Null,
+                };
+                let res = Api::login(LoginRequest {
+                    email: email.to_string(),
+                    password: password.to_string(),
+                    device_info,
+                })
+                .await;
                 loading.set(false);
                 match res {
-                    CommandResult::Ok(_) => {
+                    Ok(_) => {
                         console_log!("Login Success");
                         use_context::<ScreenWrapper>().set(ActiveScreen::Home);
                     }
-                    CommandResult::Error(err) => {
+                    Err(err) => {
                         console_error!("{err:#?}")
                     }
                 }

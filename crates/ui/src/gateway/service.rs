@@ -1,7 +1,12 @@
 use futures_channel::mpsc::{UnboundedSender, unbounded};
 use futures_util::{SinkExt, StreamExt, lock::Mutex};
 use gilvave_core::{
-    dto::ws::ServerSend, error::ErrorInfo, ids::ChannelId, security::get_access_token,
+    dto::{
+        command::{CommandArgs, CommandResponse, CommandResult},
+        ws::ServerSend,
+    },
+    error::ErrorInfo,
+    ids::ChannelId,
     settings::BASE_WS_URL,
 };
 use std::sync::{
@@ -10,7 +15,7 @@ use std::sync::{
 };
 use ws_stream_wasm::{WsMessage, WsMeta};
 
-use crate::gateway::handler::handle;
+use crate::{gateway::handler::handle, utils::invoke_command};
 
 static IS_LISTENING: AtomicBool = AtomicBool::new(false);
 static SENDER: LazyLock<Arc<Mutex<Option<UnboundedSender<ServerSend>>>>> =
@@ -129,7 +134,10 @@ impl WsService {
             loop {
                 web_sys::console::log_1(&"[WS SERVICE] listen_web_socket loop start".into());
 
-                let token = get_access_token();
+                let token = match invoke_command(CommandArgs::GetAccessToken.to_json()).await {
+                    CommandResult::Ok(CommandResponse::GetAccessToken(t)) => t,
+                    _ => String::new(),
+                };
                 let ws_url = if token.is_empty() {
                     BASE_WS_URL.to_string()
                 } else {
