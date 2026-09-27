@@ -14,8 +14,9 @@ crates/
 **Data flow (HTTP & WebSocket)**: UI components (`crates/ui`) call `Api::*` (`crates/ui/src/http/api/`) and `WsService::*` (`crates/ui/src/gateway/`) directly in WASM without routing network requests through Tauri IPC. `Api::request_raw` uses `RequestCredentials::Include` and automatically retries on `401` by calling `Api::update_tokens` (`POST /users/refresh`).
 
 **Command system (`invoke_command`)**: Only platform-dependent operations where Web and Desktop behavior differs (`GetAccessToken`, `GetRefreshToken`, `SetAccessToken`, `SetRefreshToken`, `GetDeviceInfo`, `WindowMinimize`, `WindowToggleMaximize`, `WindowClose`, `WindowStartDragging`, and future native features like system audio capture) pass through `CommandArgs` (`core/src/dto/command.rs`) → `invoke_command` (`ui/src/utils.rs`):
-- **Desktop (`#[cfg(not(target_os = "unknown"))]`)**: `invoke_command` calls Tauri `handle_command` (`src-tauri/src/handler.rs`), accessing OS `keyring`, native `sysinfo` (`client: "desktop"`), and native window controls.
-- **Web (`#[cfg(target_os = "unknown")]`)**: `invoke_command` calls `handle_command_web` (`ui/src/utils.rs`), accessing browser cookies (`ui/src/security.rs`) and `woothee` user-agent parsing (`client: "web"`).
+- Because `crates/ui` is always compiled by Trunk to `wasm32-unknown-unknown` (where `target_os` is always `"unknown"` at compile time, even inside Tauri Desktop), `invoke_command` uses `is_tauri()` (`window.__TAURI_INTERNALS__` without `__IS_POLYFILL__`) to distinguish Desktop vs Web at runtime:
+  - **Desktop (`is_tauri() == true`)**: `invoke_command` calls Tauri `handle_command` (`src-tauri/src/handler.rs`), accessing OS `keyring`, native `sysinfo` (`client: "desktop"`), and native window controls.
+  - **Web (`is_tauri() == false`)**: `invoke_command` calls `handle_command_web` (`ui/src/utils.rs`), accessing browser cookies (`ui/src/security.rs`) and `woothee` user-agent parsing (`client: "web"`).
 - **Token storage split**: On Desktop, the server returns tokens in the JSON body (`AuthTokensResponse`) and the client stores them in the OS `keyring` via `invoke_command`. On Web, the server sets `HttpOnly` cookies via `Set-Cookie` (sent automatically with `RequestCredentials::Include`), with `ui/src/security.rs` providing cookie access when needed.
 
 ---

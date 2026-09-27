@@ -1,19 +1,32 @@
 use gilvave_core::dto::command::CommandResult;
 use serde_json::Value;
-#[cfg(not(target_os = "unknown"))]
 use tauri_sys::core::invoke;
 
-#[cfg(not(target_os = "unknown"))]
-pub async fn invoke_command(args: Value) -> CommandResult {
-    invoke::<CommandResult>("handle_command", args).await
+pub fn is_tauri() -> bool {
+    let Some(window) = web_sys::window() else {
+        return false;
+    };
+    let Ok(internals) = js_sys::Reflect::get(&window, &"__TAURI_INTERNALS__".into()) else {
+        return false;
+    };
+    if internals.is_undefined() || internals.is_null() {
+        return false;
+    }
+    let is_polyfill = js_sys::Reflect::get(&internals, &"__IS_POLYFILL__".into())
+        .ok()
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    !is_polyfill
 }
 
-#[cfg(target_os = "unknown")]
 pub async fn invoke_command(args: Value) -> CommandResult {
-    handle_command_web(args).await
+    if is_tauri() {
+        invoke::<CommandResult>("handle_command", &args).await
+    } else {
+        handle_command_web(args).await
+    }
 }
 
-#[cfg(target_os = "unknown")]
 #[rustfmt::skip]
 async fn handle_command_web(args: Value) -> CommandResult {
     use crate::security::{
