@@ -29,10 +29,12 @@ pub fn AppHeader() -> View {
         invoke_window(CommandArgs::WindowStartDragging);
     };
 
-    let app_name = create_signal(String::default());
-    spawn_local_scoped(async move {
-        app_name.set(tauri_sys::app::get_name().await);
-    });
+    let app_name = create_signal(String::from("Gilvave"));
+    if crate::utils::is_tauri() {
+        spawn_local_scoped(async move {
+            app_name.set(tauri_sys::app::get_name().await);
+        });
+    }
 
     view! {
         div(class="app-header", on:mousedown=on_drag) {
