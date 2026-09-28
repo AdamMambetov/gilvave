@@ -18,12 +18,12 @@ pub fn HomeDashboard() -> View {
 
     view! {
         (if let Some(dm_name) = modal_context.selected_dm_name.get_clone() {
-            dm_chat_view(dm_name, modal_context.clone(), dm_input)
+            dm_chat_view(dm_name, modal_context, dm_input)
         } else {
             dashboard_main_view(
-                user_profile.clone(),
-                modal_context.clone(),
-                server_modal_context.clone(),
+                user_profile,
+                modal_context,
+                server_modal_context,
             )
         })
     }
@@ -34,63 +34,50 @@ fn dashboard_main_view(
     modal_context: UiModalContext,
     server_modal_context: CreateServerContext,
 ) -> View {
-    let open_join = {
-        let smc = server_modal_context.clone();
-        move |_| {
-            smc.from_dashboard.set(true);
-            open_join_modal(smc.clone());
-        }
+    let open_join = move |_| {
+        server_modal_context.from_dashboard.set(true);
+        open_join_modal(server_modal_context);
     };
 
-    let open_create = {
-        let smc = server_modal_context.clone();
-        move |_| {
-            smc.modal_view.set(ModalView::Create);
-            smc.is_modal_open.set(true);
-        }
+    let open_create = move |_| {
+        server_modal_context.modal_view.set(ModalView::Create);
+        server_modal_context.is_modal_open.set(true);
     };
 
-    let open_settings = {
-        let mc = modal_context.clone();
-        move |_| {
-            mc.is_profile_settings_open.set(true);
-        }
+    let open_settings = move |_| {
+        modal_context.is_profile_settings_open.set(true);
     };
 
-    let select_dm_smirnov = {
-        let mc = modal_context.clone();
-        move |_| {
-            mc.selected_dm_name.set(Some("Алексей Смирнов".to_string()));
-        }
+    let select_dm_smirnov = move |_| {
+        modal_context
+            .selected_dm_name
+            .set(Some("Алексей Смирнов".to_string()));
     };
 
-    let select_dm_vasilieva = {
-        let mc = modal_context.clone();
-        move |_| {
-            mc.selected_dm_name.set(Some("Елена Васильева".to_string()));
-        }
+    let select_dm_vasilieva = move |_| {
+        modal_context
+            .selected_dm_name
+            .set(Some("Елена Васильева".to_string()));
     };
 
-    let go_back_to_chats = {
-        let mc = modal_context.clone();
-        move |_| {
-            mc.home_tab.set(HomeTab::Chats);
-        }
+    let go_back_to_chats = move |_| {
+        modal_context.home_tab.set(HomeTab::Chats);
     };
 
     let greeting_text = create_memo(move || {
-        let u_name = user_profile.username.get_clone();
-        if u_name.is_empty() {
-            "Добро пожаловать в Gilvave! 👋".to_string()
-        } else {
-            format!("Добро пожаловать, {}! 👋", u_name)
-        }
+        user_profile.username.with(|u_name| {
+            if u_name.is_empty() {
+                "Добро пожаловать в Gilvave! 👋".to_string()
+            } else {
+                format!("Добро пожаловать, {u_name}! 👋")
+            }
+        })
     });
 
     view! {
         div(class="home-dashboard") {
             div(class="home-dashboard-mobile-header") {
-                button(class="dashboard-back-btn", on:click=go_back_to_chats.clone()) {
+                button(class="dashboard-back-btn", on:click=go_back_to_chats) {
                     "← К списку чатов"
                 }
             }
@@ -189,14 +176,14 @@ fn dashboard_main_view(
 }
 
 fn dm_chat_view(dm_name: String, modal_context: UiModalContext, dm_input: Signal<String>) -> View {
-    let dm_title = dm_name.clone();
     let dm_initial = dm_name
         .chars()
         .next()
         .unwrap_or('?')
         .to_uppercase()
         .to_string();
-    let dm_start_text = format!("Это начало вашей истории личных сообщений с {}", dm_name);
+    let dm_start_text = format!("Это начало вашей истории личных сообщений с {dm_name}");
+    let dm_title = dm_name.clone();
 
     let today_date_text = {
         let now = to_local_datetime(time::OffsetDateTime::now_utc());
@@ -219,8 +206,7 @@ fn dm_chat_view(dm_name: String, modal_context: UiModalContext, dm_input: Signal
 
     let on_dm_send = move |e: web_sys::SubmitEvent| {
         e.prevent_default();
-        let text = dm_input.get_clone();
-        if !text.trim().is_empty() {
+        if dm_input.with(|text| !text.trim().is_empty()) {
             dm_input.set(String::new());
         }
     };
@@ -234,32 +220,23 @@ fn dm_chat_view(dm_name: String, modal_context: UiModalContext, dm_input: Signal
         }
     };
 
-    let hero_title = {
-        let title = dm_title.clone();
-        view! {
-            h3 { (title) }
-        }
+    let hero_title = view! {
+        h3 { (dm_title) }
     };
 
     let hero_text = view! {
         p { (dm_start_text) }
     };
 
-    let header_avatar = {
-        let initial = dm_initial.clone();
-        view! {
-            div(class="dm-header-avatar") {
-                span { (initial) }
-                div(class="status-dot online")
-            }
+    let header_avatar = view! {
+        div(class="dm-header-avatar") {
+            span { (dm_initial) }
+            div(class="status-dot online")
         }
     };
 
-    let header_name = {
-        let title = dm_title.clone();
-        view! {
-            span(class="dm-header-name") { (title) }
-        }
+    let header_name = view! {
+        span(class="dm-header-name") { (dm_name) }
     };
 
     view! {

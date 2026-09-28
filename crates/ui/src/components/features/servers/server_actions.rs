@@ -12,8 +12,9 @@ use crate::{
 pub(super) fn select_server(server_id: ServerId) {
     let context = use_context::<ServerContext>();
     let ch_ctx = use_context::<ChannelContext>();
-    if let Some(server) = context.current.get_clone()
-        && server.id == server_id
+    if context
+        .current
+        .with(|s| s.as_ref().is_some_and(|srv| srv.id == server_id))
     {
         ch_ctx.current.set(None);
         return;

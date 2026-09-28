@@ -29,9 +29,8 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
         .to_uppercase()
         .to_string();
     let desc_short = {
-        let description = server.description.clone();
-        let truncated: String = description.chars().take(60).collect();
-        if truncated.len() < description.len() {
+        let truncated: String = server.description.chars().take(60).collect();
+        if truncated.len() < server.description.len() {
             format!("{truncated}...")
         } else {
             truncated
@@ -46,7 +45,7 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
     let join_server = move |_| {
         let server_cc = server_c.clone();
         spawn_local_scoped(async move {
-            if Api::join_public_server(server_c.id).await.is_ok() {
+            if Api::join_public_server(server_cc.id).await.is_ok() {
                 let context = use_context::<ServerContext>();
                 context.list.update(|list| {
                     list.push(ServerSmallPart {
@@ -55,7 +54,7 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
                         icon_url: server_cc.icon_url.clone(),
                     })
                 });
-                context.current.set(Some(server_cc.clone()));
+                context.current.set(Some(server_cc));
                 let ch_context = use_context::<ChannelContext>();
                 ch_context.current.set(None);
                 ch_context.messages.set(vec![]);
@@ -66,7 +65,7 @@ pub(super) fn server_card(server: Server, expanded_id: Signal<Option<ServerId>>)
     };
 
     let center_icon = card_icon(server.icon_url.clone(), first_char.clone());
-    let bottom_icon = card_icon(server.icon_url.clone(), first_char.clone());
+    let bottom_icon = card_icon(server.icon_url, first_char);
 
     view! {
         div(

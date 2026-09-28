@@ -15,3 +15,9 @@ pub struct ChannelView {
     pub r#type: ChannelType,
     pub position: i32,
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ChannelCreateInfo {
+    pub name: String,
+    pub r#type: ChannelType,
+}

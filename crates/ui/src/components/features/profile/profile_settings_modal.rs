@@ -42,9 +42,8 @@ pub fn ProfileSettingsModal() -> View {
     };
 
     let handle_save = move |_| {
-        let new_name = name_input.get_clone();
-        if !new_name.trim().is_empty() {
-            user_profile.username.set(new_name);
+        if name_input.with(|n| !n.trim().is_empty()) {
+            user_profile.username.set(name_input.get_clone());
         }
         user_profile.avatar.set(avatar_input.get_clone());
         user_profile.banner.set(banner_input.get_clone());
@@ -53,13 +52,11 @@ pub fn ProfileSettingsModal() -> View {
     };
 
     let handle_change_password = move |_| {
-        let n_pass = new_password.get_clone();
-        let c_pass = confirm_password.get_clone();
-        if n_pass.len() < 6 {
+        if new_password.with(|p| p.len() < 6) {
             password_msg.set("Пароль должен быть не менее 6 символов".to_string());
             return;
         }
-        if n_pass != c_pass {
+        if new_password.with(|np| confirm_password.with(|cp| np != cp)) {
             password_msg.set("Пароли не совпадают".to_string());
             return;
         }
@@ -125,7 +122,7 @@ pub fn ProfileSettingsModal() -> View {
                                     // Live preview card
                                     div(class="profile-card-preview") {
                                         div(class="profile-preview-banner") {
-                                            (if !banner_input.get_clone().is_empty() {
+                                            (if banner_input.with(|b| !b.is_empty()) {
                                                 let b_url = banner_input.get_clone();
                                                 view! { img(src=b_url, alt="") }
                                             } else {
@@ -135,22 +132,22 @@ pub fn ProfileSettingsModal() -> View {
 
                                         div(class="profile-preview-header") {
                                             div(class="profile-preview-avatar") {
-                                                (if !avatar_input.get_clone().is_empty() {
+                                                (if avatar_input.with(|a| !a.is_empty()) {
                                                     let a_url = avatar_input.get_clone();
                                                     view! { img(src=a_url, alt="") }
                                                 } else {
-                                                    let initial = name_input.get_clone().chars().next().unwrap_or('?').to_uppercase().to_string();
+                                                    let initial = name_input.with(|n| n.chars().next().unwrap_or('?').to_uppercase().to_string());
                                                     view! { span { (initial) } }
                                                 })
                                                 div(class="status-dot online")
                                             }
                                             div(class="profile-preview-names") {
                                                 span(class="preview-name") { (name_input.get_clone()) }
-                                                span(class="preview-tag") { "@" (name_input.get_clone().to_lowercase()) }
+                                                span(class="preview-tag") { "@" (name_input.with(|n| n.to_lowercase())) }
                                             }
                                         }
 
-                                        (if !bio_input.get_clone().is_empty() {
+                                        (if bio_input.with(|b| !b.is_empty()) {
                                             let bio = bio_input.get_clone();
                                             view! {
                                                 div(class="profile-preview-bio") {
@@ -209,7 +206,7 @@ pub fn ProfileSettingsModal() -> View {
                                         input(r#type="password", placeholder="••••••••", bind:value=confirm_password)
                                     }
 
-                                    (if !password_msg.get_clone().is_empty() {
+                                    (if password_msg.with(|m| !m.is_empty()) {
                                         let msg = password_msg.get_clone();
                                         view! {
                                             div(class="password-status-msg") { (msg) }

@@ -78,12 +78,11 @@ pub fn open_join_modal(context: CreateServerContext) {
         },
     ];
     context.public_servers.set(hardcoded);
-    let ctx = context.clone();
     spawn_local_scoped(async move {
         if let Ok((servers, _has_more)) = Api::get_public_servers(1).await
             && !servers.is_empty()
         {
-            ctx.public_servers.set(servers);
+            context.public_servers.set(servers);
         }
     });
 }
@@ -99,7 +98,7 @@ pub fn ServerSidebar() -> View {
         expanded_id: create_signal::<Option<ServerId>>(None),
         from_dashboard: create_signal(false),
     };
-    provide_context(context.clone());
+    provide_context(context);
 
     let server_context = use_context::<ServerContext>();
 
@@ -131,12 +130,11 @@ pub fn ServerSidebar() -> View {
 
     let handle_create = move |_| {
         let context = use_context::<CreateServerContext>();
-        let name = context.server_name.with(|v| v.clone());
-        if name.trim().is_empty() {
+        if context.server_name.with(|v| v.trim().is_empty()) {
             return;
         }
         let info = ServerCreateInfo {
-            name: name,
+            name: context.server_name.get_clone(),
             is_public: context.is_public.get(),
         };
         create_server(server_context.list, info);
@@ -174,9 +172,9 @@ pub fn ServerSidebar() -> View {
             list=server_context.list,
             view=move |server| {
                 let id = server.id;
-                let name = create_signal(server.name.clone());
-                let icon_url = create_signal(server.icon_url);
                 let tip = server.name.clone();
+                let name = create_signal(server.name);
+                let icon_url = create_signal(server.icon_url);
 
                 let is_active_memo = create_memo(move || {
                     server_context.current.with(|c| c.as_ref().map(|s| s.id) == Some(id))

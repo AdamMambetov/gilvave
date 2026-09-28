@@ -25,17 +25,26 @@ pub fn ChannelPanel() -> View {
         modal_context.is_create_channel_open.set(true);
     };
 
+    let current_server_id = create_memo(move || {
+        server_context
+            .current
+            .with(|s| s.as_ref().map(|srv| srv.id))
+    });
+
     create_effect(move || {
+        let server_id_opt = current_server_id.get();
+
         spawn_local_scoped(async move {
-            if let Some(channel) = context.current.get_clone() {
+            if let Some(channel_id) = context.current.with_untracked(|c| c.as_ref().map(|ch| ch.id))
+            {
                 context.current.set(None);
-                let _ = WsService::left_channel(channel.id).await;
+                let _ = WsService::left_channel(channel_id).await;
             }
         });
 
-        if let Some(server) = server_context.current.get_clone() {
+        if let Some(server_id) = server_id_opt {
             spawn_local_scoped(async move {
-                let res = Api::get_server_channels(server.id).await;
+                let res = Api::get_server_channels(server_id).await;
 
                 context.text.set(vec![]);
                 context.voice.set(vec![]);
@@ -69,7 +78,7 @@ pub fn ChannelPanel() -> View {
                 Indexed(
                     list=context.text,
                     view=|channel| { view! {
-                        ChannelItem(channel_view=channel.clone())
+                        ChannelItem(channel_view=channel)
                     }},
                 )
             }

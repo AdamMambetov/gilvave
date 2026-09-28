@@ -121,7 +121,7 @@ pub fn HomeNavPanel() -> View {
 
                 div(class="home-quick-nav") {
                     div(
-                        class=if modal_context.selected_dm_name.get_clone().is_none() && modal_context.home_tab.get() == HomeTab::Dashboard {
+                        class=if modal_context.selected_dm_name.with(|d| d.is_none()) && modal_context.home_tab.get() == HomeTab::Dashboard {
                             "home-nav-item active"
                         } else {
                             "home-nav-item"
@@ -152,9 +152,9 @@ pub fn HomeNavPanel() -> View {
                 Indexed(
                     list=dms_signal,
                     view=move |dm| {
-                        let name_str = dm.name.to_string();
+                        let dm_name = dm.name;
                         let is_active = create_memo(move || {
-                            modal_context.selected_dm_name.get_clone() == Some(name_str.clone())
+                            modal_context.selected_dm_name.with(|s| s.as_deref() == Some(dm_name))
                         });
 
                         let item_class = move || {
@@ -165,11 +165,8 @@ pub fn HomeNavPanel() -> View {
                             }
                         };
 
-                        let on_select = {
-                            let name = dm.name.to_string();
-                            move |_| {
-                                modal_context.selected_dm_name.set(Some(name.clone()));
-                            }
+                        let on_select = move |_| {
+                            modal_context.selected_dm_name.set(Some(dm_name.to_string()));
                         };
 
                         let status_class = format!("status-dot {}", dm.status);
@@ -204,11 +201,9 @@ pub fn HomeNavPanel() -> View {
                 Indexed(
                     list=groups_signal,
                     view=move |grp| {
-                        let on_select_group = {
-                            let name = grp.name.to_string();
-                            move |_| {
-                                modal_context.selected_dm_name.set(Some(name.clone()));
-                            }
+                        let grp_name = grp.name;
+                        let on_select_group = move |_| {
+                            modal_context.selected_dm_name.set(Some(grp_name.to_string()));
                         };
 
                         let members_str = format!("{} участников", grp.members_count);

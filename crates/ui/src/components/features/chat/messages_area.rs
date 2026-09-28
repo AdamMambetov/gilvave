@@ -67,9 +67,10 @@ pub fn MessagesArea() -> View {
     let channel_context = use_context::<ChannelContext>();
     let server_context = use_context::<ServerContext>();
     let user_profile = use_context::<UserProfileContext>();
-    let channel_name = create_memo(move || match channel_context.current.get_clone() {
-        Some(channel) => channel.name,
-        None => "<UNKNOWN>".into(),
+    let channel_name = create_memo(move || {
+        channel_context
+            .current
+            .with(|c| c.as_ref().map_or_else(|| "<UNKNOWN>".into(), |ch| ch.name.clone()))
     });
 
     let message_text = create_signal(String::new());
@@ -77,13 +78,11 @@ pub fn MessagesArea() -> View {
     let on_submit = move |event: SubmitEvent| {
         event.prevent_default();
 
-        let msg = message_text.get_clone();
-        let channel = channel_context.current.get_clone();
-        if channel.is_none() {
+        let Some(channel_id) = channel_context.current.with(|c| c.as_ref().map(|ch| ch.id)) else {
             return;
-        }
+        };
 
-        let sanitized = match gilvave_core::validation::validate_message(&msg) {
+        let sanitized = match message_text.with(|msg| gilvave_core::validation::validate_message(msg)) {
             Ok(s) => s,
             Err(e) => {
                 web_sys::console::warn_1(&format!("[MESSAGES_AREA] on_submit ignored: {e}").into());
@@ -92,7 +91,6 @@ pub fn MessagesArea() -> View {
         };
 
         spawn_local_scoped(async move {
-            let channel_id = channel.unwrap().id;
             web_sys::console::log_1(&format!("[MESSAGES_AREA] invoking MessageCreate for {channel_id}").into());
             let res = WsService::message_create(channel_id, sanitized).await;
             web_sys::console::log_1(&format!("[MESSAGES_AREA] MessageCreate res: {res:?}").into());
@@ -117,33 +115,25 @@ pub fn MessagesArea() -> View {
         if is_top {
             console_log!("top message");
             spawn_local_scoped(async move {
-                let context = use_context::<ChannelContext>();
-                let _ = WsService::channel_history_before(
-                    context.current.get_clone().unwrap().id,
-                    channel_context
-                        .messages
-                        .get_clone()
-                        .first()
-                        .unwrap()
-                        .created_at,
-                )
-                .await;
+                let Some(ch_id) = channel_context.current.with(|c| c.as_ref().map(|ch| ch.id)) else {
+                    return;
+                };
+                let Some(first_dt) = channel_context.messages.with(|m| m.first().map(|msg| msg.created_at)) else {
+                    return;
+                };
+                let _ = WsService::channel_history_before(ch_id, first_dt).await;
             });
         }
         if is_bottom {
             console_log!("bottom message");
             spawn_local_scoped(async move {
-                let context = use_context::<ChannelContext>();
-                let _ = WsService::channel_history_after(
-                    context.current.get_clone().unwrap().id,
-                    channel_context
-                        .messages
-                        .get_clone()
-                        .last()
-                        .unwrap()
-                        .created_at,
-                )
-                .await;
+                let Some(ch_id) = channel_context.current.with(|c| c.as_ref().map(|ch| ch.id)) else {
+                    return;
+                };
+                let Some(last_dt) = channel_context.messages.with(|m| m.last().map(|msg| msg.created_at)) else {
+                    return;
+                };
+                let _ = WsService::channel_history_after(ch_id, last_dt).await;
             });
         }
     };
@@ -237,85 +227,92 @@ pub fn MessagesArea() -> View {
     };
 
     let enriched_messages = create_memo(move || {
-        let msgs = channel_context.messages.get_clone();
-        let members = server_context.members.get_clone();
-        let my_username = user_profile.username.get_clone();
-        let my_avatar = user_profile.avatar.get_clone();
-        let len = msgs.len();
+        channel_context.messages.with(|msgs| {
+            server_context.members.with(|members| {
+                user_profile.username.with(|my_username| {
+                    user_profile.avatar.with(|my_avatar| {
+                        let len = msgs.len();
+                        let local_offset = get_local_offset();
+                        let local_dts: Vec<time::OffsetDateTime> = msgs
+                            .iter()
+                            .map(|m| m.created_at.to_offset(local_offset))
+                            .collect();
 
-        let local_offset = get_local_offset();
-        let local_msgs: Vec<(time::OffsetDateTime, MessageView)> = msgs
-            .into_iter()
-            .map(|m| {
-                let local_dt = m.created_at.to_offset(local_offset);
-                (local_dt, m)
+                        msgs.iter()
+                            .enumerate()
+                            .map(|(i, m)| {
+                                let m_local_dt = local_dts[i];
+                                let m_date = m_local_dt.date();
+                                let is_new_day = if i == 0 {
+                                    true
+                                } else {
+                                    local_dts[i - 1].date() != m_date
+                                };
+                                let date_divider = if is_new_day {
+                                    Some(format_date_divider(m_date))
+                                } else {
+                                    None
+                                };
+
+                                let is_first = if i == 0 {
+                                    true
+                                } else {
+                                    let prev_dt = local_dts[i - 1];
+                                    let prev_m = &msgs[i - 1];
+                                    prev_m.author_name != m.author_name
+                                        || (m.author_id.is_some()
+                                            && prev_m.author_id != m.author_id)
+                                        || prev_dt.date() != m_date
+                                        || (m_local_dt - prev_dt) > time::Duration::minutes(5)
+                                };
+
+                                let is_last = if i + 1 == len {
+                                    true
+                                } else {
+                                    let next_dt = local_dts[i + 1];
+                                    let next_m = &msgs[i + 1];
+                                    next_m.author_name != m.author_name
+                                        || (m.author_id.is_some()
+                                            && next_m.author_id != m.author_id)
+                                        || next_dt.date() != m_date
+                                        || (next_dt - m_local_dt) > time::Duration::minutes(5)
+                                };
+
+                                let avatar = if !my_avatar.is_empty()
+                                    && m.author_name == *my_username
+                                {
+                                    my_avatar.clone()
+                                } else {
+                                    members
+                                        .iter()
+                                        .find(|mem| {
+                                            mem.username == m.author_name
+                                                || (m.author_id.is_some()
+                                                    && Some(mem.user_id) == m.author_id)
+                                        })
+                                        .map(|mem| mem.avatar.clone())
+                                        .unwrap_or_else(|| {
+                                            if m.author_name == *my_username {
+                                                my_avatar.clone()
+                                            } else {
+                                                String::new()
+                                            }
+                                        })
+                                };
+
+                                EnrichedMessage {
+                                    message: m.clone(),
+                                    avatar_url: avatar,
+                                    is_first,
+                                    is_last,
+                                    date_divider,
+                                }
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                })
             })
-            .collect();
-
-        local_msgs
-            .iter()
-            .enumerate()
-            .map(|(i, (m_local_dt, m))| {
-                let m_date = m_local_dt.date();
-                let is_new_day = if i == 0 {
-                    true
-                } else {
-                    local_msgs[i - 1].0.date() != m_date
-                };
-                let date_divider = if is_new_day {
-                    Some(format_date_divider(m_date))
-                } else {
-                    None
-                };
-
-                let is_first = if i == 0 {
-                    true
-                } else {
-                    let (prev_dt, prev_m) = &local_msgs[i - 1];
-                    prev_m.author_name != m.author_name
-                        || (m.author_id.is_some() && prev_m.author_id != m.author_id)
-                        || prev_dt.date() != m_date
-                        || (*m_local_dt - *prev_dt) > time::Duration::minutes(5)
-                };
-
-                let is_last = if i + 1 == len {
-                    true
-                } else {
-                    let (next_dt, next_m) = &local_msgs[i + 1];
-                    next_m.author_name != m.author_name
-                        || (m.author_id.is_some() && next_m.author_id != m.author_id)
-                        || next_dt.date() != m_date
-                        || (*next_dt - *m_local_dt) > time::Duration::minutes(5)
-                };
-
-                let avatar = if !my_avatar.is_empty() && m.author_name == my_username {
-                    my_avatar.clone()
-                } else {
-                    members
-                        .iter()
-                        .find(|mem| {
-                            mem.username == m.author_name
-                                || (m.author_id.is_some() && Some(mem.user_id) == m.author_id)
-                        })
-                        .map(|mem| mem.avatar.clone())
-                        .unwrap_or_else(|| {
-                            if m.author_name == my_username {
-                                my_avatar.clone()
-                            } else {
-                                String::new()
-                            }
-                        })
-                };
-
-                EnrichedMessage {
-                    message: m.clone(),
-                    avatar_url: avatar,
-                    is_first,
-                    is_last,
-                    date_divider,
-                }
-            })
-            .collect::<Vec<_>>()
+        })
     });
 
     view! {
@@ -350,11 +347,10 @@ pub fn MessagesArea() -> View {
                     list=enriched_messages,
                     key=|em| (em.message.id, em.is_first, em.is_last, em.date_divider.clone(), em.avatar_url.clone()),
                     view=|em| {
-                        let date_view = if let Some(ref date_str) = em.date_divider {
-                            let d = date_str.clone();
+                        let date_view = if let Some(date_str) = em.date_divider {
                             view! {
                                 div(class="chat-date-divider") {
-                                    span(class="date-badge") { (d) }
+                                    span(class="date-badge") { (date_str) }
                                 }
                             }
                         } else {

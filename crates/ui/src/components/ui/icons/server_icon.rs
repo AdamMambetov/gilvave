@@ -12,25 +12,19 @@ pub fn ServerIcon(
     let class = classes(vec![
         "server-icon".into(),
         ("active", is_active).into(),
-        ("new", { server_name.get_clone() == "+" }.into()).into(),
+        ("new", { server_name.with(|s| s == "+") }.into()).into(),
     ]);
 
     view! {
         div(class=class, ..attributes) {
-            ({
+            (if icon_url.with(|s| s.is_empty()) {
+                let first_char = server_name.with(|s| {
+                    s.chars().next().unwrap_or('?').to_uppercase().to_string()
+                });
+                view! { span { (first_char) } }
+            } else {
                 let icon_str = icon_url.get_clone();
-                let first_char = server_name
-                    .get_clone()
-                    .chars()
-                    .next()
-                    .unwrap_or('?')
-                    .to_uppercase()
-                    .to_string();
-                if icon_str.is_empty() {
-                    view! { span { (first_char) } }
-                } else {
-                    view! { img(src=icon_str) }
-                }
+                view! { img(src=icon_str) }
             })
         }
     }

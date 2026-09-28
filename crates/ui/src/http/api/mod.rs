@@ -4,7 +4,10 @@ use wasm_bindgen::JsCast;
 use wasm_streams::ReadableStream;
 
 use gilvave_core::{
-    dto::command::{CommandArgs, CommandResponse, CommandResult},
+    dto::{
+        command::{CommandArgs, CommandResponse, CommandResult},
+        traits::RequestBody,
+    },
     error::{ErrorInfo, ErrorMessage},
 };
 
@@ -17,10 +20,17 @@ pub mod user;
 pub struct Api;
 
 impl Api {
+    pub(super) async fn fetch_access_token() -> String {
+        match invoke_command(CommandArgs::GetAccessToken.to_json()).await {
+            CommandResult::Ok(CommandResponse::GetAccessToken(t)) => t,
+            _ => String::new(),
+        }
+    }
+
     async fn send_once(
         method: &str,
         url: &str,
-        body: Option<String>,
+        body: &Option<String>,
         auth_token: Option<&str>,
     ) -> Result<web_sys::Response, ErrorInfo> {
         let window =
@@ -47,7 +57,7 @@ impl Api {
         }
         opts.set_headers(&headers);
 
-        if let Some(ref b) = body {
+        if let Some(b) = body {
             opts.set_body(&wasm_bindgen::JsValue::from_str(b));
         }
 
@@ -69,19 +79,17 @@ impl Api {
     pub async fn request_raw(
         method: &str,
         url: &str,
-        body: Option<String>,
+        body: impl RequestBody,
         auth_token: Option<&str>,
     ) -> Result<web_sys::Response, ErrorInfo> {
-        let response = Self::send_once(method, url, body.clone(), auth_token).await?;
+        let body_json = body.to_json()?;
+        let response = Self::send_once(method, url, &body_json, auth_token).await?;
         if response.status() == 401
             && auth_token.is_some()
             && Box::pin(Self::update_tokens()).await.is_ok()
         {
-            let new_token = match invoke_command(CommandArgs::GetAccessToken.to_json()).await {
-                CommandResult::Ok(CommandResponse::GetAccessToken(t)) => t,
-                _ => String::new(),
-            };
-            return Self::send_once(method, url, body, Some(&new_token)).await;
+            let new_token = Self::fetch_access_token().await;
+            return Self::send_once(method, url, &body_json, Some(&new_token)).await;
         }
         Ok(response)
     }

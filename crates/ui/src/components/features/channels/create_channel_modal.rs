@@ -1,15 +1,16 @@
-use gilvave_core::{
-    dto::channel::{ChannelType, ChannelView},
-    ids::ChannelId,
-};
-use sycamore::prelude::*;
+use gilvave_core::dto::channel::{ChannelCreateInfo, ChannelType};
+use sycamore::{futures::spawn_local_scoped, prelude::*};
 
-use crate::components::common::{ChannelContext, UiModalContext};
+use crate::{
+    components::common::{ChannelContext, ServerContext, UiModalContext},
+    http::api::Api,
+};
 
 #[component]
 pub fn CreateChannelModal() -> View {
     let modal_context = use_context::<UiModalContext>();
     let channel_context = use_context::<ChannelContext>();
+    let server_context = use_context::<ServerContext>();
 
     let channel_name = create_signal(String::new());
 
@@ -18,35 +19,44 @@ pub fn CreateChannelModal() -> View {
     };
 
     let handle_create = move |_| {
-        let raw = channel_name.get_clone();
-        let trimmed = raw.trim().to_lowercase().replace(' ', "-");
+        let trimmed: String = channel_name.with(|raw| raw.trim().to_lowercase().replace(' ', "-"));
         if trimmed.is_empty() {
             return;
         }
 
-        let ch_type = modal_context.create_channel_type.get();
-        let new_channel = ChannelView {
-            id: ChannelId::default(),
-            name: trimmed,
-            r#type: ch_type,
-            position: 0,
+        let Some(server_id) = server_context
+            .current
+            .with_untracked(|s| s.as_ref().map(|srv| srv.id))
+        else {
+            return;
         };
 
-        match ch_type {
-            ChannelType::TEXT => {
-                channel_context.text.update(|list| list.push(new_channel.clone()));
-                channel_context.current.set(Some(new_channel));
-            }
-            ChannelType::VOICE => {
-                channel_context.voice.update(|list| list.push(new_channel));
-            }
-        }
+        spawn_local_scoped(async move {
+            let info = ChannelCreateInfo {
+                name: trimmed,
+                r#type: modal_context.create_channel_type.get(),
+            };
 
-        modal_context.is_create_channel_open.set(false);
+            if let Ok(new_channel) = Api::create_channel(server_id, info).await {
+                match new_channel.r#type {
+                    ChannelType::TEXT => {
+                        channel_context
+                            .text
+                            .update(|list| list.push(new_channel.clone()));
+                    }
+                    ChannelType::VOICE => {
+                        channel_context.voice.update(|list| list.push(new_channel));
+                    }
+                }
+            }
+            modal_context.is_create_channel_open.set(false);
+        });
     };
 
-    let is_text_type = create_memo(move || modal_context.create_channel_type.get() == ChannelType::TEXT);
-    let is_voice_type = create_memo(move || modal_context.create_channel_type.get() == ChannelType::VOICE);
+    let is_text_type =
+        create_memo(move || modal_context.create_channel_type.get() == ChannelType::TEXT);
+    let is_voice_type =
+        create_memo(move || modal_context.create_channel_type.get() == ChannelType::VOICE);
     let prefix_char = create_memo(move || if is_text_type.get() { "#" } else { "🔊" });
 
     let text_option_class = move || {

@@ -209,6 +209,10 @@ crates/ui/src/
 11. **`collect_device_info()` in WASM vs Desktop**:
    - Because `crates/ui` is always compiled to `wasm32-unknown-unknown`, calling `gilvave_core::settings::collect_device_info()` directly inside UI components will **always** hit `#[cfg(target_arch = "wasm32")]` and report `client: "web"`, even when running inside the Tauri Desktop app.
    - Always retrieve `DeviceInfo` via `invoke_command(CommandArgs::GetDeviceInfo.to_json()).await` so Desktop fetches `collect_desktop()` (`client: "desktop"`) from `src-tauri` and Web fetches `collect_web()` (`client: "web"`).
+12. **`Signal::with` / `with_untracked` Borrow Gotcha in Sycamore 0.9**:
+   - In `sycamore-reactive 0.9`, `signal.with(|v| ...)` holds an immutable `Ref` borrow on the global `Root::nodes` (`RefCell<SlotMap<NodeId, ReactiveNode>>`) for the entire duration of the closure.
+   - **NEVER** construct `view! { ... }` (especially with `on:click` or dynamic attributes, which call `on_cleanup` / `create_effect` and mutably borrow `Root::nodes`), create signals/effects/memos, or call `.set()` / `.update()` *inside* a `.with(...)` closure. Doing so immediately panics with `RefCell already borrowed` at `dom_node.rs:180:9` (`on_cleanup`), and because WASM aborts without running `Drop` on `Ref`, `Root::nodes` remains permanently borrowed, causing all subsequent signal `.set()` calls to fail with `cannot update signal while reading: BorrowMutError`.
+   - Always extract only the needed data inside `.with(...)`, let the closure return so the `Ref` guard is dropped, and then construct `view! { ... }` or call `.set()`.
 
 ---
 

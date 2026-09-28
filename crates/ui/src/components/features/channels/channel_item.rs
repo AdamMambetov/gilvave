@@ -13,9 +13,10 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
     let channel_signal = create_signal(channel_view);
 
     let context = use_context::<ChannelContext>();
-    let is_active = create_memo(move || match context.current.get_clone() {
-        Some(channel) => channel.id == channel_id,
-        None => false,
+    let is_active = create_memo(move || {
+        context
+            .current
+            .with(|c| c.as_ref().is_some_and(|channel| channel.id == channel_id))
     });
 
     let on_click = move |_| {
@@ -24,14 +25,14 @@ pub fn ChannelItem(channel_view: ChannelView) -> View {
             let channel_item_id = channel_item.id;
 
             let context = use_context::<ChannelContext>();
-            if let Some(channel) = context.current.get_clone() {
-                if channel.id == channel_item_id {
+            if let Some(prev_id) = context.current.with(|c| c.as_ref().map(|ch| ch.id)) {
+                if prev_id == channel_item_id {
                     return;
                 }
 
                 context.current.set(None);
                 context.messages.set(vec![]);
-                let _ = WsService::left_channel(channel.id).await;
+                let _ = WsService::left_channel(prev_id).await;
             }
 
             web_sys::console::log_1(&format!("[CHANNEL_ITEM] clicked channel: {channel_item_id}").into());

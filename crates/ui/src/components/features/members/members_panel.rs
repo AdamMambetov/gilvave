@@ -8,10 +8,16 @@ use super::member_item::MemberItem;
 pub fn MembersPanel() -> View {
     let server_context = use_context::<ServerContext>();
 
+    let current_server_id = create_memo(move || {
+        server_context
+            .current
+            .with(|s| s.as_ref().map(|srv| srv.id))
+    });
+
     create_effect(move || {
-        if let Some(server) = server_context.current.get_clone() {
+        if let Some(server_id) = current_server_id.get() {
             spawn_local_scoped(async move {
-                if let Ok(members) = Api::get_members(server.id).await {
+                if let Ok(members) = Api::get_members(server_id).await {
                     server_context.members.set(members);
                 }
             })

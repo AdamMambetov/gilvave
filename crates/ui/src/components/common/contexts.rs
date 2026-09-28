@@ -8,7 +8,7 @@ use gilvave_core::{
 };
 use sycamore::prelude::*;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct ChannelContext {
     pub current: Signal<Option<ChannelView>>,
     pub text: Signal<Vec<ChannelView>>,
@@ -16,7 +16,7 @@ pub struct ChannelContext {
     pub messages: Signal<Vec<MessageView>>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct ServerContext {
     pub current: Signal<Option<Server>>,
     pub list: Signal<Vec<ServerSmallPart>>,
@@ -30,7 +30,7 @@ pub enum ModalView {
     Join,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct CreateServerContext {
     pub is_modal_open: Signal<bool>,
     pub modal_view: Signal<ModalView>,
@@ -41,7 +41,7 @@ pub struct CreateServerContext {
     pub from_dashboard: Signal<bool>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct UserProfileContext {
     pub username: Signal<String>,
     pub avatar: Signal<String>,
@@ -58,7 +58,7 @@ pub enum HomeTab {
     Dashboard,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct UiModalContext {
     pub is_server_settings_open: Signal<bool>,
     pub is_create_channel_open: Signal<bool>,

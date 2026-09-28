@@ -27,20 +27,98 @@
     }
 }
 
+// ─── Smooth 19-point polygons for liquid bar-to-triangle morphing ────────────
+$pill-bar-polygon: polygon(
+    0% 0%,
+    25% 0%,
+    50% 0%,
+    75% 2%,
+    92% 6%,
+    100% 14%,
+    100% 23%,
+    100% 32%,
+    100% 41%,
+    100% 50%,
+    100% 59%,
+    100% 68%,
+    100% 77%,
+    100% 86%,
+    92% 94%,
+    75% 98%,
+    50% 100%,
+    25% 100%,
+    0% 100%
+);
+
+$pill-triangle-polygon: polygon(
+    0% 6%,
+    4% 2%,
+    10% 0%,
+    18% 2%,
+    26% 6%,
+    76% 35%,
+    86% 40%,
+    94% 44.5%,
+    98.5% 47.5%,
+    100% 50%,
+    98.5% 52.5%,
+    94% 55.5%,
+    86% 60%,
+    76% 65%,
+    26% 94%,
+    18% 98%,
+    10% 100%,
+    4% 98%,
+    0% 94%
+);
+
+@keyframes pillTriangleWobble {
+    0% {
+        transform: translateY(-50%) scaleX(0.85) scaleY(1.08) rotate(0deg);
+    }
+    32% {
+        transform: translateY(-50%) scaleX(1.22) scaleY(0.88) rotate(4.5deg);
+    }
+    52% {
+        transform: translateY(-50%) scaleX(0.88) scaleY(1.08) rotate(-3.5deg);
+    }
+    70% {
+        transform: translateY(-50%) scaleX(1.1) scaleY(0.95) rotate(2deg);
+    }
+    85% {
+        transform: translateY(-50%) scaleX(0.96) scaleY(1.02) rotate(-1deg);
+    }
+    100% {
+        transform: translateY(-50%) scaleX(1) scaleY(1) rotate(0deg);
+    }
+}
+
 .home-pill {
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
+    transform-origin: left center;
     width: 4px;
     height: 0;
     background: $color-text-white;
-    border-radius: 0 4px 4px 0;
-    transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    clip-path: $pill-bar-polygon;
+    transition:
+        height 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+        clip-path 0.22s cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: none;
 
     &.active {
-        height: 38px;
+        width: 7.5px;
+        height: 18px;
+        clip-path: $pill-triangle-polygon;
+        animation: pillTriangleWobble 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+
+        @include respond-to(md) {
+            width: 5.5px;
+            height: 13.5px;
+        }
     }
 }
 
@@ -218,15 +296,27 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
+    transform-origin: left center;
     width: 4px;
     height: 0;
-    border-radius: 0 4px 4px 0;
     background: $color-text-white;
-    transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    clip-path: $pill-bar-polygon;
+    transition:
+        height 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+        clip-path 0.22s cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: none;
 
     &.active {
-        height: 38px;
+        width: 7.5px;
+        height: 18px;
+        clip-path: $pill-triangle-polygon;
+        animation: pillTriangleWobble 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+
+        @include respond-to(md) {
+            width: 5.5px;
+            height: 13.5px;
+        }
     }
 }
 

@@ -25,21 +25,20 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
     let email_error = create_signal(false);
     let password_error = create_signal(false);
     let loading = create_signal(false);
-    let loading_clone = loading.clone();
 
     let on_submit = move |event: SubmitEvent| {
         event.prevent_default();
 
         let mut is_valid = true;
 
-        if email.get_clone().trim().is_empty() {
+        if email.with(|e| e.trim().is_empty()) {
             email_error.set(true);
             is_valid = false;
         } else {
             email_error.set(false);
         }
 
-        if password.get_clone().is_empty() {
+        if password.with(|p| p.is_empty()) {
             password_error.set(true);
             is_valid = false;
         } else {
@@ -47,11 +46,11 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
         }
 
         if is_valid {
-            console_log!(
-                "Вход: email={}, password={}",
-                email.get_clone(),
-                password.get_clone()
-            );
+            email.with(|e| {
+                password.with(|p| {
+                    console_log!("Вход: email={e}, password={p}");
+                });
+            });
 
             spawn_local_scoped(async move {
                 loading.set(true);
@@ -60,8 +59,8 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
                     _ => serde_json::Value::Null,
                 };
                 let res = Api::login(LoginRequest {
-                    email: email.to_string(),
-                    password: password.to_string(),
+                    email: email.get_clone(),
+                    password: password.get_clone(),
                     device_info,
                 })
                 .await;
@@ -120,7 +119,7 @@ pub fn LoginPanel(props: LoginFormProps) -> View {
 
                 SocialButtons()
             }
-            (if loading_clone.get() {
+            (if loading.get() {
                 view! { Spinner() }
             } else {
                 view! {}

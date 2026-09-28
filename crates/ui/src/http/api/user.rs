@@ -11,12 +11,10 @@ use crate::{http::api::Api, utils::invoke_command};
 
 impl Api {
     pub async fn register(register_request: RegisterRequest) -> Result<(), ErrorInfo> {
-        let body =
-            serde_json::to_string(&register_request).map_err(|e| ErrorInfo(1, e.to_string()))?;
         let res = Api::request_raw(
             "POST",
             &format!("{BASE_HTTP_URL}/users/register"),
-            Some(body),
+            &register_request,
             None,
         )
         .await?;
@@ -24,11 +22,10 @@ impl Api {
     }
 
     pub async fn login(request: LoginRequest) -> Result<(), ErrorInfo> {
-        let body = serde_json::to_string(&request).map_err(|e| ErrorInfo(1, e.to_string()))?;
         let res = Api::request_raw(
             "POST",
             &format!("{BASE_HTTP_URL}/users/login"),
-            Some(body),
+            &request,
             None,
         )
         .await?;
@@ -65,11 +62,10 @@ impl Api {
             _ => String::new(),
         };
         let json = UpdateTokensRequest { refresh_token };
-        let body = serde_json::to_string(&json).map_err(|e| ErrorInfo(1, e.to_string()))?;
         let res = Api::request_raw(
             "POST",
             &format!("{BASE_HTTP_URL}/users/refresh"),
-            Some(body),
+            &json,
             None,
         )
         .await?;
@@ -101,14 +97,11 @@ impl Api {
     }
 
     pub async fn get_profile() -> Result<UserView, ErrorInfo> {
-        let token = match invoke_command(CommandArgs::GetAccessToken.to_json()).await {
-            CommandResult::Ok(CommandResponse::GetAccessToken(t)) => t,
-            _ => String::new(),
-        };
+        let token = Self::fetch_access_token().await;
         let res = Api::request_raw(
             "GET",
             &format!("{BASE_HTTP_URL}/users/me"),
-            None,
+            (),
             Some(&token),
         )
         .await?;

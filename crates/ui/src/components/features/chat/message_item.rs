@@ -13,13 +13,6 @@ pub fn MessageItem(
     let format = parse_borrowed::<3>("[hour]:[minute]").unwrap();
     let local_dt = to_local_datetime(message_view.created_at);
     let formatted_timestamp = local_dt.format(&format).unwrap();
-    let first_char = message_view
-        .author_name
-        .chars()
-        .next()
-        .unwrap_or('?')
-        .to_uppercase()
-        .to_string();
 
     let mut class_list = String::from("message");
     if !is_first_in_group {
@@ -32,16 +25,21 @@ pub fn MessageItem(
         class_list.push_str(" group-last");
     }
 
-    let has_avatar = !avatar_url.is_empty();
-
     let avatar_node = if is_first_in_group {
-        if has_avatar {
+        if !avatar_url.is_empty() {
             view! {
                 div(class="message-avatar") {
                     img(class="message-avatar-img", src=avatar_url, alt="")
                 }
             }
         } else {
+            let first_char = message_view
+                .author_name
+                .chars()
+                .next()
+                .unwrap_or('?')
+                .to_uppercase()
+                .to_string();
             view! {
                 div(class="message-avatar") {
                     span { (first_char) }
@@ -54,25 +52,23 @@ pub fn MessageItem(
         }
     };
 
-    let header_node = if is_first_in_group {
-        let ts = formatted_timestamp.clone();
-        view! {
-            div(class="message-header") {
-                span(class="author") { (message_view.author_name) }
-                span(class="timestamp") { (ts) }
-            }
-        }
+    let (header_node, chained_node) = if is_first_in_group {
+        (
+            view! {
+                div(class="message-header") {
+                    span(class="author") { (message_view.author_name) }
+                    span(class="timestamp") { (formatted_timestamp) }
+                }
+            },
+            view! {},
+        )
     } else {
-        view! {}
-    };
-
-    let chained_node = if !is_first_in_group {
-        let ts = formatted_timestamp.clone();
-        view! {
-            span(class="chained-time") { (ts) }
-        }
-    } else {
-        view! {}
+        (
+            view! {},
+            view! {
+                span(class="chained-time") { (formatted_timestamp) }
+            },
+        )
     };
 
     view! {

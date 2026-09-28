@@ -37,7 +37,7 @@ pub fn HomePanel() -> View {
         is_muted: create_signal(false),
         is_deafened: create_signal(false),
     };
-    provide_context(user_profile.clone());
+    provide_context(user_profile);
 
     let ui_modal_context = UiModalContext {
         is_server_settings_open: create_signal(false),
@@ -47,14 +47,14 @@ pub fn HomePanel() -> View {
         selected_dm_name: create_signal(None),
         home_tab: create_signal(crate::components::common::HomeTab::Chats),
     };
-    provide_context(ui_modal_context.clone());
+    provide_context(ui_modal_context);
 
     let server_context = ServerContext {
         current: create_signal::<Option<Server>>(None),
         list: create_signal::<Vec<ServerSmallPart>>(vec![]),
         members: create_signal::<Vec<MemberView>>(vec![]),
     };
-    provide_context(server_context.clone());
+    provide_context(server_context);
 
     let channel_context = ChannelContext {
         text: create_signal::<Vec<ChannelView>>(vec![]),
@@ -62,17 +62,15 @@ pub fn HomePanel() -> View {
         current: create_signal::<Option<ChannelView>>(None),
         messages: create_signal::<Vec<MessageView>>(vec![]),
     };
-    provide_context(channel_context.clone());
+    provide_context(channel_context);
 
     let ws_started = create_signal(false);
-    let u_prof_for_effect = user_profile.clone();
     create_effect(move || {
         if screen_wrapper.is_home() {
-            let u_prof = u_prof_for_effect.clone();
             spawn_local_scoped(async move {
                 if let Ok(user) = Api::get_profile().await {
-                    u_prof.username.set(user.username);
-                    u_prof.avatar.set(user.avatar);
+                    user_profile.username.set(user.username);
+                    user_profile.avatar.set(user.avatar);
                 }
             });
 
@@ -91,11 +89,11 @@ pub fn HomePanel() -> View {
 
     let handle_home_click = move |_| {
         let ch_context = use_context::<ChannelContext>();
-        let active_channel = ch_context.current.get_clone();
+        let active_channel_id = ch_context.current.with(|c| c.as_ref().map(|ch| ch.id));
         ch_context.current.set(None);
-        if let Some(channel) = active_channel {
+        if let Some(channel_id) = active_channel_id {
             spawn_local_scoped(async move {
-                let _ = WsService::left_channel(channel.id).await;
+                let _ = WsService::left_channel(channel_id).await;
             });
         }
         let context = use_context::<ServerContext>();
@@ -104,7 +102,7 @@ pub fn HomePanel() -> View {
         m_ctx.selected_dm_name.set(None);
     };
 
-    let is_home_active = create_memo(move || server_context.current.get_clone().is_none());
+    let is_home_active = create_memo(move || server_context.current.with(|c| c.is_none()));
     let home_pill_class = move || if is_home_active.get() { "home-pill active" } else { "home-pill" };
     let home_btn_class = move || if is_home_active.get() { "home-avatar-btn active" } else { "home-avatar-btn" };
 
@@ -140,11 +138,11 @@ pub fn HomePanel() -> View {
                         title="Главная (Личные сообщения и друзья)",
                     ) {
                         div(class="home-avatar-inner") {
-                            (if !user_profile.avatar.get_clone().is_empty() {
+                            (if user_profile.avatar.with(|a| !a.is_empty()) {
                                 let av = user_profile.avatar.get_clone();
                                 view! { img(src=av, alt="") }
                             } else {
-                                let initial = user_profile.username.get_clone().chars().next().unwrap_or('?').to_uppercase().to_string();
+                                let initial = user_profile.username.with(|u| u.chars().next().unwrap_or('?').to_uppercase().to_string());
                                 view! { span { (initial) } }
                             })
                         }
@@ -160,7 +158,7 @@ pub fn HomePanel() -> View {
 
             div(class="discord-main") {
                 div(class="discord-header") {
-                    (header_server_view(server_context.current.get_clone(), ui_modal_context.clone()))
+                    (header_server_view(server_context.current, ui_modal_context))
 
                     div(class="search-bar") {
                         span { "🔍 Поиск" }
@@ -168,11 +166,11 @@ pub fn HomePanel() -> View {
                 }
 
                 div(class=discord_content_class) {
-                    (if server_context.current.get_clone().is_some() {
+                    (if server_context.current.with(|c| c.is_some()) {
                         view! {
                             ChannelPanel()
 
-                            (if channel_context.current.get_clone().is_some() {
+                            (if channel_context.current.with(|c| c.is_some()) {
                                 view! { MessagesArea() }
                             } else {
                                 view! {
@@ -195,7 +193,7 @@ pub fn HomePanel() -> View {
                 }
             }
 
-            (if server_context.current.get_clone().is_some() {
+            (if server_context.current.with(|c| c.is_some()) {
                 MembersPanel()
             } else {
                 view!{}
@@ -220,10 +218,28 @@ pub fn HomePanel() -> View {
     }
 }
 
-fn header_server_view(server_opt: Option<Server>, modal_context: UiModalContext) -> View {
-    if let Some(server) = server_opt {
-        let cover_view = if !server.cover.is_empty() {
-            let c = server.cover.clone();
+fn header_server_view(server_signal: Signal<Option<Server>>, modal_context: UiModalContext) -> View {
+    let header_data = server_signal.with(|server_opt| {
+        server_opt.as_ref().map(|server| {
+            let cover = (!server.cover.is_empty()).then(|| server.cover.clone());
+            let icon = (!server.icon_url.is_empty()).then(|| server.icon_url.clone());
+            let initial = server.icon_url.is_empty().then(|| {
+                server
+                    .name
+                    .chars()
+                    .next()
+                    .unwrap_or('?')
+                    .to_uppercase()
+                    .to_string()
+            });
+            let members_str = format!("{} участников", server.members_count);
+            let s_name = server.name.clone();
+            (cover, icon, initial, s_name, members_str)
+        })
+    });
+
+    if let Some((cover, icon, initial, s_name, members_str)) = header_data {
+        let cover_view = if let Some(c) = cover {
             view! {
                 div(class="header-server-cover") {
                     img(src=c, alt="")
@@ -233,22 +249,12 @@ fn header_server_view(server_opt: Option<Server>, modal_context: UiModalContext)
             view! {}
         };
 
-        let icon_view = if !server.icon_url.is_empty() {
-            let i = server.icon_url.clone();
+        let icon_view = if let Some(i) = icon {
             view! { img(src=i, alt="") }
         } else {
-            let initial = server
-                .name
-                .chars()
-                .next()
-                .unwrap_or('?')
-                .to_uppercase()
-                .to_string();
-            view! { span { (initial) } }
+            let init_str = initial.unwrap_or_default();
+            view! { span { (init_str) } }
         };
-
-        let members_str = format!("{} участников", server.members_count);
-        let s_name = server.name.clone();
 
         view! {
             div(class="header-server-info") {

@@ -20,11 +20,8 @@ pub fn UserStatusBar() -> View {
     };
 
     let avatar_view = move || {
-        let av = user_profile.avatar.get_clone();
-        let name = user_profile.username.get_clone();
-        let initial = name.chars().next().unwrap_or('?').to_uppercase().to_string();
-
-        if !av.is_empty() {
+        if user_profile.avatar.with(|av| !av.is_empty()) {
+            let av = user_profile.avatar.get_clone();
             view! {
                 div(class="footer-avatar") {
                     img(src=av, alt="")
@@ -32,6 +29,9 @@ pub fn UserStatusBar() -> View {
                 }
             }
         } else {
+            let initial = user_profile.username.with(|name| {
+                name.chars().next().unwrap_or('?').to_uppercase().to_string()
+            });
             view! {
                 div(class="footer-avatar placeholder") {
                     span { (initial) }
@@ -47,7 +47,7 @@ pub fn UserStatusBar() -> View {
                 (avatar_view())
                 div(class="footer-user-info") {
                     div(class="footer-username") { (user_profile.username.get_clone()) }
-                    div(class="footer-discriminator") { "@" (user_profile.username.get_clone().to_lowercase()) }
+                    div(class="footer-discriminator") { "@" (user_profile.username.with(|u| u.to_lowercase())) }
                 }
             }
 

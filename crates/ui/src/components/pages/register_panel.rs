@@ -50,7 +50,6 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
     let password_error = create_signal(false);
     let confirm_error = create_signal(false);
     let loading = create_signal(false);
-    let loading_clone = loading.clone();
 
     let mut form_map: HashMap<&str, Signal<bool>> = [
         ("name", name_error),
@@ -83,9 +82,9 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
                 spawn_local_scoped(async move {
                     loading.set(true);
                     let res = Api::register(RegisterRequest {
-                        username: data.name.to_string(),
-                        email: data.email.to_string(),
-                        password: data.password.to_string(),
+                        username: data.name,
+                        email: data.email,
+                        password: data.password,
                     })
                     .await;
                     loading.set(false);
@@ -103,7 +102,7 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
             Err(errors) => {
                 form_map.values_mut().for_each(|signal| signal.set(false));
                 for (field, _) in errors.field_errors() {
-                    form_map[field.into_owned().as_str()].set(true);
+                    form_map[field.as_ref()].set(true);
                 }
             }
         }
@@ -164,7 +163,7 @@ pub fn RegisterPanel(props: RegisterFormProps) -> View {
 
                 SocialButtons()
             }
-            (if loading_clone.get() {
+            (if loading.get() {
                 view! { Spinner() }
             } else {
                 view! {}

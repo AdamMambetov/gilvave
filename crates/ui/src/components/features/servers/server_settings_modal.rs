@@ -30,24 +30,27 @@ pub fn ServerSettingsModal() -> View {
 
     let handle_save = move |_| {
         if let Some(mut server) = server_context.current.get_clone() {
-            let new_name = name.get_clone();
-            if !new_name.trim().is_empty() {
-                server.name = new_name;
-            }
+            name.with(|new_name| {
+                if !new_name.trim().is_empty() {
+                    server.name = new_name.clone();
+                }
+            });
             server.description = description.get_clone();
             server.icon_url = icon_url.get_clone();
             server.cover = cover_url.get_clone();
             server.is_public = is_public.get();
 
             let sid = server.id;
-            server_context.current.set(Some(server.clone()));
+            let s_name = server.name.clone();
+            let s_icon = server.icon_url.clone();
+            server_context.current.set(Some(server));
 
             // Also update small part in server_context.list
             server_context.list.update(|list| {
                 for item in list.iter_mut() {
                     if item.id == sid {
-                        item.name = server.name.clone();
-                        item.icon_url = server.icon_url.clone();
+                        item.name = s_name.clone();
+                        item.icon_url = s_icon.clone();
                     }
                 }
             });
@@ -77,7 +80,7 @@ pub fn ServerSettingsModal() -> View {
                 div(class="server-settings-body") {
                     // Live preview banner + icon
                     div(class="server-preview-banner") {
-                        (if !cover_url.get_clone().is_empty() {
+                        (if cover_url.with(|c| !c.is_empty()) {
                             let c_url = cover_url.get_clone();
                             view! { img(class="server-banner-img", src=c_url, alt="") }
                         } else {
@@ -85,11 +88,11 @@ pub fn ServerSettingsModal() -> View {
                         })
 
                         div(class="server-preview-avatar") {
-                            (if !icon_url.get_clone().is_empty() {
+                            (if icon_url.with(|i| !i.is_empty()) {
                                 let i_url = icon_url.get_clone();
                                 view! { img(src=i_url, alt="") }
                             } else {
-                                let initial = name.get_clone().chars().next().unwrap_or('?').to_uppercase().to_string();
+                                let initial = name.with(|n| n.chars().next().unwrap_or('?').to_uppercase().to_string());
                                 view! { span { (initial) } }
                             })
                         }
