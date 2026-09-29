@@ -3,7 +3,7 @@ use sycamore::prelude::*;
 use crate::{
     components::{
         common::{CreateServerContext, HomeTab, ModalView, UiModalContext, UserProfileContext},
-        features::servers::open_join_modal,
+        features::{chat::messages_area::ChatInputArea, servers::open_join_modal},
     },
     utils::to_local_datetime,
 };
@@ -14,7 +14,7 @@ pub fn HomeDashboard() -> View {
     let modal_context = use_context::<UiModalContext>();
     let server_modal_context = use_context::<CreateServerContext>();
 
-    let dm_input = create_signal(String::new());
+    let dm_input = modal_context.draft_message;
 
     view! {
         (if let Some(dm_name) = modal_context.selected_dm_name.get_clone() {
@@ -204,8 +204,7 @@ fn dm_chat_view(dm_name: String, modal_context: UiModalContext, dm_input: Signal
         format!("Сегодня, {} {}", now.day(), month_str)
     };
 
-    let on_dm_send = move |e: web_sys::SubmitEvent| {
-        e.prevent_default();
+    let do_dm_send = move || {
         if dm_input.with(|text| !text.trim().is_empty()) {
             dm_input.set(String::new());
         }
@@ -280,30 +279,7 @@ fn dm_chat_view(dm_name: String, modal_context: UiModalContext, dm_input: Signal
                 }
             }
 
-            form(class="input-area", on:submit=on_dm_send) {
-                input(
-                    class="chat-input",
-                    r#type="text",
-                    placeholder="Напишите сообщение...",
-                    bind:value=dm_input,
-                )
-                button(class="send-btn", r#type="submit", title="Отправить") {
-                    svg(
-                        xmlns="http://www.w3.org/2000/svg",
-                        width="20",
-                        height="20",
-                        viewBox="0 0 24 24",
-                        fill="none",
-                        stroke="currentColor",
-                        stroke-width="2",
-                        stroke-linecap="round",
-                        stroke-linejoin="round",
-                    ) {
-                        path(d="m22 2-7 20-4-9-9-4Z")
-                        path(d="M22 2 11 13")
-                    }
-                }
-            }
+            ChatInputArea(on_send=do_dm_send)
         }
     }
 }

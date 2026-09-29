@@ -1,52 +1,66 @@
 # Gilvave
 
-Чат-приложение (типа Discord) на Tauri 2 + Sycamore (WASM).
+Современное кроссплатформенное чат-приложение (Desktop & Web) на **Tauri 2** + **Sycamore 0.9 (WASM)**.
 
-## Стек
+## Стек технологий
 
-- **Backend**: Rust, Tauri 2, tokio-tungstenite (WebSocket), reqwest (HTTP)
-- **Frontend**: Sycamore (WASM), компилируется через Trunk
-- **Хранение токенов**: keyring (системный keychain)
+- **Frontend (`crates/ui`)**: Rust, Sycamore 0.9 (WASM), модульный SCSS + система CSS-переменных, сборка через Trunk, прямые HTTP (`web-sys` fetch) и WebSocket (`ws_stream_wasm`) соединения.
+- **Desktop Backend (`crates/src-tauri`)**: Rust, Tauri 2, локальная SQLite БД (`rusqlite`), системное хранилище ключей (`keyring`), нативная информация об устройстве (`sysinfo`).
+- **Shared Core (`crates/core`)**: Общие DTO, генерация ID (UUID v4/v7), валидация данных, настройки и обработка ошибок.
 
-## Возможности
+## Основные возможности
 
-- Авторизация (регистрация / вход)
-- Серверы и каналы (текстовые + голосовые)
-- Реалтайм-обмен сообщениями через WebSocket
-- Список участников онлайн/офлайн
+- **Авторизация и безопасность**: регистрация, вход, автоматическое обновление JWT-токенов (`401` retry), хранение токенов в системном Keyring на Desktop и в `HttpOnly` cookies в Web.
+- **Серверы и каналы**: создание, присоединение по коду/ID, настройка серверов, текстовые и голосовые каналы, список участников онлайн/офлайн с ролями.
+- **Обмен сообщениями в реальном времени**:
+  - Умная группировка подряд идущих сообщений одного автора и локализованные разделители дат с учётом часового пояса.
+  - Сворачивание длинных сообщений (`> 1024` символов) с кнопками «Читать далее» / «Свернуть».
+  - Полноэкранный редактор длинных сообщений (кнопка разворачивания появляется с 7-й строки или при появлении скроллбара), плавающий счётчик символов (`>= 4096`, лимит до `8192` символов).
+  - Встроенный пикер эмодзи с категориями и поиском (RU/EN), а также меню прикрепления медиа и файлов.
+- **Система тем оформления (как в VS Code)**:
+  - Встроенные темы **Gilvave Advanced** (неоново-градиентная палитра) и **Standard** (классическая тёмная тема).
+  - Полная поддержка **пользовательских JSON-тем** (`.gilvave-theme.json`): импорт, экспорт, встроенный JSON-редактор с живым предпросмотром и каталог тем сообщества.
+  - Переключение между **оконным** и **полноэкранным (безрамочным)** режимом рабочей области.
+  - 📖 Подробнее о создании собственных тем: [**Руководство по кастомным темам (`CUSTOM_THEMES_GUIDE.md`)**](CUSTOM_THEMES_GUIDE.md).
 
-## Запуск
+## Запуск и сборка
 
 ```bash
-# Dev (Trunk + Tauri dev, горячая перезагрузка)
+# Режим разработки Desktop (запускает Trunk + Tauri dev с горячей перезагрузкой)
 cargo tauri dev
 
-# Dev только фронтенд (port 1420)
-trunk serve --config ui/Trunk.toml
+# Режим разработки только Web-фронтенда (WASM hot-reload на порту 1420)
+trunk serve --config crates/ui/Trunk.toml
 
-# Сборка
+# Релизная сборка Web-фронтенда (WASM)
+trunk build --release --config crates/ui/Trunk.toml
+
+# Релизная сборка Desktop-приложения
 cargo tauri build
 ```
 
-## Тесты
+## Проверка и тесты
 
 ```bash
-cargo test --workspace           # все тесты
-cargo test --package gilvave-http # только HTTP
+# Проверка компиляции UI под WASM
+cargo check --package gilvave-ui --target wasm32-unknown-unknown
+
+# Запуск всех тестов рабочего пространства
+cargo test --workspace
+
+# Линтинг
+cargo clippy --workspace
 ```
 
-## Структура
+## Архитектура проекта
 
 ```
 crates/
-  core/      — DTO, ошибки, ID (UUID v4/v7), keyring, настройки
-  gateway/   — WebSocket сервис
-  http/      — HTTP API клиент
-  state/     — AppState (WebSocket sender + HTTP client)
-  ui/        — Sycamore WASM фронтенд
-  src-tauri/ — Tauri backend, диспетчер команд
+  core/      — Общие DTO, ошибки, ID (UUID v4/v7), валидация, настройки, работа с keyring
+  ui/        — Sycamore WASM фронтенд, HTTP/WS клиенты, движок тем, компоненты интерфейса
+  src-tauri/ — Tauri 2 backend, обработчик платформенных команд (`handle_command`), локальная SQLite БД
 ```
 
-## IDE
+## Рекомендуемая среда разработки
 
 [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)

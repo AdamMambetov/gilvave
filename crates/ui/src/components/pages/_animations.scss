@@ -7,50 +7,59 @@
 // ─── Chat messages (slide in on load) ────────────────────────────────────────
 .chat-message {
     opacity: 0;
-    animation: slideInUp 0.3s ease forwards;
+    animation: slideInUp 0.28s ease forwards;
 
-    &:nth-child(1) { animation-delay: 0.1s; }
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.3s; }
-    &:nth-child(4) { animation-delay: 0.4s; }
+    @for $i from 1 through 40 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{($i - 1) * 0.025}s;
+        }
+    }
+
+    &:nth-child(n + 41) {
+        animation-delay: 1s;
+    }
 }
 
 // ─── Server icons (drop in from top) ─────────────────────────────────────────
 .server-icon {
     opacity: 0;
-    animation: serverIconSlide 0.4s ease forwards;
+    animation: serverIconSlide 0.35s ease forwards;
 
-    &:nth-child(1) { animation-delay: 0.10s; }
-    &:nth-child(2) { animation-delay: 0.15s; }
-    &:nth-child(3) { animation-delay: 0.20s; }
-    &:nth-child(4) { animation-delay: 0.25s; }
-    &:nth-child(5) { animation-delay: 0.30s; }
-    &:nth-child(6) { animation-delay: 0.35s; }
-    &:nth-child(7) { animation-delay: 0.40s; }
-    &:nth-child(8) { animation-delay: 0.45s; }
-    &:nth-child(9) { animation-delay: 0.50s; }
+    @for $i from 1 through 30 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{($i - 1) * 0.035}s;
+        }
+    }
 }
 
-// ─── Channel items (slide from left) ─────────────────────────────────────────
+// ─── Channel items (slide from left sequentially from 1st to last) ───────────
 .channel-item {
     opacity: 0;
-    animation: channelSlide 0.3s ease forwards;
+    animation: channelSlide 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 
-    &:nth-child(1) { animation-delay: 0.50s; }
-    &:nth-child(2) { animation-delay: 0.55s; }
-    &:nth-child(3) { animation-delay: 0.60s; }
-    &:nth-child(4) { animation-delay: 0.65s; }
+    @for $i from 1 through 60 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{($i - 1) * 0.03}s;
+        }
+    }
+
+    &:nth-child(n + 61) {
+        animation-delay: 1.8s;
+    }
 }
 
-// ─── Member items (slide from right) ─────────────────────────────────────────
+// ─── Member items (slide from right sequentially) ────────────────────────────
 .member-item {
     opacity: 0;
-    animation: memberSlide 0.3s ease forwards;
+    animation: memberSlide 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 
-    &:nth-child(1) { animation-delay: 0.55s; }
-    &:nth-child(2) { animation-delay: 0.60s; }
-    &:nth-child(3) { animation-delay: 0.65s; }
-    &:nth-child(4) { animation-delay: 0.70s; }
-    &:nth-child(5) { animation-delay: 0.75s; }
-    &:nth-child(6) { animation-delay: 0.80s; }
+    @for $i from 1 through 50 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{($i - 1) * 0.03}s;
+        }
+    }
+
+    &:nth-child(n + 51) {
+        animation-delay: 1.5s;
+    }
 }

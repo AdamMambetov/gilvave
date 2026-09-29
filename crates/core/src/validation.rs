@@ -192,10 +192,19 @@ pub fn sanitize_message(content: &str) -> String {
     sanitized
 }
 
+/// Максимальная допустимая длина сообщения чата в символах
+pub const MAX_MESSAGE_CHARS: usize = 16_384;
+
+/// Порог длины сообщения, после которого текст сворачивается под кнопку «Далее»
+pub const MESSAGE_COLLAPSE_CHARS: usize = 1_024;
+
+/// Порог длины набираемого сообщения, начиная с которого над полем ввода появляется плавающий счётчик символов
+pub const MESSAGE_COUNTER_VISIBLE_CHARS: usize = 4_096;
+
 /// Валидирует содержимое сообщения чата:
 /// - Очищает от вредоносных эксплойтов Unicode
 /// - Отклоняет визуально пустые сообщения (состоящие только из пробелов или удалённых скрытых символов)
-/// - Ограничивает максимальную длину сообщения (не более 4000 символов)
+/// - Ограничивает максимальную длину сообщения (не более 16384 символов)
 pub fn validate_message(content: &str) -> Result<String, &'static str> {
     let sanitized = sanitize_message(content);
     let trimmed = sanitized.trim();
@@ -204,8 +213,8 @@ pub fn validate_message(content: &str) -> Result<String, &'static str> {
         return Err("Сообщение не может быть пустым");
     }
 
-    if trimmed.chars().count() > 4000 {
-        return Err("Сообщение слишком длинное (максимум 4000 символов)");
+    if trimmed.chars().count() > MAX_MESSAGE_CHARS {
+        return Err("Сообщение слишком длинное (максимум 16384 символов)");
     }
 
     Ok(sanitized)
@@ -328,5 +337,9 @@ mod tests {
         assert!(validate_message("  \u{200B}  \u{FEFF}  ").is_err());
         // Корректное сообщение
         assert!(validate_message("Привет!").is_ok());
+        // Сообщение длиной ровно 16 384 символа разрешено
+        assert!(validate_message(&"а".repeat(16_384)).is_ok());
+        // Превышение лимита 16 384 символа отклоняется
+        assert!(validate_message(&"а".repeat(16_385)).is_err());
     }
 }

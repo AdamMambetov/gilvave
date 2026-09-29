@@ -21,7 +21,7 @@
     }
 
     &:hover {
-        background: darken($color-primary, 8%);
+        background: $color-primary-hover;
         box-shadow: $shadow-submit-hover;
     }
 
@@ -51,8 +51,8 @@
     @include focus-visible-ring;
 
     &:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.15);
+        background: $color-white-alpha-06;
+        border-color: $color-white-alpha-15;
         color: $color-text-white;
     }
 
@@ -80,7 +80,7 @@
     @include focus-visible-ring($color-danger);
 
     &:hover {
-        background: darken($color-danger, 8%);
+        background: $color-danger-hover;
     }
 
     &:active {
@@ -97,9 +97,9 @@
 .social-btn {
     flex: 1;
     padding: 10px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid $color-white-alpha-08;
     border-radius: $radius-md;
-    background: rgba(0, 0, 0, 0.2);
+    background: $color-black-alpha-20;
     cursor: pointer;
     font-size: $font-size-xs;
     font-weight: $font-weight-medium;
@@ -110,8 +110,8 @@
     @include focus-visible-ring;
 
     &:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.15);
+        background: $color-white-alpha-06;
+        border-color: $color-white-alpha-15;
         color: $color-text-white;
     }
 
@@ -142,12 +142,12 @@
     }
 
     &:hover {
-        background: rgba(255, 255, 255, 0.06);
+        background: $color-white-alpha-06;
         color: $color-text-heading;
     }
 
     &:active {
-        background: rgba(255, 255, 255, 0.1);
+        background: $color-white-alpha-10;
     }
 
     &.active {
@@ -175,8 +175,8 @@
     @include focus-visible-ring($color-primary);
 
     &:hover {
-        background: darken($color-primary, 8%);
-        box-shadow: 0 4px 16px rgba(167, 139, 250, 0.4);
+        background: $color-primary-hover;
+        box-shadow: 0 4px 16px $color-primary-alpha-40;
     }
 
     &:active {

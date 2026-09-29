@@ -37,17 +37,17 @@
         resize: none !important;
         min-height: 80px;
         line-height: 1.5;
-        background: rgba(0, 0, 0, 0.25);
+        background: $color-bg-input;
         color: $color-text-white;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid $color-white-alpha-10;
         border-radius: $radius-md;
         outline: none;
         font-family: inherit;
 
         &:focus {
             border-color: $color-primary;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
-            background: rgba(0, 0, 0, 0.35);
+            box-shadow: 0 0 0 3px $color-primary-alpha-15;
+            background: $color-bg-input-focus;
         }
     }
 
@@ -69,7 +69,7 @@
         input,
         textarea {
             border-color: $color-error;
-            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
+            box-shadow: 0 0 0 3px $color-error-alpha-15;
         }
 
         .error-message {
@@ -99,7 +99,7 @@
     min-width: 0; // fix flex shrink
 
     &:focus {
-        background: lighten($color-bg-input-panel, 3%);
+        background: $color-bg-input-panel-focus;
     }
 
     &::placeholder {

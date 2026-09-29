@@ -71,13 +71,55 @@ pub fn MessageItem(
         )
     };
 
+    let full_content = message_view.content;
+    let char_count = full_content.chars().count();
+    let is_long = char_count > gilvave_core::validation::MESSAGE_COLLAPSE_CHARS;
+    let truncated_content = if is_long {
+        let prefix: String = full_content
+            .chars()
+            .take(gilvave_core::validation::MESSAGE_COLLAPSE_CHARS)
+            .collect();
+        format!("{prefix}…")
+    } else {
+        full_content.clone()
+    };
+
+    let is_expanded = create_signal(false);
+    let displayed_text = create_memo(move || {
+        if !is_long || is_expanded.get() {
+            full_content.clone()
+        } else {
+            truncated_content.clone()
+        }
+    });
+
     view! {
         div(class=class_list) {
             (avatar_node)
             div(class="message-body") {
                 (header_node)
                 div(class="message-bubble") {
-                    p { (message_view.content) }
+                    p { (displayed_text.get_clone()) }
+                    (if is_long {
+                        let toggle_label = move || {
+                            if is_expanded.get() {
+                                "Свернуть"
+                            } else {
+                                "Далее"
+                            }
+                        };
+                        view! {
+                            button(
+                                class="message-read-more-btn",
+                                r#type="button",
+                                on:click=move |_| is_expanded.set(!is_expanded.get()),
+                            ) {
+                                (toggle_label)
+                            }
+                        }
+                    } else {
+                        view! {}
+                    })
                     (chained_node)
                 }
             }

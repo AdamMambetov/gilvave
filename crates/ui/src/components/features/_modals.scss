@@ -15,7 +15,7 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
+    background: $color-white-alpha-08;
     border: none;
     color: $color-text-muted;
     font-size: 15px;
@@ -28,7 +28,7 @@
     flex-shrink: 0;
 
     &:hover {
-        background: rgba(255, 255, 255, 0.18);
+        background: $color-white-alpha-18;
         color: $color-text-white;
         transform: scale(1.05);
     }
@@ -41,7 +41,7 @@
     background: $color-bg-container;
     border-radius: $radius-lg;
     padding: 24px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 16px 48px $color-black-alpha-50;
 
     .channel-type-selector {
         display: flex;
@@ -72,7 +72,7 @@
             }
 
             &.active {
-                background: rgba($color-primary, 0.15);
+                background: $color-primary-alpha-15;
                 border-color: $color-primary;
             }
 
@@ -125,22 +125,22 @@
 
 // ─── Server Settings Modal ────────────────────────────────────────────────────
 .server-settings-modal {
-    width: 520px;
-    max-width: 92vw;
+    width: 660px;
+    max-width: min(660px, 94vw);
     background: $color-bg-container;
     border-radius: $radius-lg;
-    padding: 24px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    padding: 28px;
+    box-shadow: 0 16px 48px $color-black-alpha-50;
     max-height: 90vh;
     overflow-y: auto;
-    @include scrollbar(4px, rgba(255, 255, 255, 0.1));
+    @include scrollbar(4px, $color-white-alpha-10);
 
     .server-preview-banner {
         position: relative;
         height: 120px;
         border-radius: $radius-md;
         margin-bottom: 24px;
-        background: linear-gradient(135deg, $color-bg-panel-dark, #23272a);
+        background: $gradient-server-banner;
         overflow: visible;
 
         .server-banner-img {
@@ -155,7 +155,7 @@
             width: 100%;
             height: 100%;
             border-radius: $radius-md;
-            background: linear-gradient(135deg, rgba($color-primary, 0.3), rgba(88, 101, 242, 0.3));
+            background: $gradient-banner-default;
         }
 
         .server-preview-avatar {
@@ -198,9 +198,9 @@
     textarea {
         @include input-base;
         resize: none !important;
-        background: rgba(0, 0, 0, 0.25);
+        background: $color-bg-input;
         color: $color-text-white;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid $color-white-alpha-10;
         border-radius: $radius-md;
         padding: 12px 14px;
         min-height: 72px;
@@ -209,21 +209,21 @@
 
         &:focus {
             border-color: $color-primary;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
-            background: rgba(0, 0, 0, 0.35);
+            box-shadow: 0 0 0 3px $color-primary-alpha-15;
+            background: $color-bg-input-focus;
         }
     }
 }
 
 // ─── Profile Settings Modal ───────────────────────────────────────────────────
 .profile-settings-modal {
-    width: 780px;
-    max-width: 95vw;
+    width: 980px;
+    max-width: min(980px, 96vw);
     background: $color-bg-container;
     border-radius: $radius-lg;
     padding: 0;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 20px 60px $color-black-alpha-60;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
@@ -239,7 +239,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 14px 20px;
-        background: darken($color-bg-container, 4%);
+        background: $color-bg-container-dark;
         border-bottom: 1px solid $color-border-subtle;
         flex-shrink: 0;
 
@@ -268,8 +268,8 @@
     }
 
     .profile-sidebar-tabs {
-        width: 210px;
-        background: darken($color-bg-container, 4%);
+        width: 230px;
+        background: $color-bg-container-dark;
         padding: 24px 16px;
         display: flex;
         flex-direction: column;
@@ -341,7 +341,7 @@
                 margin-top: auto;
 
                 &:hover {
-                    background: rgba($color-danger, 0.15);
+                    background: $color-danger-alpha-15;
                 }
             }
         }
@@ -357,7 +357,7 @@
         flex: 1;
         padding: 28px;
         overflow-y: auto;
-        @include scrollbar(4px, rgba(255, 255, 255, 0.1));
+        @include scrollbar(4px, $color-white-alpha-10);
 
         @include respond-to(md) {
             padding: 14px 16px;
@@ -441,9 +441,9 @@
         textarea {
             @include input-base;
             resize: none !important;
-            background: rgba(0, 0, 0, 0.25);
+            background: $color-bg-input;
             color: $color-text-white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid $color-white-alpha-10;
             border-radius: $radius-md;
             padding: 12px 14px;
             min-height: 72px;
@@ -452,8 +452,8 @@
 
             &:focus {
                 border-color: $color-primary;
-                box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
-                background: rgba(0, 0, 0, 0.35);
+                box-shadow: 0 0 0 3px $color-primary-alpha-15;
+                background: $color-bg-input-focus;
             }
         }
 
@@ -470,7 +470,7 @@
             overflow: hidden;
             border: 1px solid $color-border-subtle;
             margin-bottom: 24px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 16px $color-black-alpha-20;
 
             .profile-preview-banner {
                 height: 90px;
@@ -486,7 +486,7 @@
                 .default-banner {
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(135deg, rgba($color-primary, 0.6), rgba(88, 101, 242, 0.6));
+                    background: $gradient-banner-default;
                 }
             }
 
@@ -580,7 +580,7 @@
         .password-status-msg {
             padding: 8px 12px;
             border-radius: $radius-sm;
-            background: rgba($color-primary, 0.15);
+            background: $color-primary-alpha-15;
             color: $color-primary;
             font-size: $font-size-xs;
             margin-bottom: 12px;
@@ -594,9 +594,9 @@
 
         .danger-zone {
             padding: 16px;
-            border: 1px solid rgba($color-danger, 0.4);
+            border: 1px solid $color-danger-alpha-40;
             border-radius: $radius-md;
-            background: rgba($color-danger, 0.08);
+            background: $color-danger-alpha-08;
 
             h4 {
                 font-size: $font-size-xs;
@@ -612,13 +612,647 @@
                 margin-bottom: 12px;
             }
         }
+
+        // ─── VS Code–style Theme Selector ────────────────────────────────────────
+        .theme-settings-pane {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+
+            .vscode-setting-item {
+                padding: 16px 18px;
+                border-radius: $radius-md;
+                background: $color-black-alpha-22;
+                border: 1px solid $color-border-subtle;
+                border-left: 3px solid $color-icon-cyan;
+
+                .vscode-setting-header {
+                    font-size: $font-size-sm;
+                    margin-bottom: 6px;
+
+                    .vscode-setting-category {
+                        color: $color-text-muted;
+                        font-weight: $font-weight-medium;
+                    }
+
+                    .vscode-setting-name {
+                        color: $color-text-white;
+                        font-weight: $font-weight-bold;
+                    }
+                }
+
+                .vscode-setting-desc {
+                    font-size: $font-size-xs;
+                    color: $color-text-label;
+                    margin: 0 0 12px;
+                    line-height: 1.45;
+                }
+
+                .vscode-select-wrapper {
+                    max-width: 360px;
+
+                    .vscode-theme-select {
+                        width: 100%;
+                        padding: 9px 12px;
+                        border-radius: 6px;
+                        background: $color-bg-input;
+                        color: $color-text-white;
+                        border: 1px solid $color-border;
+                        font-size: 13.5px;
+                        font-weight: $font-weight-medium;
+                        outline: none;
+                        cursor: pointer;
+                        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+                        &:focus {
+                            border-color: $color-primary;
+                            box-shadow: $shadow-input-focus;
+                        }
+
+                        option {
+                            background: $color-bg-panel-dark;
+                            color: $color-text-heading;
+                        }
+                    }
+                }
+
+                .vscode-toggle-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    cursor: pointer;
+                    user-select: none;
+
+                    .vscode-switch {
+                        position: relative;
+                        width: 44px;
+                        height: 24px;
+                        border-radius: $radius-full;
+                        background: $color-bg-input;
+                        border: 1px solid $color-border;
+                        flex-shrink: 0;
+                        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+                        .vscode-switch-thumb {
+                            position: absolute;
+                            top: 2px;
+                            left: 2px;
+                            width: 18px;
+                            height: 18px;
+                            border-radius: 50%;
+                            background: $color-text-muted;
+                            transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease;
+                        }
+
+                        &.active {
+                            background: $color-primary-alpha-30;
+                            border-color: $color-primary;
+                            box-shadow: 0 0 10px $color-primary-alpha-25;
+
+                            .vscode-switch-thumb {
+                                transform: translateX(20px);
+                                background: $color-primary;
+                            }
+                        }
+                    }
+
+                    .vscode-switch-label {
+                        font-size: 13px;
+                        font-weight: $font-weight-semibold;
+                        color: $color-text-heading;
+                    }
+                }
+            }
+
+            // ─── Custom Theme Toolbar & JSON Editor (VS Code Extensions style) ─
+            .custom-themes-toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 10px;
+                padding: 14px 16px;
+                border-radius: $radius-md;
+                background: $color-black-alpha-20;
+                border: 1px solid $color-border-subtle;
+
+                .toolbar-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    padding: 8px 14px;
+                    border-radius: 7px;
+                    font-size: 12.5px;
+                    font-weight: $font-weight-semibold;
+                    background: $color-bg-input;
+                    border: 1px solid $color-border;
+                    color: $color-text-heading;
+                    cursor: pointer;
+                    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+
+                    &:hover {
+                        background: $color-bg-input-focus;
+                        border-color: $color-primary;
+                        color: $color-text-white;
+                    }
+
+                    &:active {
+                        transform: scale(0.98);
+                    }
+
+                    &.primary {
+                        background: $color-primary-alpha-20;
+                        border-color: $color-primary-alpha-45;
+                        color: $color-text-white;
+
+                        &:hover {
+                            background: $color-primary;
+                            border-color: $color-primary;
+                        }
+                    }
+                }
+
+                .hidden-file-input {
+                    display: none;
+                }
+            }
+
+            .theme-status-banner {
+                padding: 10px 14px;
+                border-radius: $radius-sm;
+                font-size: 12.5px;
+                font-weight: $font-weight-medium;
+                background: $color-primary-alpha-15;
+                border: 1px solid $color-primary-alpha-38;
+                color: $color-text-white;
+
+                &.error {
+                    background: $color-danger-alpha-15;
+                    border-color: $color-danger-alpha-40;
+                    color: $color-danger-light;
+                }
+            }
+
+            .json-theme-editor-panel {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px;
+                border-radius: $radius-md;
+                background: $color-black-alpha-25;
+                border: 1px solid $color-border;
+
+                .json-editor-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 8px;
+
+                    span {
+                        font-size: 13px;
+                        font-weight: $font-weight-bold;
+                        color: $color-text-white;
+                    }
+
+                    small {
+                        font-size: 11.5px;
+                        color: $color-text-muted;
+                    }
+                }
+
+                .json-theme-textarea {
+                    width: 100%;
+                    min-height: 220px;
+                    font-family: 'Consolas', 'JetBrains Mono', 'Fira Code', monospace;
+                    font-size: 12.5px;
+                    line-height: 1.5;
+                    background: $color-bg-input;
+                    color: $color-text-chat;
+                    border: 1px solid $color-border;
+                    border-radius: $radius-sm;
+                    padding: 12px 14px;
+                    resize: none !important;
+                    outline: none;
+                    box-sizing: border-box;
+                    @include scrollbar(5px, $color-white-alpha-18);
+
+                    &:focus {
+                        border-color: $color-primary;
+                        box-shadow: $shadow-input-focus;
+                    }
+                }
+
+                .json-editor-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                }
+            }
+        }
     }
 }
 
+// ─── Shared Theme Preview Grid & Cards (Settings + Catalog Modal) ─────────────
+.theme-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.theme-preview-card {
+    border-radius: $radius-lg;
+    background: $color-black-alpha-24;
+    border: 2px solid $color-border-subtle;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        border-color: $color-primary-alpha-50;
+    }
+
+    &.active {
+        border-color: $color-icon-amber;
+        box-shadow:
+            0 8px 24px $color-black-alpha-35,
+            0 0 0 1px $color-primary-alpha-38;
+    }
+
+    .theme-mockup {
+        height: 118px;
+        display: flex;
+        padding: 8px;
+        gap: 6px;
+        border-bottom: 1px solid $color-white-alpha-07;
+
+        .mockup-sidebar {
+            width: 22px;
+            border-radius: 6px;
+            padding: 5px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+
+            .mockup-dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 4px;
+            }
+        }
+
+        .mockup-channels {
+            width: 58px;
+            border-radius: 6px;
+            padding: 6px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+
+            .mockup-line {
+                height: 7px;
+                border-radius: 3px;
+            }
+        }
+
+        .mockup-chat {
+            flex: 1;
+            border-radius: 6px;
+            padding: 7px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            .mockup-msg {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+
+                .mockup-avatar {
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    flex-shrink: 0;
+                }
+
+                .mockup-bubble {
+                    flex: 1;
+                    height: 16px;
+                    border-radius: 3px 7px 7px 7px;
+                }
+            }
+
+            .mockup-divider {
+                height: 1px;
+                width: 100%;
+            }
+
+            .mockup-input-row {
+                display: flex;
+                gap: 4px;
+                align-items: center;
+
+                .mockup-input {
+                    flex: 1;
+                    height: 12px;
+                    border-radius: 4px;
+                }
+
+                .mockup-send {
+                    width: 14px;
+                    height: 12px;
+                    border-radius: 4px;
+                }
+            }
+        }
+
+        &.advanced-mockup {
+            background: $mockup-adv-bg;
+
+            .mockup-sidebar {
+                background: $raw-adv-bg-panel-darkest;
+                .mockup-dot { background: $mockup-adv-dot; }
+                .mockup-dot.home { background: $mockup-adv-dot-home; box-shadow: $mockup-adv-dot-home-shadow; }
+                .mockup-dot.plus { background: $mockup-adv-dot-plus-bg; border: 1px dashed $raw-icon-cyan; }
+            }
+
+            .mockup-channels {
+                background: $raw-adv-bg-panel-dark;
+                .mockup-line { background: $mockup-adv-line; }
+                .mockup-line.active { background: $mockup-adv-line-active; border-left: 2px solid $raw-icon-cyan; }
+            }
+
+            .mockup-chat {
+                background: $raw-adv-bg-panel;
+                .mockup-avatar { background: $mockup-adv-avatar; }
+                .mockup-bubble { background: $mockup-adv-bubble-bg; border: 1px solid $mockup-adv-bubble-border; }
+                .mockup-divider { background: $mockup-adv-divider; }
+                .mockup-input { background: $raw-adv-bg-input-panel; border: 1px solid $mockup-adv-input-border; }
+                .mockup-send { background: $mockup-adv-send; }
+            }
+        }
+
+        &.standard-mockup {
+            background: $raw-std-bg-panel-darkest;
+
+            .mockup-sidebar {
+                background: $raw-std-bg-panel-darkest;
+                .mockup-dot { background: $mockup-std-dot; }
+                .mockup-dot.home { background: $mockup-std-dot; box-shadow: $mockup-std-dot-home-shadow; }
+                .mockup-dot.plus { background: $raw-std-bg-panel; }
+            }
+
+            .mockup-channels {
+                background: $raw-std-bg-panel-dark;
+                .mockup-line { background: $color-white-alpha-14; }
+                .mockup-line.active { background: $raw-std-bg-panel-active; }
+            }
+
+            .mockup-chat {
+                background: $raw-std-bg-panel;
+                .mockup-avatar { background: $mockup-std-dot; }
+                .mockup-bubble { background: $color-black-alpha-25; border: 1px solid $color-white-alpha-10; }
+                .mockup-divider { background: $color-white-alpha-12; }
+                .mockup-input { background: $raw-std-bg-panel-active; }
+                .mockup-send { background: $mockup-std-dot; }
+            }
+        }
+
+        &.custom-mockup {
+            background: $preview-bg-sidebar;
+
+            .mockup-sidebar {
+                background: $preview-bg-sidebar;
+                .mockup-dot { background: linear-gradient(135deg, $preview-primary, $preview-primary-end); }
+                .mockup-dot.home { background: linear-gradient(135deg, $preview-accent, $preview-primary); box-shadow: 0 0 0 1.5px $preview-accent; }
+                .mockup-dot.plus { background: $preview-bg-input; border: 1px dashed $preview-accent; }
+            }
+
+            .mockup-channels {
+                background: $preview-bg-channels;
+                .mockup-line { background: $color-white-alpha-14; }
+                .mockup-line.active { background: $preview-bg-input; border-left: 2px solid $preview-accent; }
+            }
+
+            .mockup-chat {
+                background: $preview-bg-chat;
+                .mockup-avatar { background: linear-gradient(135deg, $preview-primary, $preview-primary-end); }
+                .mockup-bubble { background: $color-black-alpha-25; border: 1px solid $color-white-alpha-10; }
+                .mockup-divider { background: linear-gradient(90deg, transparent, $preview-accent, $preview-primary, transparent); }
+                .mockup-input { background: $preview-bg-input; }
+                .mockup-send { background: linear-gradient(135deg, $preview-primary, $preview-primary-end); }
+            }
+        }
+    }
+
+    .theme-card-info {
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+
+        .theme-card-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .theme-card-name {
+            font-size: 15px;
+            font-weight: $font-weight-bold;
+            color: $color-text-white;
+        }
+
+        .theme-card-badge {
+            font-size: 10.5px;
+            font-weight: $font-weight-bold;
+            padding: 2px 7px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+
+            &.advanced-badge {
+                background: $mockup-adv-badge-bg;
+                color: $raw-icon-amber;
+                border: 1px solid $mockup-adv-badge-border;
+            }
+
+            &.standard-badge {
+                background: $mockup-std-badge-bg;
+                color: $raw-std-primary-light;
+                border: 1px solid $mockup-std-badge-border;
+            }
+
+            &.custom-badge {
+                background: $preview-badge-bg;
+                color: $preview-primary;
+                border: 1px solid $preview-badge-border;
+                text-transform: none;
+            }
+        }
+
+        .theme-active-check {
+            margin-left: auto;
+            font-size: 11.5px;
+            font-weight: $font-weight-bold;
+            color: $color-status-online;
+        }
+
+        .theme-card-desc {
+            font-size: 12px;
+            color: $color-text-label;
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .theme-swatches {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+
+            .swatch {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                border: 1px solid $color-white-alpha-22;
+                box-shadow: 0 1px 3px $color-black-alpha-35;
+
+                &.adv-1 { background: $raw-adv-bg-panel-darkest; }
+                &.adv-2 { background: $raw-adv-bg-panel; }
+                &.adv-3 { background: $raw-icon-cyan; }
+                &.adv-4 { background: $raw-icon-violet; }
+                &.adv-5 { background: $raw-icon-coral; }
+                &.adv-6 { background: $raw-icon-orange; }
+                &.adv-7 { background: $raw-icon-amber; }
+
+                &.std-1 { background: $raw-std-bg-panel-darkest; }
+                &.std-2 { background: $raw-std-bg-panel-dark; }
+                &.std-3 { background: $raw-std-bg-panel; }
+                &.std-4 { background: $raw-std-bg-panel-active; }
+                &.std-5 { background: $raw-std-primary; }
+                &.std-6 { background: $raw-std-primary-end; }
+                &.std-7 { background: $raw-std-status-online; }
+
+                &.custom-1 { background: $preview-bg-sidebar; }
+                &.custom-2 { background: $preview-bg-channels; }
+                &.custom-3 { background: $preview-bg-chat; }
+                &.custom-4 { background: $preview-primary; }
+                &.custom-5 { background: $preview-primary-end; }
+                &.custom-6 { background: $preview-accent; }
+                &.custom-7 { background: $preview-online; }
+            }
+        }
+
+        .theme-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1px solid $color-white-alpha-06;
+
+            .theme-card-btn {
+                flex: 1;
+                padding: 5px 10px;
+                border-radius: 6px;
+                font-size: 11.5px;
+                font-weight: $font-weight-semibold;
+                background: $color-white-alpha-06;
+                border: 1px solid $color-white-alpha-10;
+                color: $color-text-heading;
+                cursor: pointer;
+                transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+                &:hover {
+                    background: $color-white-alpha-12;
+                    border-color: $color-primary-alpha-45;
+                    color: $color-text-white;
+                }
+
+                &.install {
+                    background: $color-primary-alpha-20;
+                    border-color: $color-primary-alpha-45;
+                    color: $color-text-white;
+
+                    &:hover {
+                        background: $color-primary;
+                        border-color: $color-primary;
+                    }
+                }
+
+                &.delete {
+                    flex: 0 0 auto;
+                    color: $color-danger;
+                    border-color: $color-danger-alpha-40;
+                    background: $color-danger-alpha-08;
+
+                    &:hover {
+                        background: $color-danger;
+                        color: $color-text-white;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─── Theme Catalog Modal (Separate Window like JoinServerModal) ───────────────
+.theme-catalog-overlay {
+    z-index: calc(#{$z-modal} + 10);
+}
+
+.server-modal.join-modal.theme-catalog-modal {
+    width: 780px;
+    max-width: min(780px, 95vw);
+    max-height: 86vh;
+
+    .theme-catalog-search {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .theme-catalog-search-icon {
+            position: absolute;
+            left: 14px;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+
+            svg {
+                width: 16px;
+                height: 16px;
+                fill: none;
+                stroke: $color-icon-cyan;
+                stroke-width: 2.2;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                opacity: 0.85;
+            }
+        }
+
+        input {
+            padding-left: 40px;
+        }
+    }
+
+    .theme-catalog-body {
+        padding: 4px 2px;
+    }
+}
+
+
 // ─── Shared Buttons ───────────────────────────────────────────────────────────
 .danger-btn {
-    background: rgba($color-danger, 0.15);
-    border: 1px solid rgba($color-danger, 0.4);
+    background: $color-danger-alpha-15;
+    border: 1px solid $color-danger-alpha-40;
     color: $color-danger;
     padding: 8px 16px;
     border-radius: $radius-sm;

@@ -2,9 +2,9 @@
 target = "./index.html"
 
 [watch]
-ignore = ["../src-tauri", "../core"]
+ignore = ["../src-tauri"]
 
 [serve]
 port = 1420
 open = false
-address = "0.0.0.0"
+addresses = ["0.0.0.0"]

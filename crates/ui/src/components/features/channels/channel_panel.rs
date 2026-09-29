@@ -34,27 +34,28 @@ pub fn ChannelPanel() -> View {
     create_effect(move || {
         let server_id_opt = current_server_id.get();
 
-        spawn_local_scoped(async move {
-            if let Some(channel_id) = context.current.with_untracked(|c| c.as_ref().map(|ch| ch.id))
-            {
-                context.current.set(None);
+        if let Some(channel_id) = context.current.with_untracked(|c| c.as_ref().map(|ch| ch.id)) {
+            context.current.set(None);
+            spawn_local_scoped(async move {
                 let _ = WsService::left_channel(channel_id).await;
-            }
-        });
+            });
+        }
 
         if let Some(server_id) = server_id_opt {
+            context.text.set(vec![]);
+            context.voice.set(vec![]);
             spawn_local_scoped(async move {
-                let res = Api::get_server_channels(server_id).await;
-
-                context.text.set(vec![]);
-                context.voice.set(vec![]);
-                if let Ok(channels) = res {
+                if let Ok(channels) = Api::get_server_channels(server_id).await {
+                    let mut text_channels = Vec::new();
+                    let mut voice_channels = Vec::new();
                     for channel in channels {
                         match channel.r#type {
-                            ChannelType::TEXT => context.text.update(|list| list.push(channel)),
-                            ChannelType::VOICE => context.voice.update(|list| list.push(channel)),
+                            ChannelType::TEXT => text_channels.push(channel),
+                            ChannelType::VOICE => voice_channels.push(channel),
                         }
                     }
+                    context.text.set(text_channels);
+                    context.voice.set(voice_channels);
                 }
             })
         } else {

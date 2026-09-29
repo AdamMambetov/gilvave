@@ -74,7 +74,7 @@
         border-radius: calc($width / 2);
 
         &:hover {
-            background: darken($thumb-color, 5%);
+            background: $thumb-color;
         }
     }
 
@@ -84,7 +84,7 @@
 }
 
 // ─── Эффект матового стекла (Glassmorphism) ───────────────────────────────────
-@mixin glass($blur: 20px, $bg: rgba(30, 30, 46, 0.95)) {
+@mixin glass($blur: 20px, $bg: $color-bg-glass) {
     background: $bg;
     backdrop-filter: blur($blur);
     -webkit-backdrop-filter: blur($blur);
@@ -138,8 +138,8 @@
 // ─── Базовые стили поля ввода ─────────────────────────────────────────────────
 @mixin input-base {
     width: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: $color-black-alpha-20;
+    border: 1px solid $color-white-alpha-08;
     border-radius: $radius-md;
     color: $color-text-heading;
     font-size: $font-size-sm;
@@ -149,11 +149,11 @@
 
     &:focus {
         border-color: $color-primary;
-        box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+        box-shadow: $shadow-input-focus;
     }
 
     &::placeholder {
-        color: rgba(255, 255, 255, 0.2);
+        color: $color-white-alpha-20;
     }
 }
 

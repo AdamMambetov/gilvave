@@ -9,7 +9,7 @@
     flex-shrink: 0;
     overflow-y: auto;
     padding: 16px 8px;
-    @include scrollbar(4px, rgba(255,255,255,0.1));
+    @include scrollbar(4px, $color-white-alpha-10);
 
     @include respond-to(lg) {
         width: 200px;

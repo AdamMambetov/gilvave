@@ -3,13 +3,13 @@
 
 // Auth flow container (login / register card)
 .container {
-    @include glass(20px, rgba(30, 30, 46, 0.95));
+    @include glass(20px, $color-bg-glass);
     border-radius: $radius-xl;
     box-shadow: $shadow-panel;
     width: 350px;
     margin-top: 12vh;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid $color-white-alpha-06;
     display: none;
 
     &.active {

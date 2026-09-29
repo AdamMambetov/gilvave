@@ -59,7 +59,7 @@ cargo clippy --workspace
 
 ## UI Architecture (`crates/ui`)
 
-Sycamore 0.9 + Trunk single-page WASM application styled with modular SCSS.
+Sycamore 0.9 + Trunk single-page WASM application styled with modular SCSS and a dynamic CSS Custom Properties theme engine.
 
 ### Directory Structure
 
@@ -73,26 +73,31 @@ crates/ui/src/
     api/                    — Domain endpoints (user, server, channel)
   gateway/                  — Direct WASM WebSocket client (ws_stream_wasm) & event dispatcher
   components/
-    common/                 — Shared reactive contexts, mixins, variables, animations, reset
+    common/                 — Shared reactive contexts, theme engine, mixins, variables, animations
       contexts.rs           — ScreenWrapper, UserProfileContext, ServerContext, ChannelContext,
                               UiModalContext, CreateServerContext
-      _variables.scss       — Color palette, typography, breakpoints ($bp-sm: 480px, $bp-md: 768px, etc.)
+      theme.rs              — AppTheme (Advanced, Standard, Custom), CustomTheme JSON parser,
+                              CSS variable generator, localStorage persistence, preview style injector
+      _themes.scss          — Root CSS Custom Properties (:root / [data-theme="advanced"] & [data-theme="standard"])
+      _variables.scss       — SCSS variables mapped to CSS custom properties (var(--color-*)), breakpoints
       _mixins.scss          — Media queries (@include respond-to), custom scrollbars, glassmorphism
       _animations.scss      — Fade, scale, slide, pulse keyframe animations
       _reset.scss           — CSS reset, font definitions, box-sizing
     layout/                 — App shell, window header
       header.rs             — Desktop drag region, custom window control buttons (minimize, close)
     pages/                  — Full-page screens
-      home_panel.rs         — Authenticated workspace container (sidebar, channels, chat, members, modals)
+      home_panel.rs         — Authenticated workspace container (sidebar, channels, chat, members, modals, search bar)
       login_panel.rs        — Login form with validation & token persistence
       register_panel.rs     — Registration form with client-side field validation
     features/               — Feature domains
       servers/              — Server sidebar, server actions, create/join/settings modals
       channels/             — Channel list (text/voice), user status bar, create channel modal
-      chat/                 — Message list, bubble items, day dividers, message input, scrolling
+      chat/                 — MessagesArea, ChatInputArea (emoji modal, attachment menu, expand button),
+                              ExpandedMessageEditorModal, MessageItem (grouping, read-more/collapse)
       members/              — Server member list (online/offline groups, roles, avatars)
-      home/                 — Home dashboard (greeting hero, quick actions, DM chat, friends online)
-      profile/              — User profile settings modal (preview, bio, credentials, security)
+      home/                 — Home dashboard (greeting hero, quick actions, DM chat with ChatInputArea, friends online)
+      profile/              — User profile settings modal (preview, bio, credentials, security,
+                              appearance/themes tab, ThemeCatalogModal)
       auth/                 — Social buttons, auth form cards
     ui/                     — Atomic reusable UI elements (buttons, inputs, spinners, dividers, tooltips, icons)
 ```
@@ -103,26 +108,37 @@ crates/ui/src/
 2. **`UserProfileContext`**: Active user's profile (`username`, `avatar`, `banner`, `bio`, `is_muted`, `is_deafened`).
 3. **`ServerContext`**: Currently selected server (`current: Option<Server>`), joined servers list (`list: Vec<ServerSmallPart>`), and server members (`members: Vec<MemberView>`).
 4. **`ChannelContext`**: Text channels (`text`), voice channels (`voice`), currently selected channel (`current: Option<ChannelView>`), and loaded message stream (`messages: Vec<MessageView>`).
-5. **`UiModalContext`**: UI modal visibility signals (`is_server_settings_open`, `is_create_channel_open`, `create_channel_type`, `is_profile_settings_open`, `selected_dm_name`, `home_tab: Chats | Dashboard`).
+5. **`UiModalContext`**: UI modal visibility and workspace preferences:
+   - `is_server_settings_open: Signal<bool>`
+   - `is_create_channel_open: Signal<bool>` & `create_channel_type: Signal<ChannelType>`
+   - `is_profile_settings_open: Signal<bool>`
+   - `selected_dm_name: Signal<Option<String>>`
+   - `home_tab: Signal<HomeTab>` (`Chats` | `Dashboard`)
+   - `draft_message: Signal<String>` & `is_message_editor_open: Signal<bool>` (shared message draft & full-size editor modal)
+   - `app_theme: Signal<AppTheme>` & `custom_themes: Signal<Vec<CustomTheme>>` (active theme & user-installed custom JSON themes)
+   - `is_windowed_mode: Signal<bool>` (toggles `.fullbleed` edge-to-edge layout vs floating windowed container)
+   - `is_theme_catalog_open: Signal<bool>` (controls the standalone `ThemeCatalogModal`)
 6. **`CreateServerContext`**: Add/join server flow state (`modal_view: Home | Create | Join`, `is_modal_open: bool`, `from_dashboard: bool`).
 
 ---
 
 ## UI & Styling Guidelines
 
-### Design System & Theme
-- **Color Palette** (Discord / Telegram dark hybrid):
-  - `$bg-darkest: #1e1f22` (Sidebar & window background)
-  - `$bg-tertiary: #111214` (Deep background, textareas, inputs, search fields)
-  - `$bg-secondary: #2b2d31` (Panels, channels sidebar, navigation)
-  - `$bg-primary: #313338` (Chat area, main content canvas)
-  - `$brand-primary: #5865f2` (Blurple primary accent)
-  - `$brand-accent: #23a55a` (Green action accent, online status, server add hover)
-  - `$danger: #da373c` (Destructive actions, logout, errors)
-  - `$text-primary: #f2f3f5`, `$text-secondary: #949ba4`, `$text-muted: #6d6f78`
+### Design System & Theme Engine (`_themes.scss`, `_variables.scss`, `theme.rs`)
+- **Zero Hardcoded Colors Rule**:
+  - Never write raw hex (`#...`) or `rgba(...)` literals directly inside component SCSS files (`_messages-area.scss`, `_modals.scss`, `_channel-panel.scss`, etc.).
+  - Define all themeable tokens as CSS custom properties (`--color-*`, `--gradient-*`, `--shadow-*`, `--filter-*`) inside `crates/ui/src/components/common/_themes.scss` for both `:root, :root[data-theme="advanced"]` and `:root[data-theme="standard"]`, and expose them via SCSS variables in `crates/ui/src/components/common/_variables.scss`.
+- **Built-in & Custom Themes**:
+  - **`AppTheme::Advanced`** (default): Rich dark palette inspired by the Gilvave app icon (deep midnight blues, electric cyan `#22d3ee`, warm amber/gold `#f59e0b`, indigo-violet gradients, and subtle glow shadows).
+  - **`AppTheme::Standard`**: Classic calm dark palette (`#18191c` / `#2f3136` / `#36393f`, soft lavender `#a78bfa` accents).
+  - **`AppTheme::Custom(String)`**: User-created or community-installed JSON themes (`CustomTheme`). Supports a 19-field `palette` (which automatically derives 120+ CSS variables) plus fine-grained `variables` overrides with strict CSS injection validation (`is_allowed_css_var` & `is_safe_css_value`). See [`CUSTOM_THEMES_GUIDE.md`](CUSTOM_THEMES_GUIDE.md) for the full specification.
+  - **`ThemeCatalogModal`**: Standalone modal in `profile_settings_modal.rs` with search and a `// TODO:` hook for fetching community themes from the backend server.
+- **Windowed vs Fullbleed Mode**:
+  - Controlled by `UiModalContext.is_windowed_mode` (persisted in `localStorage` under `gilvave_windowed_mode`).
+  - When disabled (`.home-panel-container.fullbleed`), the main workspace stretches to `inset: 0` with `border-radius: 0`, hiding the outer body background.
 - **Typography**: Clean sans-serif (`gg sans`, `Noto Sans`, `Helvetica Neue`, sans-serif).
 - **Glassmorphism & Overlays**: Backdrop filter `blur(12px)` on modals and sticky headers.
-- **Scrollbars**: Thin, custom-styled scrollbars with rounded thumbs (`rgba(255, 255, 255, 0.15)`), hidden until hovered.
+- **Scrollbars**: Thin, custom-styled scrollbars with rounded thumbs, hidden until hovered.
 
 ### Chat & Message System Nuances
 - **Message Grouping (Chaining)**:
@@ -130,12 +146,21 @@ crates/ui/src/
   - The first message in a group (`is_first`) displays author avatar, username, and timestamp.
   - Chained messages (`.chained`) omit the avatar/author header, reduce vertical padding, and show an inline hover timestamp (`.chained-time`).
   - Corner rounding adapts dynamically: `.group-first` has rounded top corners, `.group-last` has rounded bottom corners, and middle messages have reduced corner radius.
+- **Message Length Limits & Collapse (`crates/core/src/validation.rs`, `message_item.rs`, `messages_area.rs`)**:
+  - `MAX_MESSAGE_CHARS = 8192` (`validate_message`).
+  - `MESSAGE_COLLAPSE_THRESHOLD_CHARS = 1024`: Messages exceeding 1024 characters are truncated in `MessageItem` with a `"Читать далее"` button, and when expanded show a `"Свернуть"` button to collapse back.
+  - `MESSAGE_COUNTER_VISIBLE_CHARS = 4096`: A floating character counter (`.chat-char-counter-float`) appears above the chat input once the draft reaches 4096 characters (turning red `.limit-exceeded` above 8192).
+- **Unified `ChatInputArea` & `ExpandedMessageEditorModal` (`messages_area.rs`)**:
+  - Shared across both server channels (`MessagesArea`) and DM chats (`HomeDashboard`).
+  - **Paperclip Attachment Button (`.chat-attach-btn`)**: Always visible at the bottom-left (`bottom: 7px; left: 8px;`). Clicking opens `.chat-attach-menu` (`1. Фото или видео`, `2. Файл`).
+  - **Emoji Picker Button (`.chat-emoji-btn`)**: Always visible at the bottom-right (`bottom: 7px; right: 8px;`). Clicking opens `.chat-emoji-modal` with category tabs, Russian/English keyword search, and click-to-append emoji grid.
+  - **Expand Editor Button (`.chat-expand-btn`)**: Appears at the top-right (`top: 6px; right: 8px;`) **only** when the message reaches the **7th line** (`split('\n').count() >= 7`) or when a vertical scrollbar appears (`scroll_height > 142`). Clicking opens `ExpandedMessageEditorModal` (`Ctrl+Enter` to send, `Esc` to close).
 - **Local Timezone Conversion**:
   - The backend stores and emits all timestamps in UTC (`time::OffsetDateTime`).
   - In WASM (`crates/ui/src/utils.rs`), `get_local_offset()` retrieves the client browser's local timezone offset via `js_sys::Date::new_0().get_timezone_offset()`.
   - All display times (`MessageItem` timestamps) and calendar day dividers are converted using `to_local_datetime(dt)` before formatting.
 - **Date Dividers**:
-  - Date dividers (`.chat-date-divider`) appear whenever a message's local date differs from the preceding message.
+  - Date dividers (`.chat-date-divider`) appear whenever a message's local date differs from the preceding message (including before the very first message in a channel).
   - Formatted in Russian:
     - Current day: `"Сегодня, 21 сентября"`
     - Previous day: `"Вчера, 20 сентября"`
@@ -218,7 +243,7 @@ crates/ui/src/
 
 ## Testing & Quality Assurance
 
-- **Unit tests**: Inline `#[cfg(test)]` modules (e.g. `crates/core/src/validation.rs`, `crates/src-tauri/src/database.rs`, `crates/ui/src/utils.rs`).
+- **Unit tests**: Inline `#[cfg(test)]` modules (e.g. `crates/core/src/validation.rs`, `crates/src-tauri/src/database.rs`, `crates/ui/src/utils.rs`, `crates/ui/src/components/common/theme.rs`).
 - **Integration & DTO tests**: In `crates/core/tests/` (`core_tests.rs`, `dto_tests.rs`).
 - Verify workspace integrity before pushing:
   ```bash

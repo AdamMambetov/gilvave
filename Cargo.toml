@@ -42,4 +42,11 @@ web-sys = { version = "0.3", features = [
     "AbortController",
     "ReadableStream",
     "Storage",
+    "CssStyleDeclaration",
+    "KeyboardEvent",
+    "HtmlTextAreaElement",
+    "HtmlInputElement",
+    "FileList",
+    "File",
+    "Blob",
 ] }

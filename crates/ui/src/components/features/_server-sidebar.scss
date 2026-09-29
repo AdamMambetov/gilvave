@@ -101,17 +101,21 @@ $pill-triangle-polygon: polygon(
     transform-origin: left center;
     width: 4px;
     height: 0;
-    background: $color-text-white;
+    background: $gradient-pill-hover;
     clip-path: $pill-bar-polygon;
     transition:
         height 0.2s cubic-bezier(0.22, 1, 0.36, 1),
         width 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-        clip-path 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        clip-path 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.25s ease,
+        filter 0.25s ease;
     pointer-events: none;
 
     &.active {
         width: 7.5px;
         height: 18px;
+        background: $gradient-pill-active;
+        filter: $filter-pill-active;
         clip-path: $pill-triangle-polygon;
         animation: pillTriangleWobble 0.58s cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -127,7 +131,7 @@ $pill-triangle-polygon: polygon(
     width: 48px;
     height: 48px;
     border-radius: $radius-lg;
-    background: linear-gradient(135deg, $color-primary, $color-primary-end);
+    background: $gradient-home-btn;
     border: none;
     padding: 0;
     cursor: pointer;
@@ -136,14 +140,14 @@ $pill-triangle-polygon: polygon(
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px $color-black-alpha-35;
 
     &::before {
         content: '';
         position: absolute;
         inset: -2px;
         border-radius: calc(#{$radius-lg} + 2px);
-        background: linear-gradient(135deg, rgba($color-primary, 0.9), rgba($color-primary-end, 0.9), rgba(167, 139, 250, 0.9));
+        background: $gradient-home-btn-ring;
         opacity: 0;
         z-index: 0;
         transition: opacity 0.3s ease;
@@ -151,7 +155,7 @@ $pill-triangle-polygon: polygon(
 
     &:hover {
         transform: scale(1.04);
-        box-shadow: 0 0 0 3px rgba($color-primary, 0.6), 0 0 16px rgba($color-primary, 0.4);
+        box-shadow: $shadow-home-btn-hover;
 
         &::before {
             opacity: 1;
@@ -159,12 +163,13 @@ $pill-triangle-polygon: polygon(
 
         .home-badge {
             transform: scale(1.15) rotate(-6deg);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 10px rgba($color-primary, 0.6);
+            border-color: $color-home-badge-border-hover;
+            box-shadow: $shadow-home-badge-hover;
         }
     }
 
     &.active {
-        box-shadow: 0 0 0 3px $color-primary, 0 0 20px rgba($color-primary, 0.5);
+        box-shadow: $shadow-home-btn-active;
 
         &::before {
             opacity: 1;
@@ -204,15 +209,15 @@ $pill-triangle-polygon: polygon(
         height: 22px;
         border-radius: 50%;
         background: $color-bg-panel-darkest;
-        border: 2px solid $color-primary;
+        border: 2px solid $color-home-badge-border;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 11px;
         line-height: 1;
         z-index: 2;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+        box-shadow: $shadow-home-badge;
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
     }
 }
 
@@ -225,39 +230,45 @@ $pill-triangle-polygon: polygon(
     @include flex-center;
     cursor: pointer;
     // No border-radius change on hover — stays square/rounded-rect
-    transition: box-shadow 0.2s ease, background 0.2s ease;
+    transition: box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
 
     &:has(span) {
-        background: linear-gradient(135deg, $color-primary, $color-primary-end);
+        background: $gradient-server-icon;
     }
 
     &:hover {
-        // Purple glow ring, no shape change
-        box-shadow: 0 0 0 3px $color-primary, 0 0 12px rgba($color-primary, 0.35);
+        box-shadow: $shadow-server-icon-hover;
     }
 
     &.active {
-        box-shadow: 0 0 0 3px $color-primary;
+        box-shadow: $shadow-server-icon-active;
     }
 
-    // "Add server" button — stays square, green highlight, black plus
+    // "Add server" button
     &.new {
-        background: $color-bg-panel;
-        border-radius: $radius-lg; // same square shape as regular icons
-        border: none;
+        background: $color-server-new-bg;
+        border-radius: $radius-lg;
+        border: 1px dashed $color-server-new-border;
         overflow: hidden;
 
         span {
-            color: #000; // black plus icon
+            color: $color-server-new-text;
+            transition: color 0.2s ease, transform 0.2s ease;
         }
 
         &:hover {
-            background: rgba($color-success, 0.2);
-            // Green glow ring
-            box-shadow: 0 0 0 3px $color-success, 0 0 12px rgba($color-success, 0.35);
+            background: $color-server-new-hover-bg;
+            border-style: solid;
+            border-color: $color-server-new-hover-border;
+            box-shadow: $shadow-server-new-hover;
+
+            span {
+                color: $color-server-new-hover-text;
+                transform: scale(1.12);
+            }
         }
     }
 
@@ -278,7 +289,7 @@ $pill-triangle-polygon: polygon(
     }
 }
 
-// Pill indicator and wrapper (active marker on left edge, like Discord)
+// Pill indicator and wrapper (active marker on left edge)
 .server-icon-wrapper {
     position: relative;
     @include flex-center;
@@ -299,17 +310,21 @@ $pill-triangle-polygon: polygon(
     transform-origin: left center;
     width: 4px;
     height: 0;
-    background: $color-text-white;
+    background: $gradient-pill-hover;
     clip-path: $pill-bar-polygon;
     transition:
         height 0.2s cubic-bezier(0.22, 1, 0.36, 1),
         width 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-        clip-path 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        clip-path 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.25s ease,
+        filter 0.25s ease;
     pointer-events: none;
 
     &.active {
         width: 7.5px;
         height: 18px;
+        background: $gradient-pill-active;
+        filter: $filter-pill-active;
         clip-path: $pill-triangle-polygon;
         animation: pillTriangleWobble 0.58s cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -324,7 +339,7 @@ $pill-triangle-polygon: polygon(
 .server-separator {
     width: 32px;
     height: 2px;
-    background: $color-bg-panel;
+    background: $gradient-server-separator;
     border-radius: 1px;
     margin: 4px 0;
     flex-shrink: 0;
@@ -334,7 +349,7 @@ $pill-triangle-polygon: polygon(
 .server-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: $color-black-alpha-60;
     @include flex-center;
     z-index: $z-modal;
     backdrop-filter: blur(4px);
@@ -348,7 +363,7 @@ $pill-triangle-polygon: polygon(
     }
 
     &.large {
-        background: rgba(0, 0, 0, 0.75);
+        background: $color-black-alpha-75;
     }
 }
 
@@ -428,20 +443,20 @@ $pill-triangle-polygon: polygon(
     flex-shrink: 0;
 
     &.create {
-        background: rgba($color-primary, 0.15);
+        background: $color-primary-alpha-15;
         color: $color-primary;
 
         .server-modal-card:hover & {
-            background: rgba($color-primary, 0.25);
+            background: $color-primary-alpha-25;
         }
     }
 
     &.join {
-        background: rgba($color-primary-end, 0.15);
+        background: $color-primary-end-alpha-15;
         color: $color-primary-end;
 
         .server-modal-card:hover & {
-            background: rgba($color-primary-end, 0.25);
+            background: $color-primary-end-alpha-25;
         }
     }
 }
@@ -497,9 +512,9 @@ $pill-triangle-polygon: polygon(
     @include flex-col;
     gap: 6px;
     padding: 12px 14px;
-    background: rgba(0, 0, 0, 0.15);
+    background: $color-black-alpha-15;
     border-radius: $radius-md;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid $color-white-alpha-06;
 
     .checkbox {
         display: flex;
@@ -541,10 +556,10 @@ $pill-triangle-polygon: polygon(
 .toggle-wrapper {
     position: relative;
     width: 100%;
-    background: rgba(0, 0, 0, 0.25);
+    background: $color-black-alpha-25;
     border-radius: $radius-full;
     padding: 6px;
-    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 1px 4px $color-black-alpha-60;
 }
 
 .toggle-tabs {
@@ -563,7 +578,7 @@ $pill-triangle-polygon: polygon(
     border-radius: 40px;
     cursor: pointer;
     transition: color 0.35s ease;
-    color: rgba(255, 255, 255, 0.35);
+    color: $color-white-alpha-35;
     letter-spacing: 0.3px;
     user-select: none;
     position: relative;
@@ -588,18 +603,12 @@ $pill-triangle-polygon: polygon(
     z-index: 1;
     pointer-events: none;
     background: $color-primary-dark;
-    box-shadow:
-        0 0 30px rgba(124, 58, 237, 0.5),
-        0 0 60px rgba(124, 58, 237, 0.2),
-        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    box-shadow: $shadow-floating-private;
 
     &.public {
         left: calc(50%);
         background: $color-primary-blue;
-        box-shadow:
-            0 0 30px rgba(37, 99, 235, 0.6),
-            0 0 70px rgba(37, 99, 235, 0.25),
-            inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        box-shadow: $shadow-floating-public;
     }
 
     &::after {
@@ -636,7 +645,7 @@ $pill-triangle-polygon: polygon(
         @include focus-visible-ring($color-primary);
 
         &:hover {
-            background: darken($color-primary, 8%);
+            background: $color-primary-hover;
             box-shadow: $shadow-submit-hover;
         }
 
@@ -712,18 +721,18 @@ $pill-triangle-polygon: polygon(
     cursor: pointer;
     transition: box-shadow 0.25s ease, max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     max-height: 110px;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: $color-black-alpha-20;
+    border: 1px solid $color-white-alpha-06;
 
     &:hover {
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 20px $color-black-alpha-35;
+        border-color: $color-white-alpha-10;
     }
 
     &.expanded {
         max-height: none;
-        border-color: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        border-color: $color-white-alpha-12;
+        box-shadow: 0 8px 32px $color-black-alpha-50;
     }
 }
 
@@ -760,7 +769,7 @@ $pill-triangle-polygon: polygon(
         left: 0;
         right: 0;
         height: 60%;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+        background: linear-gradient(to top, $color-black-alpha-85, transparent);
         pointer-events: none;
     }
 }
@@ -787,7 +796,7 @@ $pill-triangle-polygon: polygon(
     border-radius: $radius-lg;
     @include flex-center;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px $color-black-alpha-25;
     overflow: hidden;
 
     &:has(span) {
@@ -821,15 +830,15 @@ $pill-triangle-polygon: polygon(
     font-weight: $font-weight-semibold;
     color: $color-text-white;
     @include truncate;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 1px 4px $color-black-alpha-60;
 }
 
 .card-desc-short {
     font-size: $font-size-xs;
-    color: rgba(255, 255, 255, 0.6);
+    color: $color-white-alpha-60;
     @include truncate;
     margin-top: 2px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px 3px $color-black-alpha-50;
 }
 
 .card-expanded-body {
@@ -851,7 +860,7 @@ $pill-triangle-polygon: polygon(
     margin-top: -36px; // half of height to overlap cover
     position: relative;
     z-index: 2;
-    box-shadow: 0 4px 20px rgba(167, 139, 250, 0.5);
+    box-shadow: 0 4px 20px $color-primary-alpha-50;
     overflow: hidden;
     border: 3px solid $color-bg-container;
 
@@ -907,7 +916,7 @@ $pill-triangle-polygon: polygon(
     width: 100%;
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid $color-white-alpha-06;
 }
 
 .card-join-btn {
@@ -926,8 +935,8 @@ $pill-triangle-polygon: polygon(
     @include focus-visible-ring($color-primary);
 
     &:hover {
-        background: darken($color-primary, 8%);
-        box-shadow: 0 4px 16px rgba(167, 139, 250, 0.4);
+        background: $color-primary-hover;
+        box-shadow: 0 4px 16px $color-primary-alpha-40;
     }
 
     &:active {
@@ -940,7 +949,7 @@ $pill-triangle-polygon: polygon(
     justify-content: flex-start;
     padding-top: 16px;
     margin-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid $color-white-alpha-06;
 }
 
 // .back-btn uses .btn-ghost from _button.scss — no extra styles needed here

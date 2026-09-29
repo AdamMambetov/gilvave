@@ -97,12 +97,12 @@
     }
 
     &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: $color-white-alpha-08;
         color: $color-text-white;
     }
 
     &:active {
-        background: rgba(255, 255, 255, 0.16);
+        background: $color-white-alpha-16;
     }
 
     &.close:hover {
@@ -111,7 +111,7 @@
     }
 
     &.close:active {
-        background: darken($color-danger, 10%);
+        background: $color-danger-hover;
         color: $color-text-white;
     }
 }

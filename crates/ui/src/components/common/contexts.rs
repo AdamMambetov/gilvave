@@ -58,6 +58,8 @@ pub enum HomeTab {
     Dashboard,
 }
 
+use super::theme::{AppTheme, CustomTheme};
+
 #[derive(Clone, Copy)]
 pub struct UiModalContext {
     pub is_server_settings_open: Signal<bool>,
@@ -66,5 +68,11 @@ pub struct UiModalContext {
     pub is_profile_settings_open: Signal<bool>,
     pub selected_dm_name: Signal<Option<String>>,
     pub home_tab: Signal<HomeTab>,
+    pub draft_message: Signal<String>,
+    pub is_message_editor_open: Signal<bool>,
+    pub app_theme: Signal<AppTheme>,
+    pub custom_themes: Signal<Vec<CustomTheme>>,
+    pub is_windowed_mode: Signal<bool>,
+    pub is_theme_catalog_open: Signal<bool>,
 }
 

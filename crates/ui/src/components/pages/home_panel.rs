@@ -12,11 +12,13 @@ use crate::{
             classes,
         },
         features::{
-            channels::{channel_panel::ChannelPanel, create_channel_modal::CreateChannelModal},
-            chat::messages_area::MessagesArea,
+            channels::{
+                channel_panel::ChannelPanel, create_channel_modal::CreateChannelModal,
+            },
+            chat::messages_area::{ExpandedMessageEditorModal, MessagesArea},
             home::{home_dashboard::HomeDashboard, home_nav_panel::HomeNavPanel},
             members::members_panel::MembersPanel,
-            profile::profile_settings_modal::ProfileSettingsModal,
+            profile::profile_settings_modal::{ProfileSettingsModal, ThemeCatalogModal},
             servers::{server_settings_modal::ServerSettingsModal, server_sidebar::ServerSidebar},
         },
     },
@@ -39,6 +41,9 @@ pub fn HomePanel() -> View {
     };
     provide_context(user_profile);
 
+    let initial_custom_themes = crate::components::common::CustomTheme::load_all();
+    crate::components::common::CustomTheme::sync_preview_styles(&initial_custom_themes);
+
     let ui_modal_context = UiModalContext {
         is_server_settings_open: create_signal(false),
         is_create_channel_open: create_signal(false),
@@ -46,8 +51,25 @@ pub fn HomePanel() -> View {
         is_profile_settings_open: create_signal(false),
         selected_dm_name: create_signal(None),
         home_tab: create_signal(crate::components::common::HomeTab::Chats),
+        draft_message: create_signal(String::new()),
+        is_message_editor_open: create_signal(false),
+        app_theme: create_signal(crate::components::common::AppTheme::load_saved()),
+        custom_themes: create_signal(initial_custom_themes),
+        is_windowed_mode: create_signal(crate::components::common::load_windowed_mode()),
+        is_theme_catalog_open: create_signal(false),
     };
     provide_context(ui_modal_context);
+
+    create_effect(move || {
+        let theme = ui_modal_context.app_theme.get_clone();
+        let customs = ui_modal_context.custom_themes.get_clone();
+        theme.apply(&customs);
+    });
+
+    create_effect(move || {
+        let windowed = ui_modal_context.is_windowed_mode.get();
+        crate::components::common::save_windowed_mode(windowed);
+    });
 
     let server_context = ServerContext {
         current: create_signal::<Option<Server>>(None),
@@ -120,6 +142,9 @@ pub fn HomePanel() -> View {
     let is_server_settings_open = ui_modal_context.is_server_settings_open;
     let is_create_channel_open = ui_modal_context.is_create_channel_open;
     let is_profile_settings_open = ui_modal_context.is_profile_settings_open;
+    let is_message_editor_open = ui_modal_context.is_message_editor_open;
+    let is_theme_catalog_open = ui_modal_context.is_theme_catalog_open;
+    let is_fullbleed: MaybeDyn<bool> = (move || !ui_modal_context.is_windowed_mode.get()).into();
 
     view! {
         div(
@@ -127,6 +152,7 @@ pub fn HomePanel() -> View {
                 "discord-container".into(),
                 "home-panel-container".into(),
                 ("active", is_home_screen.clone()).into(),
+                ("fullbleed", is_fullbleed.clone()).into(),
             ]),
         ) {
             div(class="discord-sidebar") {
@@ -161,7 +187,18 @@ pub fn HomePanel() -> View {
                     (header_server_view(server_context.current, ui_modal_context))
 
                     div(class="search-bar") {
-                        span { "🔍 Поиск" }
+                        span(class="search-bar-icon") {
+                            svg(viewBox="0 0 24 24") {
+                                circle(cx="11", cy="11", r="7")
+                                line(x1="20", y1="20", x2="16.35", y2="16.35")
+                            }
+                        }
+                        input(
+                            r#type="text",
+                            class="search-bar-input",
+                            placeholder="Поиск...",
+                        )
+                        span(class="search-bar-shortcut") { "Ctrl K" }
                     }
                 }
 
@@ -198,23 +235,33 @@ pub fn HomePanel() -> View {
             } else {
                 view!{}
             })
-
-            (if is_server_settings_open.get() {
-                view! { ServerSettingsModal() }
-            } else {
-                view! {}
-            })
-            (if is_create_channel_open.get() {
-                view! { CreateChannelModal() }
-            } else {
-                view! {}
-            })
-            (if is_profile_settings_open.get() {
-                view! { ProfileSettingsModal() }
-            } else {
-                view! {}
-            })
         }
+
+        (if is_server_settings_open.get() {
+            view! { ServerSettingsModal() }
+        } else {
+            view! {}
+        })
+        (if is_create_channel_open.get() {
+            view! { CreateChannelModal() }
+        } else {
+            view! {}
+        })
+        (if is_profile_settings_open.get() {
+            view! { ProfileSettingsModal() }
+        } else {
+            view! {}
+        })
+        (if is_theme_catalog_open.get() {
+            view! { ThemeCatalogModal() }
+        } else {
+            view! {}
+        })
+        (if is_message_editor_open.get() {
+            view! { ExpandedMessageEditorModal() }
+        } else {
+            view! {}
+        })
     }
 }
 
